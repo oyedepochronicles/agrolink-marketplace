@@ -38,7 +38,7 @@ const Affiliate = () => {
     setSubmitting(true);
     try {
       const user = await registerAffiliate({
-        ...values,
+        ...(values as Required<FormValues>),
         role,
         state: values.state || undefined,
         address: values.address || undefined,

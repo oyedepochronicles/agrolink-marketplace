@@ -30,7 +30,7 @@ const Login = () => {
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true);
     try {
-      const user = await login(values);
+      const user = await login(values as Required<FormValues>);
       toast.success(`Welcome back, ${user.name.split(" ")[0]}`);
       const from = location.state?.from?.pathname;
       const dest = from ?? (user.role === "buyer" ? "/marketplace" : `/dashboard/${user.role}`);

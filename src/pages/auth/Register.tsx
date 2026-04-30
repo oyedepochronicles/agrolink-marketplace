@@ -31,7 +31,7 @@ const Register = () => {
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true);
     try {
-      const user = await registerBuyer({ ...values, phone: values.phone || undefined });
+      const user = await registerBuyer({ ...(values as Required<FormValues>), phone: values.phone || undefined });
       toast.success(`Welcome, ${user.name.split(" ")[0]}!`);
       navigate("/marketplace", { replace: true });
     } catch (err) {
