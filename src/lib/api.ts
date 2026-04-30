@@ -18,9 +18,8 @@ export const api: AxiosInstance = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = getToken();
-  if (token) {
-    config.headers = config.headers ?? {};
-    (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
+  if (token && config.headers) {
+    config.headers.set?.("Authorization", `Bearer ${token}`);
   }
   return config;
 });
