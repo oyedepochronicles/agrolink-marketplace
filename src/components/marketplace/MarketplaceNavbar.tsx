@@ -1,0 +1,181 @@
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Bell, LayoutDashboard, LogOut, Menu, Search, ShoppingBag, User as UserIcon, X } from "lucide-react";
+import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Brand } from "@/components/Brand";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { initials } from "@/lib/format";
+import { cn } from "@/lib/utils";
+
+const navItems = [
+  { to: "/marketplace", label: "Home" },
+  { to: "/marketplace/search", label: "Browse" },
+  { to: "/marketplace/profile", label: "Profile" },
+];
+
+export const MarketplaceNavbar = ({ onSearch }: { onSearch?: (q: string) => void }) => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [q, setQ] = useState("");
+
+  const submitSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSearch) onSearch(q);
+    else navigate(`/marketplace/search?q=${encodeURIComponent(q)}`);
+  };
+
+  return (
+    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-lg">
+      <div className="container flex h-16 items-center gap-4">
+        <Brand />
+
+        <form onSubmit={submitSearch} className="ml-4 hidden flex-1 max-w-xl md:flex">
+          <div className="relative w-full">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search tomatoes, yam, palm oil..."
+              className="h-10 rounded-full border-border bg-secondary pl-10 focus-visible:bg-background"
+            />
+          </div>
+        </form>
+
+        <nav className="ml-auto hidden items-center gap-1 md:flex">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              end={item.to === "/marketplace"}
+              className={({ isActive }) =>
+                cn(
+                  "rounded-full px-4 py-2 text-sm font-medium transition-base hover:text-primary",
+                  isActive ? "bg-secondary text-primary" : "text-foreground/70",
+                )
+              }
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="ml-auto flex items-center gap-2 md:ml-2">
+          <Button variant="ghost" size="icon" className="relative rounded-full" aria-label="Notifications">
+            <Bell className="h-5 w-5" />
+            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary" />
+          </Button>
+
+          {user ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-full p-1 pr-3 transition-base hover:bg-secondary">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+                      {initials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden text-sm font-medium md:inline">{user.name.split(" ")[0]}</span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold">{user.name}</span>
+                    <span className="text-xs text-muted-foreground">{user.email}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => navigate("/marketplace/profile")}>
+                  <UserIcon className="mr-2 h-4 w-4" /> Profile
+                </DropdownMenuItem>
+                {user.role !== "buyer" && (
+                  <DropdownMenuItem onClick={() => navigate(`/dashboard/${user.role}`)}>
+                    <LayoutDashboard className="mr-2 h-4 w-4" /> Back to dashboard
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => navigate("/marketplace/cart")}>
+                  <ShoppingBag className="mr-2 h-4 w-4" /> Cart
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => { logout(); navigate("/login"); }} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <div className="hidden items-center gap-2 md:flex">
+              <Button variant="ghost" onClick={() => navigate("/login")} className="rounded-full">
+                Sign in
+              </Button>
+              <Button onClick={() => navigate("/register")} className="rounded-full bg-gradient-primary shadow-glow">
+                Get started
+              </Button>
+            </div>
+          )}
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMobileOpen((v) => !v)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+        </div>
+      </div>
+
+      {mobileOpen && (
+        <div className="border-t border-border bg-background md:hidden">
+          <div className="container space-y-3 py-4">
+            <form onSubmit={submitSearch} className="relative">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search produce..."
+                className="h-11 rounded-full bg-secondary pl-10"
+              />
+            </form>
+            <div className="flex flex-col gap-1">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.to === "/marketplace"}
+                  onClick={() => setMobileOpen(false)}
+                  className={({ isActive }) =>
+                    cn(
+                      "rounded-lg px-3 py-2 text-sm font-medium",
+                      isActive ? "bg-secondary text-primary" : "text-foreground/80",
+                    )
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+              {!user && (
+                <div className="mt-2 flex gap-2">
+                  <Button variant="outline" className="flex-1 rounded-full" asChild>
+                    <Link to="/login">Sign in</Link>
+                  </Button>
+                  <Button className="flex-1 rounded-full bg-gradient-primary" asChild>
+                    <Link to="/register">Get started</Link>
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};
