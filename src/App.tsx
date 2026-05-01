@@ -24,8 +24,14 @@ import Profile from "./pages/marketplace/Profile";
 
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import FarmerOverview from "./pages/dashboard/FarmerOverview";
-import RiderOverview from "./pages/dashboard/RiderOverview";
+import FarmerProducts from "./pages/dashboard/FarmerProducts";
+import FarmerOrders from "./pages/dashboard/FarmerOrders";
+import RiderDeliveries from "./pages/dashboard/RiderDeliveries";
 import AdminOverview from "./pages/dashboard/AdminOverview";
+import AdminVerifications from "./pages/dashboard/AdminVerifications";
+import AdminUsers from "./pages/dashboard/AdminUsers";
+import AdminProducts from "./pages/dashboard/AdminProducts";
+import ComingSoonWallet from "./pages/dashboard/ComingSoonWallet";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,30 +82,21 @@ const App = () => (
               }
             >
               <Route index element={<Navigate to="/" replace />} />
-              <Route
-                path="farmer"
-                element={
-                  <ProtectedRoute roles={["farmer"]}>
-                    <FarmerOverview />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="rider"
-                element={
-                  <ProtectedRoute roles={["rider"]}>
-                    <RiderOverview />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="admin"
-                element={
-                  <ProtectedRoute roles={["admin"]}>
-                    <AdminOverview />
-                  </ProtectedRoute>
-                }
-              />
+              {/* Farmer */}
+              <Route path="farmer" element={<ProtectedRoute roles={["farmer"]}><FarmerOverview /></ProtectedRoute>} />
+              <Route path="farmer/products" element={<ProtectedRoute roles={["farmer"]}><FarmerProducts /></ProtectedRoute>} />
+              <Route path="farmer/orders" element={<ProtectedRoute roles={["farmer"]}><FarmerOrders /></ProtectedRoute>} />
+              <Route path="farmer/wallet" element={<ProtectedRoute roles={["farmer"]}><ComingSoonWallet /></ProtectedRoute>} />
+
+              {/* Rider */}
+              <Route path="rider" element={<ProtectedRoute roles={["rider"]}><RiderDeliveries /></ProtectedRoute>} />
+              <Route path="rider/earnings" element={<ProtectedRoute roles={["rider"]}><ComingSoonWallet /></ProtectedRoute>} />
+
+              {/* Admin */}
+              <Route path="admin" element={<ProtectedRoute roles={["admin"]}><AdminOverview /></ProtectedRoute>} />
+              <Route path="admin/verifications" element={<ProtectedRoute roles={["admin"]}><AdminVerifications /></ProtectedRoute>} />
+              <Route path="admin/users" element={<ProtectedRoute roles={["admin"]}><AdminUsers /></ProtectedRoute>} />
+              <Route path="admin/products" element={<ProtectedRoute roles={["admin"]}><AdminProducts /></ProtectedRoute>} />
             </Route>
 
             {/* Catch-all */}
