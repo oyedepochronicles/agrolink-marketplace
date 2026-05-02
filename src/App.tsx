@@ -32,6 +32,7 @@ import AdminVerifications from "./pages/dashboard/AdminVerifications";
 import AdminUsers from "./pages/dashboard/AdminUsers";
 import AdminProducts from "./pages/dashboard/AdminProducts";
 import ComingSoonWallet from "./pages/dashboard/ComingSoonWallet";
+import Messages from "./pages/Messages";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -63,6 +64,14 @@ const App = () => (
               <Route path="product/:id" element={<ProductDetails />} />
               <Route path="cart" element={<Cart />} />
               <Route
+                path="messages"
+                element={
+                  <ProtectedRoute>
+                    <Messages variant="marketplace" />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="profile"
                 element={
                   <ProtectedRoute>
@@ -86,10 +95,12 @@ const App = () => (
               <Route path="farmer" element={<ProtectedRoute roles={["farmer"]}><FarmerOverview /></ProtectedRoute>} />
               <Route path="farmer/products" element={<ProtectedRoute roles={["farmer"]}><FarmerProducts /></ProtectedRoute>} />
               <Route path="farmer/orders" element={<ProtectedRoute roles={["farmer"]}><FarmerOrders /></ProtectedRoute>} />
+              <Route path="farmer/messages" element={<ProtectedRoute roles={["farmer"]}><Messages /></ProtectedRoute>} />
               <Route path="farmer/wallet" element={<ProtectedRoute roles={["farmer"]}><ComingSoonWallet /></ProtectedRoute>} />
 
               {/* Rider */}
               <Route path="rider" element={<ProtectedRoute roles={["rider"]}><RiderDeliveries /></ProtectedRoute>} />
+              <Route path="rider/messages" element={<ProtectedRoute roles={["rider"]}><Messages /></ProtectedRoute>} />
               <Route path="rider/earnings" element={<ProtectedRoute roles={["rider"]}><ComingSoonWallet /></ProtectedRoute>} />
 
               {/* Admin */}
@@ -97,6 +108,7 @@ const App = () => (
               <Route path="admin/verifications" element={<ProtectedRoute roles={["admin"]}><AdminVerifications /></ProtectedRoute>} />
               <Route path="admin/users" element={<ProtectedRoute roles={["admin"]}><AdminUsers /></ProtectedRoute>} />
               <Route path="admin/products" element={<ProtectedRoute roles={["admin"]}><AdminProducts /></ProtectedRoute>} />
+              <Route path="admin/messages" element={<ProtectedRoute roles={["admin"]}><Messages /></ProtectedRoute>} />
             </Route>
 
             {/* Catch-all */}

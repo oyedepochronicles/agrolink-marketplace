@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 const navItems = [
   { to: "/marketplace", label: "Home" },
   { to: "/marketplace/search", label: "Browse" },
+  { to: "/marketplace/messages", label: "Messages" },
   { to: "/marketplace/profile", label: "Profile" },
 ];
 

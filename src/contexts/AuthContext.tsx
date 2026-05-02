@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api, clearToken, getToken, setToken } from "@/lib/api";
+import { disconnectSocket, getSocket } from "@/lib/socket";
 import type { Role, User } from "@/types";
 
 interface LoginInput { email: string; password: string }
@@ -44,6 +45,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
+  // Manage socket connection alongside auth state
+  useEffect(() => {
+    if (user) getSocket();
+    else disconnectSocket();
+  }, [user]);
+
   const handleAuthResponse = (payload: { token?: string; user?: User } | User): User => {
     const token = (payload as { token?: string }).token;
     const u = (payload as { user?: User }).user ?? (payload as User);
@@ -69,6 +76,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     clearToken();
+    disconnectSocket();
     setUser(null);
   };
 

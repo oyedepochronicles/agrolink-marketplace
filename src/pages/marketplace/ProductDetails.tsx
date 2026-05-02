@@ -82,7 +82,7 @@ const ProductDetails = () => {
         productId: product._id ?? product.id,
       });
       const cid = (data as { _id?: string; id?: string })._id ?? (data as { id?: string }).id;
-      navigate(`/marketplace/profile?conversation=${cid ?? ""}`);
+      navigate(`/marketplace/messages${cid ? `?conversation=${cid}` : ""}`);
     } catch (err) {
       toast.error(apiErrorMessage(err));
     }
