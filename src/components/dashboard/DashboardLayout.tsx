@@ -8,6 +8,7 @@ import { Brand } from "@/components/Brand";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { NotificationsBell } from "@/components/NotificationsBell";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
@@ -97,6 +98,7 @@ export const DashboardLayout = () => {
             )}
           </div>
           <div className="ml-auto flex items-center gap-3">
+            <NotificationsBell variant="light" />
             <div className="flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1.5 pr-3">
               <Avatar className="h-7 w-7">
                 <AvatarImage src={user.avatar} alt={user.name} />
