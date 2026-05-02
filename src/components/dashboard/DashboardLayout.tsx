@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
-  BarChart3, Box, ClipboardList, LayoutDashboard, LogOut,
+  BarChart3, Box, ClipboardList, LayoutDashboard, LogOut, MessageSquare,
   PackageCheck, ShieldCheck, ShoppingCart, Truck, Users, Wallet,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -19,10 +19,12 @@ const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
     { to: "/dashboard/farmer", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
     { to: "/dashboard/farmer/products", label: "Products", icon: <Box className="h-4 w-4" /> },
     { to: "/dashboard/farmer/orders", label: "Orders", icon: <ShoppingCart className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> },
     { to: "/dashboard/farmer/wallet", label: "Wallet", icon: <Wallet className="h-4 w-4" /> },
   ],
   rider: [
     { to: "/dashboard/rider", label: "Deliveries", icon: <Truck className="h-4 w-4" /> },
+    { to: "/dashboard/rider/messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> },
     { to: "/dashboard/rider/earnings", label: "Earnings", icon: <Wallet className="h-4 w-4" /> },
   ],
   admin: [
@@ -30,6 +32,7 @@ const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
     { to: "/dashboard/admin/verifications", label: "Verifications", icon: <ShieldCheck className="h-4 w-4" /> },
     { to: "/dashboard/admin/users", label: "Users", icon: <Users className="h-4 w-4" /> },
     { to: "/dashboard/admin/products", label: "Products", icon: <PackageCheck className="h-4 w-4" /> },
+    { to: "/dashboard/admin/messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> },
   ],
 };
 

@@ -32,6 +32,7 @@ import AdminVerifications from "./pages/dashboard/AdminVerifications";
 import AdminUsers from "./pages/dashboard/AdminUsers";
 import AdminProducts from "./pages/dashboard/AdminProducts";
 import ComingSoonWallet from "./pages/dashboard/ComingSoonWallet";
+import Messages from "./pages/Messages";
 
 const queryClient = new QueryClient({
   defaultOptions: {
