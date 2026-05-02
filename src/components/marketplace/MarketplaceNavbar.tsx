@@ -1,5 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Bell, LayoutDashboard, LogOut, Menu, Search, ShoppingBag, User as UserIcon, X } from "lucide-react";
+import { LayoutDashboard, LogOut, Menu, Search, ShoppingBag, User as UserIcon, X } from "lucide-react";
+import { NotificationsBell } from "@/components/NotificationsBell";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Brand } from "@/components/Brand";
@@ -68,10 +69,7 @@ export const MarketplaceNavbar = ({ onSearch }: { onSearch?: (q: string) => void
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:ml-2">
-          <Button variant="ghost" size="icon" className="relative rounded-full" aria-label="Notifications">
-            <Bell className="h-5 w-5" />
-            <span className="absolute right-2 top-2 h-1.5 w-1.5 rounded-full bg-primary" />
-          </Button>
+          {user && <NotificationsBell />}
 
           {user ? (
             <DropdownMenu>
