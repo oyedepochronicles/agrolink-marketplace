@@ -8,7 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const CATEGORIES = ["all", "vegetables", "fruits", "grains", "tubers", "livestock", "dairy", "spices"];
+const CATEGORIES = [
+  { label: "All categories", value: "all" },
+  { label: "Vegetables", value: "Vegetable" },
+  { label: "Fruits", value: "Fruit" },
+  { label: "Grains", value: "Grain" },
+  { label: "Tubers", value: "Tuber" },
+  { label: "Livestock", value: "Other" },
+  { label: "Dairy", value: "Other" },
+  { label: "Spices", value: "Other" },
+];
 const STATES = ["all", "Lagos", "Oyo", "Kano", "Rivers", "Kaduna", "Plateau", "Enugu", "Ogun", "Anambra", "Edo"];
 
 const MarketplaceSearch = () => {
@@ -16,6 +25,7 @@ const MarketplaceSearch = () => {
   const [q, setQ] = useState(params.get("q") ?? "");
   const [category, setCategory] = useState(params.get("category") ?? "all");
   const [state, setState] = useState(params.get("state") ?? "all");
+  const [minPrice, setMinPrice] = useState(params.get("minPrice") ?? "");
   const [maxPrice, setMaxPrice] = useState(params.get("maxPrice") ?? "");
 
   useEffect(() => {
@@ -23,16 +33,18 @@ const MarketplaceSearch = () => {
     if (q) p.set("q", q);
     if (category !== "all") p.set("category", category);
     if (state !== "all") p.set("state", state);
+    if (minPrice) p.set("minPrice", minPrice);
     if (maxPrice) p.set("maxPrice", maxPrice);
     setParams(p, { replace: true });
-  }, [q, category, state, maxPrice, setParams]);
+  }, [q, category, state, minPrice, maxPrice, setParams]);
 
   const filters = useMemo(() => ({
     q: q || undefined,
     category: category !== "all" ? category : undefined,
     state: state !== "all" ? state : undefined,
+    minPrice: minPrice ? Number(minPrice) : undefined,
     maxPrice: maxPrice ? Number(maxPrice) : undefined,
-  }), [q, category, state, maxPrice]);
+  }), [q, category, state, minPrice, maxPrice]);
 
   const { data: products, isLoading, isError } = useProducts(filters);
 
@@ -68,11 +80,11 @@ const MarketplaceSearch = () => {
         <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
           <SlidersHorizontal className="h-4 w-4" /> Filters
         </div>
-        <div className="grid flex-1 gap-3 md:grid-cols-3">
+        <div className="grid flex-1 gap-3 md:grid-cols-4">
           <Select value={category} onValueChange={setCategory}>
             <SelectTrigger><SelectValue placeholder="Category" /></SelectTrigger>
             <SelectContent>
-              {CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c === "all" ? "All categories" : c[0].toUpperCase() + c.slice(1)}</SelectItem>)}
+              {CATEGORIES.map((c, index) => <SelectItem key={`${c.value}-${index}`} value={c.value}>{c.label}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={state} onValueChange={setState}>
@@ -84,6 +96,13 @@ const MarketplaceSearch = () => {
           <Input
             type="number"
             inputMode="numeric"
+            placeholder="Min price"
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
+          />
+          <Input
+            type="number"
+            inputMode="numeric"
             placeholder="Max price (₦)"
             value={maxPrice}
             onChange={(e) => setMaxPrice(e.target.value)}
@@ -91,7 +110,7 @@ const MarketplaceSearch = () => {
         </div>
         <Button
           variant="ghost"
-          onClick={() => { setQ(""); setCategory("all"); setState("all"); setMaxPrice(""); }}
+          onClick={() => { setQ(""); setCategory("all"); setState("all"); setMinPrice(""); setMaxPrice(""); }}
           className="rounded-full"
         >
           Clear

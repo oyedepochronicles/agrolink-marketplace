@@ -1,39 +1,108 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import {
-  BarChart3, Box, ClipboardList, LayoutDashboard, LogOut, MessageSquare,
-  PackageCheck, ShieldCheck, ShoppingCart, Truck, Users, Wallet,
-} from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
 import { Brand } from "@/components/Brand";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { NotificationsBell } from "@/components/NotificationsBell";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
+import {
+  BarChart3,
+  Box,
+  ClipboardList,
+  LayoutDashboard,
+  LogOut,
+  MessageSquare,
+  PackageCheck,
+  ShieldCheck,
+  ShoppingCart,
+  Truck,
+  Users,
+  Wallet,
+} from "lucide-react";
+import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
-interface NavEntry { to: string; label: string; icon: React.ReactNode }
+interface NavEntry {
+  to: string;
+  label: string;
+  icon: React.ReactNode;
+}
 
-const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
+const NAV_BY_ROLE: Record<
+  Exclude<Role, "buyer" | "super_admin">,
+  NavEntry[]
+> = {
   farmer: [
-    { to: "/dashboard/farmer", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/products", label: "Products", icon: <Box className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/orders", label: "Orders", icon: <ShoppingCart className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/wallet", label: "Wallet", icon: <Wallet className="h-4 w-4" /> },
+    {
+      to: "/dashboard/farmer",
+      label: "Overview",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/products",
+      label: "Products",
+      icon: <Box className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/orders",
+      label: "Orders",
+      icon: <ShoppingCart className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/messages",
+      label: "Messages",
+      icon: <MessageSquare className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/wallet",
+      label: "Wallet",
+      icon: <Wallet className="h-4 w-4" />,
+    },
   ],
   rider: [
-    { to: "/dashboard/rider", label: "Deliveries", icon: <Truck className="h-4 w-4" /> },
-    { to: "/dashboard/rider/messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> },
-    { to: "/dashboard/rider/earnings", label: "Earnings", icon: <Wallet className="h-4 w-4" /> },
+    {
+      to: "/dashboard/rider",
+      label: "Deliveries",
+      icon: <Truck className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/rider/messages",
+      label: "Messages",
+      icon: <MessageSquare className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/rider/earnings",
+      label: "Earnings",
+      icon: <Wallet className="h-4 w-4" />,
+    },
   ],
   admin: [
-    { to: "/dashboard/admin", label: "Overview", icon: <BarChart3 className="h-4 w-4" /> },
-    { to: "/dashboard/admin/verifications", label: "Verifications", icon: <ShieldCheck className="h-4 w-4" /> },
-    { to: "/dashboard/admin/users", label: "Users", icon: <Users className="h-4 w-4" /> },
-    { to: "/dashboard/admin/products", label: "Products", icon: <PackageCheck className="h-4 w-4" /> },
-    { to: "/dashboard/admin/messages", label: "Messages", icon: <MessageSquare className="h-4 w-4" /> },
+    {
+      to: "/dashboard/admin",
+      label: "Overview",
+      icon: <BarChart3 className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/verifications",
+      label: "Verifications",
+      icon: <ShieldCheck className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/users",
+      label: "Users",
+      icon: <Users className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/products",
+      label: "Products",
+      icon: <PackageCheck className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/messages",
+      label: "Messages",
+      icon: <MessageSquare className="h-4 w-4" />,
+    },
   ],
 };
 
@@ -48,7 +117,10 @@ export const DashboardLayout = () => {
       {/* Sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex">
         <div className="px-6 py-6">
-          <Brand variant="light" to={`/dashboard/${user.role}`} />
+          <Brand
+            variant="light"
+            to={`/dashboard/${user.role === "super_admin" ? "admin" : user.role}`}
+          />
         </div>
         <nav className="flex-1 space-y-1 px-3">
           {items.map((item) => (
@@ -92,7 +164,10 @@ export const DashboardLayout = () => {
               {user.role} dashboard
             </h1>
             {user.verificationStatus === "pending" && (
-              <Badge variant="outline" className="mt-0.5 border-warning/40 bg-warning/10 text-warning-foreground">
+              <Badge
+                variant="outline"
+                className="mt-0.5 border-warning/40 bg-warning/10 text-warning-foreground"
+              >
                 Verification pending
               </Badge>
             )}
@@ -102,11 +177,23 @@ export const DashboardLayout = () => {
             <div className="flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1.5 pr-3">
               <Avatar className="h-7 w-7">
                 <AvatarImage src={user.avatar} alt={user.name} />
-                <AvatarFallback className="bg-primary/10 text-xs text-primary">{initials(user.name)}</AvatarFallback>
+                <AvatarFallback className="bg-primary/10 text-xs text-primary">
+                  {initials(user.name)}
+                </AvatarFallback>
               </Avatar>
-              <span className="hidden text-sm font-medium md:inline">{user.name.split(" ")[0]}</span>
+              <span className="hidden text-sm font-medium md:inline">
+                {user.name.split(" ")[0]}
+              </span>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => { logout(); navigate("/login"); }} aria-label="Sign out">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => {
+                logout();
+                navigate("/login");
+              }}
+              aria-label="Sign out"
+            >
               <LogOut className="h-4 w-4" />
             </Button>
           </div>

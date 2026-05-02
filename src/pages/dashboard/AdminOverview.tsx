@@ -1,26 +1,53 @@
-import { Card } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { ArrowUpRight, BarChart3, Package, ShieldCheck, Users } from "lucide-react";
-import { useAdminStats, useAdminVerifications } from "@/hooks/useAdmin";
-import { formatNaira } from "@/lib/format";
+import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis } from "recharts";
+import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { useAdminVerifications } from "@/hooks/useAdmin";
+import { useDashboardAnalytics } from "@/hooks/useDashboardAnalytics";
+import { formatNaira } from "@/lib/format";
 
 const AdminOverview = () => {
-  const { data: stats = {} } = useAdminStats();
+  const { data: analytics } = useDashboardAnalytics();
   const { data: pending = [] } = useAdminVerifications();
-
-  const num = (key: string) => (typeof stats[key] === "number" ? String(stats[key]) : "—");
-  const money = (key: string) => (typeof stats[key] === "number" ? formatNaira(stats[key] as number) : "₦ —");
+  const cards = analytics?.cards ?? {};
+  const charts = analytics?.charts ?? {};
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Platform overview" description="Monitor verifications, users, and platform health." />
+      <PageHeader title="Platform overview" description="Monitor verifications, users, sales, and marketplace health." />
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Stat icon={<ShieldCheck className="h-4 w-4" />} label="Pending verifications" value={String(pending.length || num("pendingVerifications"))} to="/dashboard/admin/verifications" />
-        <Stat icon={<Users className="h-4 w-4" />} label="Total users" value={num("totalUsers")} to="/dashboard/admin/users" />
-        <Stat icon={<Package className="h-4 w-4" />} label="Listings" value={num("totalProducts")} to="/dashboard/admin/products" />
-        <Stat icon={<BarChart3 className="h-4 w-4" />} label="GMV (30d)" value={money("gmv30d")} />
+        <Stat icon={<ShieldCheck className="h-4 w-4" />} label="Pending verifications" value={String(pending.length || cards.pendingVerifications || "-")} to="/dashboard/admin/verifications" />
+        <Stat icon={<Users className="h-4 w-4" />} label="Total users" value={String(cards.totalUsers ?? "-")} to="/dashboard/admin/users" />
+        <Stat icon={<Package className="h-4 w-4" />} label="Listings" value={String(cards.totalProducts ?? "-")} to="/dashboard/admin/products" />
+        <Stat icon={<BarChart3 className="h-4 w-4" />} label="GMV (30d)" value={formatNaira(cards.gmv30d ?? 0)} />
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
+        <Card className="rounded-2xl p-5 shadow-card">
+          <h3 className="font-semibold">GMV trend</h3>
+          <ChartContainer config={{ revenue: { label: "GMV", color: "hsl(var(--primary))" } }} className="mt-4 h-64">
+            <LineChart data={charts.salesTrend ?? []}>
+              <CartesianGrid vertical={false} />
+              <XAxis dataKey="date" tickLine={false} axisLine={false} tickMargin={8} />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Line type="monotone" dataKey="revenue" stroke="var(--color-revenue)" strokeWidth={2} dot={false} />
+            </LineChart>
+          </ChartContainer>
+        </Card>
+        <Card className="rounded-2xl p-5 shadow-card">
+          <h3 className="font-semibold">Users by role</h3>
+          <ChartContainer config={{ total: { label: "Users", color: "hsl(var(--accent))" } }} className="mt-4 h-64">
+            <BarChart data={charts.roleCounts ?? []}>
+              <CartesianGrid vertical={false} />
+              <XAxis dataKey="role" tickLine={false} axisLine={false} tickMargin={8} />
+              <ChartTooltip content={<ChartTooltipContent />} />
+              <Bar dataKey="total" fill="var(--color-total)" radius={6} />
+            </BarChart>
+          </ChartContainer>
+        </Card>
       </div>
 
       <Card className="rounded-2xl p-6">
