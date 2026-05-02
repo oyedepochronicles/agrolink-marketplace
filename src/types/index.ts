@@ -1,6 +1,6 @@
 // PhyhanAgro shared TypeScript types
 
-export type Role = "buyer" | "farmer" | "rider" | "admin";
+export type Role = "buyer" | "farmer" | "rider" | "admin" | "super_admin";
 export type VerificationStatus = "pending" | "approved" | "rejected";
 
 export interface User {

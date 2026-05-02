@@ -7,12 +7,21 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import heroImage from "@/assets/marketplace-hero.jpg";
 
-const categories = ["All", "Vegetables", "Fruits", "Grains", "Tubers", "Livestock", "Dairy", "Spices"];
+const categories = [
+  { label: "All", value: "All" },
+  { label: "Vegetables", value: "Vegetable" },
+  { label: "Fruits", value: "Fruit" },
+  { label: "Grains", value: "Grain" },
+  { label: "Tubers", value: "Tuber" },
+  { label: "Livestock", value: "Other" },
+  { label: "Dairy", value: "Other" },
+  { label: "Spices", value: "Other" },
+];
 
 const MarketplaceHome = () => {
   const [activeCat, setActiveCat] = useState("All");
   const { data: products, isLoading, isError } = useProducts(
-    activeCat === "All" ? {} : { category: activeCat.toLowerCase() },
+    activeCat === "All" ? {} : { category: activeCat },
   );
 
   const featured = useMemo(() => products?.slice(0, 8) ?? [], [products]);
@@ -80,16 +89,16 @@ const MarketplaceHome = () => {
         <div className="-mx-2 flex gap-2 overflow-x-auto px-2 pb-2 scrollbar-thin">
           {categories.map((cat) => (
             <button
-              key={cat}
-              onClick={() => setActiveCat(cat)}
+              key={cat.label}
+              onClick={() => setActiveCat(cat.value)}
               className={
                 "shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-base " +
-                (activeCat === cat
+                (activeCat === cat.value
                   ? "border-primary bg-gradient-primary text-white shadow-card"
                   : "border-border bg-background hover:border-primary/40 hover:text-primary")
               }
             >
-              {cat}
+              {cat.label}
             </button>
           ))}
         </div>

@@ -1,6 +1,6 @@
-import { Navigate } from "react-router-dom";
-import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Loader2 } from "lucide-react";
+import { Navigate } from "react-router-dom";
 
 const Index = () => {
   const { user, loading } = useAuth();
@@ -13,7 +13,12 @@ const Index = () => {
   }
   if (!user) return <Navigate to="/marketplace" replace />;
   if (user.role === "buyer") return <Navigate to="/marketplace" replace />;
-  return <Navigate to={`/dashboard/${user.role}`} replace />;
+  return (
+    <Navigate
+      to={`/dashboard/${user.role === "super_admin" ? "admin" : user.role}`}
+      replace
+    />
+  );
 };
 
 export default Index;
