@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api, clearToken, getToken, setToken } from "@/lib/api";
+import { disconnectSocket, getSocket } from "@/lib/socket";
 import type { Role, User } from "@/types";
 
 interface LoginInput { email: string; password: string }
