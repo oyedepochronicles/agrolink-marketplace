@@ -175,13 +175,18 @@ const ProductDetails = () => {
                 </div>
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="address">Delivery address</Label>
-              <Textarea id="address" rows={2} placeholder="Street, area, state" value={address} onChange={(e) => setAddress(e.target.value)} />
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Button variant="outline" onClick={() => addToCart(false)} className="h-11 rounded-full text-base font-semibold">
+                <Plus className="mr-2 h-4 w-4" /> Add to cart
+              </Button>
+              <Button onClick={buyNow} disabled={placing} className="h-11 rounded-full bg-gradient-primary text-base font-semibold shadow-glow">
+                <Zap className="mr-2 h-4 w-4" /> {placing ? "..." : "Pay now"}
+              </Button>
             </div>
-            <Button onClick={placeOrder} disabled={placing} className="h-11 w-full rounded-full bg-gradient-primary text-base font-semibold shadow-glow">
-              <ShoppingBag className="mr-2 h-4 w-4" /> {placing ? "Processing..." : "Order now"}
-            </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              <ShoppingBag className="mr-1 inline h-3 w-3" />
+              Choose delivery address & method at checkout
+            </p>
           </div>
         </div>
       </div>
