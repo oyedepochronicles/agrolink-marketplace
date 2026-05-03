@@ -17,10 +17,10 @@ const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { add } = useCart();
   const { data: product, isLoading, isError } = useProduct(id);
   const [activeImg, setActiveImg] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [address, setAddress] = useState("");
   const [placing, setPlacing] = useState(false);
 
   if (isLoading) {
