@@ -132,7 +132,7 @@ const App = () => (
                 path="farmer/wallet"
                 element={
                   <ProtectedRoute roles={["farmer"]}>
-                    <ComingSoonWallet />
+                    <Wallet />
                   </ProtectedRoute>
                 }
               />
@@ -158,7 +158,7 @@ const App = () => (
                 path="rider/earnings"
                 element={
                   <ProtectedRoute roles={["rider"]}>
-                    <ComingSoonWallet />
+                    <Wallet />
                   </ProtectedRoute>
                 }
               />
