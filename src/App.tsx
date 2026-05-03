@@ -197,6 +197,22 @@ const App = () => (
                 }
               />
               <Route
+                path="admin/payouts"
+                element={
+                  <ProtectedRoute roles={["admin"]}>
+                    <AdminPayouts />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="admin/analytics"
+                element={
+                  <ProtectedRoute roles={["admin"]}>
+                    <AdminAnalytics />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="admin/messages"
                 element={
                   <ProtectedRoute roles={["admin"]}>
