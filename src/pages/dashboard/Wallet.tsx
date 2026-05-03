@@ -69,7 +69,7 @@ const Wallet = () => {
                     <TableRow key={t._id}>
                       <TableCell className="whitespace-nowrap">{formatDate(t.createdAt)}</TableCell>
                       <TableCell className="text-sm">{t.description ?? t.reference ?? "—"}</TableCell>
-                      <TableCell><StatusBadge status={t.type} /></TableCell>
+                      <TableCell><Badge variant="outline" className="capitalize">{t.type}</Badge></TableCell>
                       <TableCell className={`text-right font-semibold ${t.type === "credit" ? "text-primary" : "text-foreground"}`}>
                         {t.type === "credit" ? "+" : "-"}{formatNaira(t.amount)}
                       </TableCell>
@@ -102,7 +102,7 @@ const Wallet = () => {
                       <TableCell className="text-sm">
                         {p.bankAccount?.bankName} • {p.bankAccount?.accountNumber}
                       </TableCell>
-                      <TableCell><StatusBadge status={p.status} /></TableCell>
+                      <TableCell><Badge variant="outline" className="capitalize">{p.status}</Badge></TableCell>
                       <TableCell className="text-right font-semibold">{formatNaira(p.amount)}</TableCell>
                     </TableRow>
                   ))}
