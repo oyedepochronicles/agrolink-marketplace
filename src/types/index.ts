@@ -80,6 +80,43 @@ export interface Notification {
   createdAt: string;
 }
 
+export type WalletTxType = "credit" | "debit" | "payout" | "refund";
+export type PayoutStatus = "pending" | "processing" | "paid" | "rejected";
+
+export interface WalletTransaction {
+  _id: string;
+  type: WalletTxType;
+  amount: number;
+  description?: string;
+  reference?: string;
+  status?: string;
+  createdAt: string;
+}
+
+export interface WalletSummary {
+  balance: number;
+  pending: number;
+  lifetimeEarnings: number;
+  lifetimePayouts: number;
+}
+
+export interface BankAccount {
+  bankName: string;
+  accountNumber: string;
+  accountName: string;
+}
+
+export interface PayoutRequest {
+  _id: string;
+  user?: Pick<User, "_id" | "name" | "email" | "role">;
+  amount: number;
+  status: PayoutStatus;
+  bankAccount?: BankAccount;
+  note?: string;
+  createdAt: string;
+  processedAt?: string;
+}
+
 export interface Paginated<T> {
   items: T[];
   total: number;
