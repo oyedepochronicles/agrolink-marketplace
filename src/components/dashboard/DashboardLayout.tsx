@@ -9,9 +9,11 @@ import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
 import {
   BarChart3,
+  Banknote,
   Box,
   ClipboardList,
   LayoutDashboard,
+  LineChart,
   LogOut,
   MessageSquare,
   PackageCheck,
@@ -97,6 +99,16 @@ const NAV_BY_ROLE: Record<
       to: "/dashboard/admin/products",
       label: "Products",
       icon: <PackageCheck className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/payouts",
+      label: "Payouts",
+      icon: <Banknote className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/analytics",
+      label: "Analytics",
+      icon: <LineChart className="h-4 w-4" />,
     },
     {
       to: "/dashboard/admin/messages",
