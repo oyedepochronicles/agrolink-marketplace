@@ -17,6 +17,7 @@ import ResetPassword from "./pages/auth/ResetPassword";
 
 import { MarketplaceLayout } from "@/components/marketplace/MarketplaceLayout";
 import Cart from "./pages/marketplace/Cart";
+import Checkout from "./pages/marketplace/Checkout";
 import MarketplaceHome from "./pages/marketplace/MarketplaceHome";
 import MarketplaceSearch from "./pages/marketplace/MarketplaceSearch";
 import ProductDetails from "./pages/marketplace/ProductDetails";
@@ -65,6 +66,14 @@ const App = () => (
               <Route path="search" element={<MarketplaceSearch />} />
               <Route path="product/:id" element={<ProductDetails />} />
               <Route path="cart" element={<Cart />} />
+              <Route
+                path="checkout"
+                element={
+                  <ProtectedRoute>
+                    <Checkout />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="messages"
                 element={
