@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, MapPin, MessageCircle, ShieldCheck, ShoppingBag } from "lucide-react";
+import { ChevronLeft, MapPin, MessageCircle, Plus, ShieldCheck, ShoppingBag, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { useProduct } from "@/hooks/useProducts";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, apiErrorMessage } from "@/lib/api";
 import { formatNaira, initials } from "@/lib/format";
+import { useCart } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
@@ -17,10 +17,10 @@ const ProductDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { add } = useCart();
   const { data: product, isLoading, isError } = useProduct(id);
   const [activeImg, setActiveImg] = useState(0);
   const [quantity, setQuantity] = useState(1);
-  const [address, setAddress] = useState("");
   const [placing, setPlacing] = useState(false);
 
   if (isLoading) {
@@ -51,22 +51,24 @@ const ProductDetails = () => {
   const images = product.images?.length ? product.images : ["/placeholder.svg"];
   const total = product.price * quantity;
 
-  const placeOrder = async () => {
+  const addToCart = (goCheckout = false) => {
     if (!user) { navigate("/login"); return; }
-    if (!address.trim()) { toast.error("Enter a delivery address"); return; }
+    add(product, quantity);
+    if (goCheckout) {
+      navigate("/marketplace/checkout");
+    } else {
+      toast.success(`${product.title} added to cart`, {
+        action: { label: "View cart", onClick: () => navigate("/marketplace/cart") },
+      });
+    }
+  };
+
+  const buyNow = async () => {
+    if (!user) { navigate("/login"); return; }
     setPlacing(true);
     try {
-      const { data: order } = await api.post("/orders", {
-        productId: product._id ?? product.id,
-        quantity,
-        deliveryAddress: address,
-      });
-      const orderId = (order as { _id?: string; id?: string })._id ?? (order as { id?: string }).id;
-      const { data: payment } = await api.post("/payments/initialize", { orderId });
-      const url = (payment as { authorization_url?: string; url?: string }).authorization_url
-        ?? (payment as { url?: string }).url;
-      if (url) window.location.href = url;
-      else toast.success("Order placed. Awaiting payment.");
+      add(product, quantity);
+      navigate("/marketplace/checkout");
     } catch (err) {
       toast.error(apiErrorMessage(err));
     } finally {
@@ -173,13 +175,18 @@ const ProductDetails = () => {
                 </div>
               </div>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="address">Delivery address</Label>
-              <Textarea id="address" rows={2} placeholder="Street, area, state" value={address} onChange={(e) => setAddress(e.target.value)} />
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Button variant="outline" onClick={() => addToCart(false)} className="h-11 rounded-full text-base font-semibold">
+                <Plus className="mr-2 h-4 w-4" /> Add to cart
+              </Button>
+              <Button onClick={buyNow} disabled={placing} className="h-11 rounded-full bg-gradient-primary text-base font-semibold shadow-glow">
+                <Zap className="mr-2 h-4 w-4" /> {placing ? "..." : "Pay now"}
+              </Button>
             </div>
-            <Button onClick={placeOrder} disabled={placing} className="h-11 w-full rounded-full bg-gradient-primary text-base font-semibold shadow-glow">
-              <ShoppingBag className="mr-2 h-4 w-4" /> {placing ? "Processing..." : "Order now"}
-            </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              <ShoppingBag className="mr-1 inline h-3 w-3" />
+              Choose delivery address & method at checkout
+            </p>
           </div>
         </div>
       </div>
