@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, MapPin, MessageCircle, ShieldCheck, ShoppingBag } from "lucide-react";
+import { ChevronLeft, MapPin, MessageCircle, Plus, ShieldCheck, ShoppingBag, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { useProduct } from "@/hooks/useProducts";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, apiErrorMessage } from "@/lib/api";
 import { formatNaira, initials } from "@/lib/format";
+import { useCart } from "@/hooks/useCart";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
