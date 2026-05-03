@@ -23,15 +23,17 @@ import ProductDetails from "./pages/marketplace/ProductDetails";
 import Profile from "./pages/marketplace/Profile";
 
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
+import AdminAnalytics from "./pages/dashboard/AdminAnalytics";
 import AdminOverview from "./pages/dashboard/AdminOverview";
+import AdminPayouts from "./pages/dashboard/AdminPayouts";
 import AdminProducts from "./pages/dashboard/AdminProducts";
 import AdminUsers from "./pages/dashboard/AdminUsers";
 import AdminVerifications from "./pages/dashboard/AdminVerifications";
-import ComingSoonWallet from "./pages/dashboard/ComingSoonWallet";
 import FarmerOrders from "./pages/dashboard/FarmerOrders";
 import FarmerOverview from "./pages/dashboard/FarmerOverview";
 import FarmerProducts from "./pages/dashboard/FarmerProducts";
 import RiderDeliveries from "./pages/dashboard/RiderDeliveries";
+import Wallet from "./pages/dashboard/Wallet";
 import Messages from "./pages/Messages";
 
 const queryClient = new QueryClient({
