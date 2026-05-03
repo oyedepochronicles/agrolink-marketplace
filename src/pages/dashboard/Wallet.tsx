@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { EmptyState } from "@/components/dashboard/EmptyState";
-import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { Badge } from "@/components/ui/badge";
 import { PayoutRequestDialog } from "@/components/dashboard/PayoutRequestDialog";
 import { useMyPayouts, useWalletSummary, useWalletTransactions } from "@/hooks/useWallet";
 import { formatDate, formatNaira } from "@/lib/format";
@@ -23,7 +23,7 @@ const Wallet = () => {
       <PageHeader
         title="Wallet & payouts"
         description="Track your balance, transactions, and payout requests."
-        actions={
+        action={
           <PayoutRequestDialog
             available={balance}
             trigger={
@@ -53,7 +53,7 @@ const Wallet = () => {
             {loadingTx ? (
               <Skeleton className="h-40 w-full" />
             ) : txs.length === 0 ? (
-              <EmptyState title="No transactions yet" description="Your wallet activity will appear here as orders complete." />
+              <EmptyState icon={<WalletIcon className="h-6 w-6" />} title="No transactions yet" description="Your wallet activity will appear here as orders complete." />
             ) : (
               <Table>
                 <TableHeader>
@@ -84,7 +84,7 @@ const Wallet = () => {
             {loadingPayouts ? (
               <Skeleton className="h-40 w-full" />
             ) : payouts.length === 0 ? (
-              <EmptyState title="No payouts yet" description="Request a payout to transfer funds to your bank account." />
+              <EmptyState icon={<ArrowDownToLine className="h-6 w-6" />} title="No payouts yet" description="Request a payout to transfer funds to your bank account." />
             ) : (
               <Table>
                 <TableHeader>
