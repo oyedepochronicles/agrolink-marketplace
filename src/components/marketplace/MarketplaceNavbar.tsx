@@ -1,8 +1,9 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, LogOut, Menu, Search, ShoppingBag, User as UserIcon, X } from "lucide-react";
+import { LayoutDashboard, LogOut, Menu, Search, ShoppingBag, ShoppingCart, User as UserIcon, X } from "lucide-react";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/hooks/useCart";
 import { Brand } from "@/components/Brand";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +24,7 @@ const navItems = [
 
 export const MarketplaceNavbar = ({ onSearch }: { onSearch?: (q: string) => void }) => {
   const { user, logout } = useAuth();
+  const { count } = useCart();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [q, setQ] = useState("");
@@ -69,6 +71,18 @@ export const MarketplaceNavbar = ({ onSearch }: { onSearch?: (q: string) => void
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:ml-2">
+          <Link
+            to="/marketplace/cart"
+            aria-label="Cart"
+            className="relative inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"
+          >
+            <ShoppingCart className="h-5 w-5" />
+            {count > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-primary-foreground shadow-glow">
+                {count > 99 ? "99+" : count}
+              </span>
+            )}
+          </Link>
           {user && <NotificationsBell />}
 
           {user ? (

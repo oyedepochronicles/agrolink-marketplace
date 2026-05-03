@@ -1,0 +1,83 @@
+import { useCallback, useEffect, useState } from "react";
+import type { Product } from "@/types";
+
+export interface CartItem {
+  productId: string;
+  title: string;
+  price: number;
+  unit?: string;
+  image?: string;
+  farmerId?: string;
+  farmerName?: string;
+  quantity: number;
+}
+
+const KEY = "phyhan.cart";
+
+const read = (): CartItem[] => {
+  try {
+    const raw = localStorage.getItem(KEY);
+    return raw ? (JSON.parse(raw) as CartItem[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+const write = (items: CartItem[]) => {
+  localStorage.setItem(KEY, JSON.stringify(items));
+  window.dispatchEvent(new CustomEvent("phyhan:cart"));
+};
+
+export const useCart = () => {
+  const [items, setItems] = useState<CartItem[]>(() => read());
+
+  useEffect(() => {
+    const sync = () => setItems(read());
+    window.addEventListener("phyhan:cart", sync);
+    window.addEventListener("storage", sync);
+    return () => {
+      window.removeEventListener("phyhan:cart", sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const add = useCallback((product: Product, quantity = 1) => {
+    const id = product._id ?? product.id ?? "";
+    if (!id) return;
+    const current = read();
+    const idx = current.findIndex((i) => i.productId === id);
+    if (idx >= 0) {
+      current[idx].quantity += quantity;
+    } else {
+      current.push({
+        productId: id,
+        title: product.title,
+        price: product.price,
+        unit: product.unit,
+        image: product.images?.[0],
+        farmerId: product.farmer?._id,
+        farmerName: product.farmer?.name,
+        quantity,
+      });
+    }
+    write(current);
+  }, []);
+
+  const update = useCallback((productId: string, quantity: number) => {
+    const current = read()
+      .map((i) => (i.productId === productId ? { ...i, quantity: Math.max(1, quantity) } : i))
+      .filter((i) => i.quantity > 0);
+    write(current);
+  }, []);
+
+  const remove = useCallback((productId: string) => {
+    write(read().filter((i) => i.productId !== productId));
+  }, []);
+
+  const clear = useCallback(() => write([]), []);
+
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const count = items.reduce((sum, i) => sum + i.quantity, 0);
+
+  return { items, add, update, remove, clear, subtotal, count };
+};
