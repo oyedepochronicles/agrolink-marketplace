@@ -51,22 +51,24 @@ const ProductDetails = () => {
   const images = product.images?.length ? product.images : ["/placeholder.svg"];
   const total = product.price * quantity;
 
-  const placeOrder = async () => {
+  const addToCart = (goCheckout = false) => {
     if (!user) { navigate("/login"); return; }
-    if (!address.trim()) { toast.error("Enter a delivery address"); return; }
+    add(product, quantity);
+    if (goCheckout) {
+      navigate("/marketplace/checkout");
+    } else {
+      toast.success(`${product.title} added to cart`, {
+        action: { label: "View cart", onClick: () => navigate("/marketplace/cart") },
+      });
+    }
+  };
+
+  const buyNow = async () => {
+    if (!user) { navigate("/login"); return; }
     setPlacing(true);
     try {
-      const { data: order } = await api.post("/orders", {
-        productId: product._id ?? product.id,
-        quantity,
-        deliveryAddress: address,
-      });
-      const orderId = (order as { _id?: string; id?: string })._id ?? (order as { id?: string }).id;
-      const { data: payment } = await api.post("/payments/initialize", { orderId });
-      const url = (payment as { authorization_url?: string; url?: string }).authorization_url
-        ?? (payment as { url?: string }).url;
-      if (url) window.location.href = url;
-      else toast.success("Order placed. Awaiting payment.");
+      add(product, quantity);
+      navigate("/marketplace/checkout");
     } catch (err) {
       toast.error(apiErrorMessage(err));
     } finally {
