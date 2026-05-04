@@ -8,6 +8,7 @@ export interface Address {
   street: string;
   city: string;
   state: string;
+  lga?: string;
   notes?: string;
   isDefault?: boolean;
 }

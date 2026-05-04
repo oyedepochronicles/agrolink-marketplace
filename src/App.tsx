@@ -20,6 +20,7 @@ import Cart from "./pages/marketplace/Cart";
 import Checkout from "./pages/marketplace/Checkout";
 import MarketplaceHome from "./pages/marketplace/MarketplaceHome";
 import MarketplaceSearch from "./pages/marketplace/MarketplaceSearch";
+import Orders from "./pages/marketplace/Orders";
 import ProductDetails from "./pages/marketplace/ProductDetails";
 import Profile from "./pages/marketplace/Profile";
 
@@ -67,6 +68,14 @@ const App = () => (
               <Route path="product/:id" element={<ProductDetails />} />
               <Route path="cart" element={<Cart />} />
               <Route
+                path="orders"
+                element={
+                  <ProtectedRoute>
+                    <Orders />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="checkout"
                 element={
                   <ProtectedRoute>
@@ -91,6 +100,15 @@ const App = () => (
                 }
               />
             </Route>
+
+            <Route
+              path="/orders"
+              element={
+                <ProtectedRoute>
+                  <Navigate to="/marketplace/orders" replace />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Dashboard */}
             <Route

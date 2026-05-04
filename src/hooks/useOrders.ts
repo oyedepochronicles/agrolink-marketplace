@@ -15,6 +15,12 @@ export const useFarmerOrders = () =>
     queryFn: async () => unwrap((await api.get<ListResp | Order[]>("/orders/farmer")).data),
   });
 
+export const useBuyerOrders = () =>
+  useQuery({
+    queryKey: ["buyer-orders"],
+    queryFn: async () => unwrap((await api.get<ListResp | Order[]>("/orders/my")).data),
+  });
+
 export const useRiderDeliveries = () =>
   useQuery({
     queryKey: ["rider-deliveries"],

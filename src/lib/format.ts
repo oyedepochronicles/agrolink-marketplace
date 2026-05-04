@@ -19,3 +19,18 @@ export const initials = (name?: string) =>
     .slice(0, 2)
     .join("")
     .toUpperCase();
+
+export const formatOrderAddress = (
+  address?: string | {
+    street?: string;
+    city?: string;
+    state?: string;
+    lga?: string;
+    fullAddress?: string;
+    notes?: string;
+  },
+) => {
+  if (!address) return "";
+  if (typeof address === "string") return address;
+  return address.fullAddress || [address.street, address.city, address.lga, address.state].filter(Boolean).join(", ");
+};
