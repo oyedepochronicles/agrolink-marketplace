@@ -72,6 +72,7 @@ export interface Order {
 export interface Conversation {
   _id: string;
   participants: User[];
+  product?: Pick<Product, "_id" | "title" | "price" | "unit" | "images">;
   lastMessage?: Message;
   unreadCount?: number;
   updatedAt: string;
@@ -83,7 +84,9 @@ export interface Message {
   sender: string;
   body?: string;
   attachmentUrl?: string;
+  attachmentName?: string;
   attachmentType?: "image" | "audio" | "file";
+  product?: Pick<Product, "_id" | "title" | "price" | "unit" | "images">;
   createdAt: string;
 }
 

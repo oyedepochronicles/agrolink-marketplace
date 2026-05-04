@@ -1,4 +1,4 @@
-import { Loader2, ShoppingCart } from "lucide-react";
+import { Banknote, Check, Loader2, ShoppingCart, Truck, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -26,6 +26,7 @@ const orderTotal = (order: Order) =>
 const FarmerOrders = () => {
   const { data: orders = [], isLoading } = useFarmerOrders();
   const update = useUpdateOrderStatus();
+  const respond = useRespondToOrder();
 
   const handleChange = async (id: string, status: OrderStatus) => {
     try {
@@ -36,9 +37,18 @@ const FarmerOrders = () => {
     }
   };
 
+  const handleRespond = async (id: string, action: "accept" | "decline") => {
+    try {
+      await respond.mutateAsync({ id, action });
+      toast.success(action === "accept" ? "Order accepted — buyer can now pay" : "Order declined");
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <PageHeader title="Orders" description="Fulfil incoming orders and keep buyers informed." />
+      <PageHeader title="Orders" description="Respond to incoming orders, record offline payments, and assign riders." />
 
       {isLoading ? (
         <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
@@ -63,7 +73,6 @@ const FarmerOrders = () => {
                       {buyerName(o)} - {o.quantity} x {productUnit(o)} - {formatDate(o.createdAt)}
                     </p>
                   </div>
-                </div>
 
                 <div className="text-right">
                   <p className="font-display text-lg font-extrabold">{formatNaira(orderTotal(o))}</p>
