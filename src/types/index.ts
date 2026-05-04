@@ -41,14 +41,30 @@ export type OrderStatus =
 
 export interface Order {
   _id: string;
-  product: Product;
-  buyer: User;
+  product?: Product;
+  productId?: Product;
+  buyer?: User;
+  buyerId?: User;
   farmer?: User;
+  farmerId?: User;
   rider?: User;
+  riderId?: User;
   quantity: number;
-  totalAmount: number;
-  deliveryAddress: string;
+  amount?: number;
+  deliveryFee?: number;
+  total?: number;
+  totalAmount?: number;
+  deliveryMethod?: "delivery" | "pickup";
+  deliveryAddress?: string | {
+    street?: string;
+    city?: string;
+    state?: string;
+    lga?: string;
+    fullAddress?: string;
+    notes?: string;
+  };
   status: OrderStatus;
+  paymentStatus?: "unpaid" | "paid";
   paymentReference?: string;
   createdAt: string;
 }
@@ -75,8 +91,13 @@ export interface Notification {
   _id: string;
   title: string;
   body?: string;
+  message?: string;
   read: boolean;
+  isRead?: boolean;
   url?: string;
+  link?: string;
+  type?: "order" | "chat" | "admin" | "system";
+  meta?: Record<string, unknown>;
   createdAt: string;
 }
 

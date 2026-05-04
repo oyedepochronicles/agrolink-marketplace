@@ -12,6 +12,13 @@ const unwrap = <T,>(data: unknown, fallback: T): T => {
 
 export const NOTIFICATIONS_KEY = ["notifications"] as const;
 
+const normalizeNotification = (n: Notification): Notification => ({
+  ...n,
+  body: n.body ?? n.message,
+  read: n.read ?? n.isRead ?? false,
+  url: n.url ?? n.link,
+});
+
 export const useNotifications = () => {
   const { user } = useAuth();
   return useQuery({
@@ -19,7 +26,7 @@ export const useNotifications = () => {
     enabled: !!user,
     queryFn: async () => {
       const { data } = await api.get("/notifications");
-      return unwrap<Notification[]>(data, []);
+      return unwrap<Notification[]>(data, []).map(normalizeNotification);
     },
     refetchInterval: 60_000,
     staleTime: 15_000,
@@ -71,7 +78,8 @@ export const useNotificationSocket = () => {
   useEffect(() => {
     if (!user) return;
     const socket = getSocket();
-    const onNew = (n: Notification) => {
+    const onNew = (raw: Notification) => {
+      const n = normalizeNotification(raw);
       qc.setQueryData<Notification[]>(NOTIFICATIONS_KEY, (prev) => {
         if (!prev) return [n];
         if (prev.some((x) => x._id === n._id)) return prev;

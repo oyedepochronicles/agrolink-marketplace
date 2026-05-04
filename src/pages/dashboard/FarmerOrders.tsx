@@ -10,11 +10,18 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { OrderStatusBadge } from "@/components/dashboard/StatusBadge";
 import { useFarmerOrders, useUpdateOrderStatus } from "@/hooks/useOrders";
-import { formatDate, formatNaira, initials } from "@/lib/format";
+import { formatDate, formatNaira, formatOrderAddress, initials } from "@/lib/format";
 import { apiErrorMessage } from "@/lib/api";
-import type { OrderStatus } from "@/types";
+import type { Order, OrderStatus } from "@/types";
 
 const FARMER_OPTIONS: OrderStatus[] = ["paid", "processing", "in_transit", "delivered", "cancelled"];
+
+const productName = (order: Order) => order.product?.title || order.productId?.title || "Order item";
+const productUnit = (order: Order) => order.product?.unit || order.productId?.unit || "unit";
+const productId = (order: Order) => order.product?._id || order.productId?._id;
+const buyerName = (order: Order) => order.buyer?.name || order.buyerId?.name || "Buyer";
+const orderTotal = (order: Order) =>
+  order.totalAmount ?? order.total ?? (order.amount ?? 0) + (order.deliveryFee ?? 0);
 
 const FarmerOrders = () => {
   const { data: orders = [], isLoading } = useFarmerOrders();
@@ -48,18 +55,18 @@ const FarmerOrders = () => {
               <div className="flex flex-wrap items-start gap-4">
                 <div className="flex flex-1 items-center gap-3 min-w-[220px]">
                   <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-primary/10 text-primary">{initials(o.buyer?.name)}</AvatarFallback>
+                    <AvatarFallback className="bg-primary/10 text-primary">{initials(buyerName(o))}</AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="truncate font-semibold">{o.product?.title}</p>
+                    <p className="truncate font-semibold">{productName(o)}</p>
                     <p className="text-xs text-muted-foreground">
-                      {o.buyer?.name} • {o.quantity} × {o.product?.unit ?? "unit"} • {formatDate(o.createdAt)}
+                      {buyerName(o)} - {o.quantity} x {productUnit(o)} - {formatDate(o.createdAt)}
                     </p>
                   </div>
                 </div>
 
                 <div className="text-right">
-                  <p className="font-display text-lg font-extrabold">{formatNaira(o.totalAmount)}</p>
+                  <p className="font-display text-lg font-extrabold">{formatNaira(orderTotal(o))}</p>
                   <OrderStatusBadge status={o.status} />
                 </div>
 
@@ -72,13 +79,13 @@ const FarmerOrders = () => {
                       ))}
                     </SelectContent>
                   </Select>
-                  <Button variant="outline" size="sm" asChild>
-                    <a href={`/marketplace/product/${o.product?._id}`} target="_blank" rel="noreferrer">View</a>
+                  <Button variant="outline" size="sm" asChild disabled={!productId(o)}>
+                    <a href={`/marketplace/product/${productId(o) ?? ""}`} target="_blank" rel="noreferrer">View</a>
                   </Button>
                 </div>
               </div>
               {o.deliveryAddress && (
-                <p className="mt-3 text-xs text-muted-foreground">📍 {o.deliveryAddress}</p>
+                <p className="mt-3 text-xs text-muted-foreground">Location: {formatOrderAddress(o.deliveryAddress)}</p>
               )}
             </Card>
           ))}
