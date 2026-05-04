@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -23,6 +23,9 @@ type FormValues = z.infer<typeof schema>;
 const Register = () => {
   const { registerBuyer } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation() as {
+    state?: { from?: { pathname?: string; search?: string } };
+  };
   const [submitting, setSubmitting] = useState(false);
   const { register, handleSubmit, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -33,7 +36,10 @@ const Register = () => {
     try {
       const user = await registerBuyer({ ...(values as Required<FormValues>), phone: values.phone || undefined });
       toast.success(`Welcome, ${user.name.split(" ")[0]}!`);
-      navigate("/marketplace", { replace: true });
+      const from = location.state?.from
+        ? `${location.state.from.pathname ?? ""}${location.state.from.search ?? ""}`
+        : undefined;
+      navigate(from ?? "/marketplace", { replace: true });
     } catch (err) {
       toast.error(apiErrorMessage(err));
     } finally {
@@ -48,7 +54,7 @@ const Register = () => {
       footer={
         <>
           Already have an account?{" "}
-          <Link to="/login" className="font-semibold text-primary hover:underline">Sign in</Link>
+          <Link to="/login" state={location.state} className="font-semibold text-primary hover:underline">Sign in</Link>
         </>
       }
     >

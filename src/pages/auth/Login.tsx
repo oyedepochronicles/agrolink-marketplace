@@ -22,7 +22,7 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation() as {
-    state?: { from?: { pathname?: string } };
+    state?: { from?: { pathname?: string; search?: string } };
   };
   const [submitting, setSubmitting] = useState(false);
   const {
@@ -38,12 +38,14 @@ const Login = () => {
     try {
       const user = await login(values as Required<FormValues>);
       toast.success(`Welcome back, ${user.name.split(" ")[0]}`);
-      const from = location.state?.from?.pathname;
+      const from = location.state?.from
+        ? `${location.state.from.pathname ?? ""}${location.state.from.search ?? ""}`
+        : undefined;
       const dest =
         from ??
         (user.role === "buyer"
           ? "/marketplace"
-          : user.role === "admin" || "super_admin"
+          : user.role === "admin" || user.role === "super_admin"
             ? "/dashboard/admin"
             : `/dashboard/${user.role}`);
       navigate(dest, { replace: true });
@@ -63,6 +65,7 @@ const Login = () => {
           New to PhyhanAgro?{" "}
           <Link
             to="/register"
+            state={location.state}
             className="font-semibold text-primary hover:underline"
           >
             Create buyer account
@@ -70,6 +73,7 @@ const Login = () => {
           {" • "}
           <Link
             to="/affiliate"
+            state={location.state}
             className="font-semibold text-primary hover:underline"
           >
             Join as farmer / rider

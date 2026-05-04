@@ -17,7 +17,7 @@ interface Props {
   selectable?: boolean;
 }
 
-const empty = { label: "Home", recipient: "", phone: "", street: "", city: "", state: "", notes: "", isDefault: false };
+const empty = { label: "Home", recipient: "", phone: "", street: "", city: "", lga: "", state: "", notes: "", isDefault: false };
 
 export const AddressBook = ({ selectedId, onSelect, selectable }: Props) => {
   const { addresses, create, update, remove, setDefault, defaultAddress } = useAddresses();
@@ -141,6 +141,11 @@ export const AddressBook = ({ selectedId, onSelect, selectable }: Props) => {
               <Field label="City *">
                 <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
               </Field>
+              <Field label="LGA">
+                <Input value={form.lga ?? ""} onChange={(e) => setForm({ ...form, lga: e.target.value })} />
+              </Field>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
               <Field label="State *">
                 <Input value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
               </Field>

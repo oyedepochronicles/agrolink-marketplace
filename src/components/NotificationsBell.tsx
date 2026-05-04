@@ -13,6 +13,7 @@ import {
   useNotifications,
   useNotificationSocket,
 } from "@/hooks/useNotifications";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Notification } from "@/types";
 
 interface Props {
@@ -21,6 +22,7 @@ interface Props {
 
 export const NotificationsBell = ({ variant = "default" }: Props) => {
   useNotificationSocket();
+  const { user } = useAuth();
   const { data: items = [] } = useNotifications();
   const navigate = useNavigate();
   const markRead = useMarkNotificationRead();
@@ -28,9 +30,38 @@ export const NotificationsBell = ({ variant = "default" }: Props) => {
 
   const unread = items.filter((n) => !n.read).length;
 
+  const resolveUrl = (n: Notification) => {
+    const raw = n.url || n.link;
+    const conversationId =
+      typeof n.meta?.conversationId === "string" ? n.meta.conversationId : undefined;
+
+    if (n.type === "chat" || raw?.startsWith("/messages")) {
+      const query = conversationId ? `?conversation=${encodeURIComponent(conversationId)}` : "";
+      if (user?.role === "farmer") return `/dashboard/farmer/messages${query}`;
+      if (user?.role === "rider") return `/dashboard/rider/messages${query}`;
+      if (user?.role === "admin" || user?.role === "super_admin") return `/dashboard/admin/messages${query}`;
+      return `/marketplace/messages${query}`;
+    }
+
+    if (n.type === "order") {
+      if (user?.role === "farmer") return "/dashboard/farmer/orders";
+      if (user?.role === "rider") return "/dashboard/rider";
+      return "/marketplace/orders";
+    }
+
+    if (!raw) return undefined;
+    if (raw === "/farmer" || raw.startsWith("/farmer/")) return "/dashboard/farmer/orders";
+    if (raw === "/rider" || raw.startsWith("/rider/")) return "/dashboard/rider";
+    if (raw === "/orders" || raw.startsWith("/orders")) return "/marketplace/orders";
+    if (raw.startsWith("/products/")) return raw.replace("/products/", "/marketplace/product/");
+    if (raw === "/account") return user?.role === "buyer" ? "/marketplace/profile" : `/dashboard/${user?.role}`;
+    return raw;
+  };
+
   const handleClick = (n: Notification) => {
     if (!n.read) markRead.mutate(n._id);
-    if (n.url) navigate(n.url);
+    const url = resolveUrl(n);
+    if (url) navigate(url);
   };
 
   const safeTime = (s?: string) => {

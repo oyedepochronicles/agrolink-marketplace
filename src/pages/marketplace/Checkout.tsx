@@ -12,6 +12,7 @@ import { AddressBook } from "@/components/marketplace/AddressBook";
 import { cn } from "@/lib/utils";
 
 type Method = "rider" | "pickup" | "express";
+type ApiDeliveryMethod = "delivery" | "pickup";
 
 const METHODS: { id: Method; label: string; desc: string; fee: number; icon: React.ElementType }[] = [
   { id: "rider", label: "Standard rider delivery", desc: "Assigned to a verified rider · 1–3 days", fee: 1500, icon: Bike },
@@ -28,8 +29,6 @@ const Checkout = () => {
   const [method, setMethod] = useState<Method>("rider");
   const [placing, setPlacing] = useState(false);
 
-  if (!user) { navigate("/login"); return null; }
-
   if (items.length === 0) {
     return (
       <div className="container py-16 text-center">
@@ -42,6 +41,7 @@ const Checkout = () => {
   const selectedFee = METHODS.find((m) => m.id === method)!.fee;
   const total = subtotal + (method === "pickup" ? 0 : selectedFee);
   const selectedAddress = addresses.find((a) => a.id === addressId);
+  const apiDeliveryMethod: ApiDeliveryMethod = method === "pickup" ? "pickup" : "delivery";
 
   const placeOrder = async () => {
     if (method !== "pickup" && !selectedAddress) {
@@ -52,14 +52,24 @@ const Checkout = () => {
     try {
       const orderIds: string[] = [];
       for (const item of items) {
+        const deliveryAddress =
+          apiDeliveryMethod === "pickup"
+            ? undefined
+            : {
+                street: selectedAddress!.street,
+                city: selectedAddress!.city,
+                state: selectedAddress!.state,
+                lga: selectedAddress!.lga || selectedAddress!.city,
+                fullAddress: formatAddress(selectedAddress!),
+                notes: selectedAddress!.notes,
+              };
         const { data: order } = await api.post("/orders", {
           productId: item.productId,
           quantity: item.quantity,
-          deliveryAddress: method === "pickup" ? "Farm pickup" : formatAddress(selectedAddress!),
-          deliveryMethod: method,
-          recipient: selectedAddress?.recipient,
-          recipientPhone: selectedAddress?.phone,
-          notes: selectedAddress?.notes,
+          deliveryAddress,
+          deliveryMethod: apiDeliveryMethod,
+          paymentMethod: "in_app",
+          saleChannel: "marketplace",
         });
         const oid = (order as { _id?: string; id?: string })._id ?? (order as { id?: string }).id;
         if (oid) orderIds.push(oid);
