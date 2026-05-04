@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -26,6 +26,9 @@ type FormValues = z.infer<typeof schema>;
 const Affiliate = () => {
   const { registerAffiliate } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation() as {
+    state?: { from?: { pathname?: string; search?: string } };
+  };
   const [params] = useSearchParams();
   const initialRole = (params.get("role") === "rider" ? "rider" : "farmer") as "farmer" | "rider";
   const [role, setRole] = useState<"farmer" | "rider">(initialRole);
@@ -44,7 +47,10 @@ const Affiliate = () => {
         address: values.address || undefined,
       });
       toast.success("Application received! Your account is pending verification.");
-      navigate(`/dashboard/${user.role}`, { replace: true });
+      const from = location.state?.from
+        ? `${location.state.from.pathname ?? ""}${location.state.from.search ?? ""}`
+        : undefined;
+      navigate(from ?? `/dashboard/${user.role}`, { replace: true });
     } catch (err) {
       toast.error(apiErrorMessage(err));
     } finally {
@@ -59,7 +65,7 @@ const Affiliate = () => {
       footer={
         <>
           Just want to shop?{" "}
-          <Link to="/register" className="font-semibold text-primary hover:underline">Create a buyer account</Link>
+          <Link to="/register" state={location.state} className="font-semibold text-primary hover:underline">Create a buyer account</Link>
         </>
       }
     >
