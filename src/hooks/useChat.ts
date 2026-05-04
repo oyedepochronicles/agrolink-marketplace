@@ -33,7 +33,9 @@ interface SendInput {
   conversationId: string;
   body?: string;
   attachmentUrl?: string;
+  attachmentName?: string;
   attachmentType?: "image" | "audio" | "file";
+  productId?: string;
 }
 
 export const useSendMessage = () => {
@@ -45,7 +47,9 @@ export const useSendMessage = () => {
         {
           body: input.body,
           attachmentUrl: input.attachmentUrl,
+          attachmentName: input.attachmentName,
           attachmentType: input.attachmentType,
+          productId: input.productId,
         },
       );
       return unwrap<Message>(data);
