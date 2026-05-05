@@ -12,6 +12,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { RatingStars } from "@/components/RatingStars";
+import { ProductReviews } from "@/components/marketplace/ProductReviews";
+import { useProductRating } from "@/hooks/useReviews";
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -19,6 +22,7 @@ const ProductDetails = () => {
   const { user } = useAuth();
   const { add } = useCart();
   const { data: product, isLoading, isError } = useProduct(id);
+  const { data: rating } = useProductRating(id);
   const [activeImg, setActiveImg] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [placing, setPlacing] = useState(false);
@@ -127,9 +131,15 @@ const ProductDetails = () => {
               </span>
             )}
             <h1 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">{product.title}</h1>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              <span>{product.state ?? product.farmer?.state ?? "Nigeria"}</span>
+            <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+              <span className="inline-flex items-center gap-1"><MapPin className="h-4 w-4" />{product.state ?? product.farmer?.state ?? "Nigeria"}</span>
+              {(rating?.count ?? 0) > 0 && (
+                <span className="inline-flex items-center gap-1.5">
+                  <RatingStars value={rating?.average ?? 0} size="sm" />
+                  <span className="font-semibold text-foreground">{(rating?.average ?? 0).toFixed(1)}</span>
+                  <span>({rating?.count})</span>
+                </span>
+              )}
             </div>
           </div>
 
@@ -153,7 +163,15 @@ const ProductDetails = () => {
                 </Avatar>
                 <div>
                   <p className="text-sm font-semibold">{product.farmer.name}</p>
-                  <p className="flex items-center gap-1 text-xs text-muted-foreground"><ShieldCheck className="h-3 w-3 text-primary" /> Verified seller</p>
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <span className="inline-flex items-center gap-1"><ShieldCheck className="h-3 w-3 text-primary" /> Verified seller</span>
+                    {(product.farmer.reviewsCount ?? 0) > 0 && (
+                      <span className="inline-flex items-center gap-1">
+                        · <RatingStars value={product.farmer.rating ?? 0} size="sm" />
+                        <span className="font-semibold text-foreground">{(product.farmer.rating ?? 0).toFixed(1)}</span>
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               <Button variant="outline" size="sm" onClick={contactSeller} className="rounded-full">
@@ -189,6 +207,10 @@ const ProductDetails = () => {
             </p>
           </div>
         </div>
+      </div>
+
+      <div className="mt-12">
+        <ProductReviews productId={product._id ?? (product.id as string)} farmerId={product.farmer?._id} />
       </div>
     </div>
   );
