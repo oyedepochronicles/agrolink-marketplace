@@ -12,6 +12,7 @@ import {
   Banknote,
   Box,
   ClipboardList,
+  HelpCircle,
   LayoutDashboard,
   LineChart,
   LogOut,
@@ -114,6 +115,11 @@ const NAV_BY_ROLE: Record<
       to: "/dashboard/admin/messages",
       label: "Messages",
       icon: <MessageSquare className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/support",
+      label: "Support",
+      icon: <HelpCircle className="h-4 w-4" />,
     },
   ],
 };

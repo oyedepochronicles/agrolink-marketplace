@@ -23,6 +23,8 @@ import MarketplaceSearch from "./pages/marketplace/MarketplaceSearch";
 import Orders from "./pages/marketplace/Orders";
 import ProductDetails from "./pages/marketplace/ProductDetails";
 import Profile from "./pages/marketplace/Profile";
+import Support from "./pages/marketplace/Support";
+import SupportTicket from "./pages/marketplace/SupportTicket";
 
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import AdminAnalytics from "./pages/dashboard/AdminAnalytics";
@@ -31,6 +33,7 @@ import AdminPayouts from "./pages/dashboard/AdminPayouts";
 import AdminProducts from "./pages/dashboard/AdminProducts";
 import AdminUsers from "./pages/dashboard/AdminUsers";
 import AdminVerifications from "./pages/dashboard/AdminVerifications";
+import AdminSupport from "./pages/dashboard/AdminSupport";
 import FarmerOrders from "./pages/dashboard/FarmerOrders";
 import FarmerOverview from "./pages/dashboard/FarmerOverview";
 import FarmerProducts from "./pages/dashboard/FarmerProducts";
@@ -91,6 +94,8 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              <Route path="support" element={<Support />} />
+              <Route path="support/:id" element={<ProtectedRoute><SupportTicket /></ProtectedRoute>} />
               <Route
                 path="profile"
                 element={
@@ -244,6 +249,14 @@ const App = () => (
                 element={
                   <ProtectedRoute roles={["admin"]}>
                     <Messages />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="admin/support"
+                element={
+                  <ProtectedRoute roles={["admin"]}>
+                    <AdminSupport />
                   </ProtectedRoute>
                 }
               />

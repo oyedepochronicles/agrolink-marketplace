@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, LogOut, Menu, Search, ShoppingBag, ShoppingCart, User as UserIcon, X } from "lucide-react";
+import { HelpCircle, LayoutDashboard, LogOut, Menu, Search, ShoppingBag, ShoppingCart, User as UserIcon, X } from "lucide-react";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -117,6 +117,9 @@ export const MarketplaceNavbar = ({ onSearch }: { onSearch?: (q: string) => void
                 )}
                 <DropdownMenuItem onClick={() => navigate("/marketplace/cart")}>
                   <ShoppingBag className="mr-2 h-4 w-4" /> Cart
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/marketplace/support")}>
+                  <HelpCircle className="mr-2 h-4 w-4" /> Help center
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => { logout(); navigate("/login"); }} className="text-destructive">
