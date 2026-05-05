@@ -11,9 +11,55 @@ export interface User {
   phone?: string;
   role: Role;
   verificationStatus?: VerificationStatus;
+  isVerified?: boolean;
   avatar?: string;
   state?: string;
+  rating?: number;
+  reviewsCount?: number;
   createdAt?: string;
+}
+
+export interface Review {
+  _id: string;
+  product: string;
+  rating: number;
+  body?: string;
+  user?: Pick<User, "_id" | "name" | "avatar">;
+  reply?: { body: string; createdAt: string };
+  createdAt: string;
+}
+
+export interface ProductRatingSummary {
+  average: number;
+  count: number;
+}
+
+export type SupportTicketStatus = "open" | "pending" | "resolved" | "closed";
+
+export interface SupportTicketReply {
+  _id: string;
+  body: string;
+  author?: Pick<User, "_id" | "name" | "avatar" | "role">;
+  createdAt: string;
+}
+
+export interface SupportTicket {
+  _id: string;
+  subject: string;
+  body: string;
+  category?: string;
+  status: SupportTicketStatus;
+  user?: Pick<User, "_id" | "name" | "avatar" | "email">;
+  replies?: SupportTicketReply[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FaqItem {
+  _id: string;
+  question: string;
+  answer: string;
+  category?: string;
 }
 
 export interface Product {
@@ -27,7 +73,9 @@ export interface Product {
   state?: string;
   images?: string[];
   stock?: number;
-  farmer?: Pick<User, "_id" | "name" | "avatar" | "state">;
+  farmer?: Pick<User, "_id" | "name" | "avatar" | "state" | "rating" | "reviewsCount">;
+  rating?: number;
+  reviewsCount?: number;
   createdAt?: string;
 }
 
