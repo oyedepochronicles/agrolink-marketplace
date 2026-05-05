@@ -208,6 +208,10 @@ const ProductDetails = () => {
           </div>
         </div>
       </div>
+
+      <div className="mt-12">
+        <ProductReviews productId={product._id ?? (product.id as string)} farmerId={product.farmer?._id} />
+      </div>
     </div>
   );
 };
