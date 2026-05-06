@@ -1,4 +1,5 @@
 import { Brand } from "@/components/Brand";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
+import { useTranslation } from "react-i18next";
 import {
   Banknote,
   BarChart3,
@@ -28,7 +30,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 interface NavEntry {
   to: string;
-  label: string;
+  labelKey: string;
   icon: React.ReactNode;
 }
 
@@ -37,90 +39,27 @@ const NAV_BY_ROLE: Record<
   NavEntry[]
 > = {
   farmer: [
-    {
-      to: "/dashboard/farmer",
-      label: "Overview",
-      icon: <LayoutDashboard className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/farmer/products",
-      label: "Products",
-      icon: <Box className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/farmer/orders",
-      label: "Orders",
-      icon: <ShoppingCart className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/farmer/messages",
-      label: "Messages",
-      icon: <MessageSquare className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/farmer/wallet",
-      label: "Wallet",
-      icon: <Wallet className="h-4 w-4" />,
-    },
+    { to: "/dashboard/farmer", labelKey: "dashboard.overview", icon: <LayoutDashboard className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/products", labelKey: "dashboard.products", icon: <Box className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/orders", labelKey: "dashboard.orders", icon: <ShoppingCart className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/wallet", labelKey: "dashboard.wallet", icon: <Wallet className="h-4 w-4" /> },
   ],
   rider: [
-    {
-      to: "/dashboard/rider",
-      label: "Deliveries",
-      icon: <Truck className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/rider/messages",
-      label: "Messages",
-      icon: <MessageSquare className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/rider/earnings",
-      label: "Earnings",
-      icon: <Wallet className="h-4 w-4" />,
-    },
+    { to: "/dashboard/rider", labelKey: "dashboard.deliveries", icon: <Truck className="h-4 w-4" /> },
+    { to: "/dashboard/rider/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
+    { to: "/dashboard/rider/earnings", labelKey: "dashboard.earnings", icon: <Wallet className="h-4 w-4" /> },
   ],
   admin: [
-    {
-      to: "/dashboard/admin",
-      label: "Overview",
-      icon: <BarChart3 className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/verifications",
-      label: "Verifications",
-      icon: <ShieldCheck className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/users",
-      label: "Users",
-      icon: <Users className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/products",
-      label: "Products",
-      icon: <PackageCheck className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/payouts",
-      label: "Payouts",
-      icon: <Banknote className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/analytics",
-      label: "Analytics",
-      icon: <LineChart className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/messages",
-      label: "Messages",
-      icon: <MessageSquare className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/support",
-      label: "Support",
-      icon: <HelpCircle className="h-4 w-4" />,
-    },
+    { to: "/dashboard/admin", labelKey: "dashboard.overview", icon: <BarChart3 className="h-4 w-4" /> },
+    { to: "/dashboard/admin/orders", labelKey: "dashboard.orders", icon: <ShoppingCart className="h-4 w-4" /> },
+    { to: "/dashboard/admin/verifications", labelKey: "dashboard.verifications", icon: <ShieldCheck className="h-4 w-4" /> },
+    { to: "/dashboard/admin/users", labelKey: "dashboard.users", icon: <Users className="h-4 w-4" /> },
+    { to: "/dashboard/admin/products", labelKey: "dashboard.products", icon: <PackageCheck className="h-4 w-4" /> },
+    { to: "/dashboard/admin/payouts", labelKey: "dashboard.payouts", icon: <Banknote className="h-4 w-4" /> },
+    { to: "/dashboard/admin/analytics", labelKey: "dashboard.analytics", icon: <LineChart className="h-4 w-4" /> },
+    { to: "/dashboard/admin/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
+    { to: "/dashboard/admin/support", labelKey: "dashboard.support", icon: <HelpCircle className="h-4 w-4" /> },
   ],
 };
 
