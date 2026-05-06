@@ -65,6 +65,7 @@ const NAV_BY_ROLE: Record<
 
 export const DashboardLayout = () => {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   if (!user || user.role === "buyer") return null;
   const items = NAV_BY_ROLE[user.role];
@@ -95,7 +96,7 @@ export const DashboardLayout = () => {
               }
             >
               {item.icon}
-              {item.label}
+              {t(item.labelKey)}
             </NavLink>
           ))}
         </nav>
@@ -105,7 +106,7 @@ export const DashboardLayout = () => {
             className="w-full justify-start rounded-xl border-white/15 bg-white/5 text-sidebar-foreground hover:bg-white/10 hover:text-white"
             onClick={() => navigate("/marketplace")}
           >
-            <ClipboardList className="mr-2 h-4 w-4" /> Go to marketplace
+            <ClipboardList className="mr-2 h-4 w-4" /> {t("nav.goToMarketplace")}
           </Button>
         </div>
       </aside>
@@ -118,18 +119,19 @@ export const DashboardLayout = () => {
           </div>
           <div className="hidden md:block">
             <h1 className="font-display text-lg font-extrabold capitalize tracking-tight">
-              {user.role} dashboard
+              {t(`roles.${user.role === "super_admin" ? "admin" : user.role}`)} {t("nav.dashboard").toLowerCase()}
             </h1>
             {user.verificationStatus === "pending" && (
               <Badge
                 variant="outline"
                 className="mt-0.5 border-warning/40 bg-warning/10 text-warning-foreground"
               >
-                Verification pending
+                {t("dashboard.verificationPending")}
               </Badge>
             )}
           </div>
           <div className="ml-auto flex items-center gap-3">
+            <LanguageSwitcher />
             <NotificationsBell variant="light" />
             <div className="flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1.5 pr-3">
               <Avatar className="h-7 w-7">
@@ -171,7 +173,7 @@ export const DashboardLayout = () => {
               }
             >
               {item.icon}
-              {item.label}
+              {t(item.labelKey)}
             </NavLink>
           ))}
         </nav>
