@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type { Product, User } from "@/types";
+import type { Order, Product, User } from "@/types";
 
 interface UserListResp { items?: User[]; data?: User[]; users?: User[] }
 interface ProductListResp { items?: Product[]; data?: Product[]; products?: Product[] }
+interface OrderListResp { items?: Order[]; data?: Order[]; orders?: Order[] }
 
 const unwrapUsers = (data: UserListResp | User[]): User[] => {
   if (Array.isArray(data)) return data;
@@ -13,6 +14,17 @@ const unwrapProducts = (data: ProductListResp | Product[]): Product[] => {
   if (Array.isArray(data)) return data;
   return data.items ?? data.data ?? data.products ?? [];
 };
+const unwrapOrders = (data: OrderListResp | Order[]): Order[] => {
+  if (Array.isArray(data)) return data;
+  return data.items ?? data.data ?? data.orders ?? [];
+};
+
+export const useAdminOrders = () =>
+  useQuery({
+    queryKey: ["admin-orders"],
+    queryFn: async () =>
+      unwrapOrders((await api.get<OrderListResp | Order[]>("/admin/orders")).data),
+  });
 
 export const useAdminVerifications = () =>
   useQuery({

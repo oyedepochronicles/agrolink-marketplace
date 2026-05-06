@@ -1,4 +1,5 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { VerifiedRoute } from "@/components/VerifiedRoute";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +15,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ResetPassword from "./pages/auth/ResetPassword";
+import VerifyPending from "./pages/auth/VerifyPending";
 
 import { MarketplaceLayout } from "@/components/marketplace/MarketplaceLayout";
 import Cart from "./pages/marketplace/Cart";
@@ -28,6 +30,7 @@ import SupportTicket from "./pages/marketplace/SupportTicket";
 
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import AdminAnalytics from "./pages/dashboard/AdminAnalytics";
+import AdminOrders from "./pages/dashboard/AdminOrders";
 import AdminOverview from "./pages/dashboard/AdminOverview";
 import AdminPayouts from "./pages/dashboard/AdminPayouts";
 import AdminProducts from "./pages/dashboard/AdminProducts";
@@ -63,6 +66,14 @@ const App = () => (
             <Route path="/affiliate" element={<Affiliate />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/verify-pending"
+              element={
+                <ProtectedRoute>
+                  <VerifyPending />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Marketplace */}
             <Route path="/marketplace" element={<MarketplaceLayout />}>
@@ -122,7 +133,9 @@ const App = () => (
                 <ProtectedRoute
                   roles={["farmer", "rider", "admin", "super_admin"]}
                 >
-                  <DashboardLayout />
+                  <VerifiedRoute>
+                    <DashboardLayout />
+                  </VerifiedRoute>
                 </ProtectedRoute>
               }
             >
@@ -209,6 +222,14 @@ const App = () => (
                 element={
                   <ProtectedRoute roles={["admin"]}>
                     <AdminVerifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="admin/orders"
+                element={
+                  <ProtectedRoute roles={["admin"]}>
+                    <AdminOrders />
                   </ProtectedRoute>
                 }
               />

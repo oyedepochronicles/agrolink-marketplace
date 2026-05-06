@@ -1,4 +1,5 @@
 import { Brand } from "@/components/Brand";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -27,15 +28,19 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
-const navItems = [
-  { to: "/marketplace", label: "Home" },
-  { to: "/marketplace/search", label: "Browse" },
-  { to: "/marketplace/orders", label: "Orders" },
-  { to: "/marketplace/messages", label: "Messages" },
-  { to: "/marketplace/profile", label: "Profile" },
-];
+const useNavItems = () => {
+  const { t } = useTranslation();
+  return [
+    { to: "/marketplace", label: t("nav.home") },
+    { to: "/marketplace/search", label: t("nav.browse") },
+    { to: "/marketplace/orders", label: t("nav.orders") },
+    { to: "/marketplace/messages", label: t("nav.messages") },
+    { to: "/marketplace/profile", label: t("nav.profile") },
+  ];
+};
 
 export const MarketplaceNavbar = ({
   onSearch,
@@ -44,7 +49,9 @@ export const MarketplaceNavbar = ({
 }) => {
   const { user, logout } = useAuth();
   const { count } = useCart();
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const navItems = useNavItems();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [q, setQ] = useState("");
 
@@ -68,7 +75,7 @@ export const MarketplaceNavbar = ({
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search tomatoes, yam, palm oil..."
+              placeholder={t("common.search") + "…"}
               className="h-10 rounded-full border-border bg-secondary pl-10 focus-visible:bg-background"
             />
           </div>
@@ -93,9 +100,10 @@ export const MarketplaceNavbar = ({
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:ml-2">
+          <LanguageSwitcher />
           <Link
             to="/marketplace/cart"
-            aria-label="Cart"
+            aria-label={t("nav.cart")}
             className="relative inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"
           >
             <ShoppingCart className="h-5 w-5" />
@@ -135,23 +143,22 @@ export const MarketplaceNavbar = ({
                 <DropdownMenuItem
                   onClick={() => navigate("/marketplace/profile")}
                 >
-                  <UserIcon className="mr-2 h-4 w-4" /> Profile
+                  <UserIcon className="mr-2 h-4 w-4" /> {t("nav.profile")}
                 </DropdownMenuItem>
                 {user.role !== "buyer" && (
                   <DropdownMenuItem
                     onClick={() => navigate(`/dashboard/${user.role}`)}
                   >
-                    <LayoutDashboard className="mr-2 h-4 w-4" /> Back to
-                    dashboard
+                    <LayoutDashboard className="mr-2 h-4 w-4" /> {t("nav.backToDashboard")}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={() => navigate("/marketplace/cart")}>
-                  <ShoppingBag className="mr-2 h-4 w-4" /> Cart
+                  <ShoppingBag className="mr-2 h-4 w-4" /> {t("nav.cart")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => navigate("/marketplace/support")}
                 >
-                  <HelpCircle className="mr-2 h-4 w-4" /> Help center
+                  <HelpCircle className="mr-2 h-4 w-4" /> {t("nav.support")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -161,7 +168,7 @@ export const MarketplaceNavbar = ({
                   }}
                   className="text-destructive"
                 >
-                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                  <LogOut className="mr-2 h-4 w-4" /> {t("nav.signOut")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -172,13 +179,13 @@ export const MarketplaceNavbar = ({
                 onClick={() => navigate("/login")}
                 className="rounded-full"
               >
-                Sign in
+                {t("nav.signIn")}
               </Button>
               <Button
                 onClick={() => navigate("/register")}
                 className="rounded-full bg-gradient-primary shadow-glow"
               >
-                Get started
+                {t("nav.getStarted")}
               </Button>
             </div>
           )}
@@ -207,7 +214,7 @@ export const MarketplaceNavbar = ({
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search produce..."
+                placeholder={t("common.search") + "…"}
                 className="h-11 rounded-full bg-secondary pl-10"
               />
             </form>
@@ -232,18 +239,11 @@ export const MarketplaceNavbar = ({
               ))}
               {!user && (
                 <div className="mt-2 flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 rounded-full"
-                    asChild
-                  >
-                    <Link to="/login">Sign in</Link>
+                  <Button variant="outline" className="flex-1 rounded-full" asChild>
+                    <Link to="/login">{t("nav.signIn")}</Link>
                   </Button>
-                  <Button
-                    className="flex-1 rounded-full bg-gradient-primary"
-                    asChild
-                  >
-                    <Link to="/register">Get started</Link>
+                  <Button className="flex-1 rounded-full bg-gradient-primary" asChild>
+                    <Link to="/register">{t("nav.getStarted")}</Link>
                   </Button>
                 </div>
               )}

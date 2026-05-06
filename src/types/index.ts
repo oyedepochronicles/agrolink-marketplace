@@ -13,6 +13,7 @@ export interface User {
   verificationStatus?: VerificationStatus;
   isVerified?: boolean;
   profileImage?: string;
+  avatar?: string;
   state?: string;
   rating?: number;
   reviewsCount?: number;

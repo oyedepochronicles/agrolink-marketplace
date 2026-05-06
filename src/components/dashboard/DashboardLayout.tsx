@@ -1,4 +1,5 @@
 import { Brand } from "@/components/Brand";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
+import { useTranslation } from "react-i18next";
 import {
   Banknote,
   BarChart3,
@@ -28,7 +30,7 @@ import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 interface NavEntry {
   to: string;
-  label: string;
+  labelKey: string;
   icon: React.ReactNode;
 }
 
@@ -37,95 +39,33 @@ const NAV_BY_ROLE: Record<
   NavEntry[]
 > = {
   farmer: [
-    {
-      to: "/dashboard/farmer",
-      label: "Overview",
-      icon: <LayoutDashboard className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/farmer/products",
-      label: "Products",
-      icon: <Box className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/farmer/orders",
-      label: "Orders",
-      icon: <ShoppingCart className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/farmer/messages",
-      label: "Messages",
-      icon: <MessageSquare className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/farmer/wallet",
-      label: "Wallet",
-      icon: <Wallet className="h-4 w-4" />,
-    },
+    { to: "/dashboard/farmer", labelKey: "dashboard.overview", icon: <LayoutDashboard className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/products", labelKey: "dashboard.products", icon: <Box className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/orders", labelKey: "dashboard.orders", icon: <ShoppingCart className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/wallet", labelKey: "dashboard.wallet", icon: <Wallet className="h-4 w-4" /> },
   ],
   rider: [
-    {
-      to: "/dashboard/rider",
-      label: "Deliveries",
-      icon: <Truck className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/rider/messages",
-      label: "Messages",
-      icon: <MessageSquare className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/rider/earnings",
-      label: "Earnings",
-      icon: <Wallet className="h-4 w-4" />,
-    },
+    { to: "/dashboard/rider", labelKey: "dashboard.deliveries", icon: <Truck className="h-4 w-4" /> },
+    { to: "/dashboard/rider/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
+    { to: "/dashboard/rider/earnings", labelKey: "dashboard.earnings", icon: <Wallet className="h-4 w-4" /> },
   ],
   admin: [
-    {
-      to: "/dashboard/admin",
-      label: "Overview",
-      icon: <BarChart3 className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/verifications",
-      label: "Verifications",
-      icon: <ShieldCheck className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/users",
-      label: "Users",
-      icon: <Users className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/products",
-      label: "Products",
-      icon: <PackageCheck className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/payouts",
-      label: "Payouts",
-      icon: <Banknote className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/analytics",
-      label: "Analytics",
-      icon: <LineChart className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/messages",
-      label: "Messages",
-      icon: <MessageSquare className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/support",
-      label: "Support",
-      icon: <HelpCircle className="h-4 w-4" />,
-    },
+    { to: "/dashboard/admin", labelKey: "dashboard.overview", icon: <BarChart3 className="h-4 w-4" /> },
+    { to: "/dashboard/admin/orders", labelKey: "dashboard.orders", icon: <ShoppingCart className="h-4 w-4" /> },
+    { to: "/dashboard/admin/verifications", labelKey: "dashboard.verifications", icon: <ShieldCheck className="h-4 w-4" /> },
+    { to: "/dashboard/admin/users", labelKey: "dashboard.users", icon: <Users className="h-4 w-4" /> },
+    { to: "/dashboard/admin/products", labelKey: "dashboard.products", icon: <PackageCheck className="h-4 w-4" /> },
+    { to: "/dashboard/admin/payouts", labelKey: "dashboard.payouts", icon: <Banknote className="h-4 w-4" /> },
+    { to: "/dashboard/admin/analytics", labelKey: "dashboard.analytics", icon: <LineChart className="h-4 w-4" /> },
+    { to: "/dashboard/admin/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
+    { to: "/dashboard/admin/support", labelKey: "dashboard.support", icon: <HelpCircle className="h-4 w-4" /> },
   ],
 };
 
 export const DashboardLayout = () => {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   if (!user || user.role === "buyer") return null;
   const items = NAV_BY_ROLE[user.role];
@@ -156,7 +96,7 @@ export const DashboardLayout = () => {
               }
             >
               {item.icon}
-              {item.label}
+              {t(item.labelKey)}
             </NavLink>
           ))}
         </nav>
@@ -166,7 +106,7 @@ export const DashboardLayout = () => {
             className="w-full justify-start rounded-xl border-white/15 bg-white/5 text-sidebar-foreground hover:bg-white/10 hover:text-white"
             onClick={() => navigate("/marketplace")}
           >
-            <ClipboardList className="mr-2 h-4 w-4" /> Go to marketplace
+            <ClipboardList className="mr-2 h-4 w-4" /> {t("nav.goToMarketplace")}
           </Button>
         </div>
       </aside>
@@ -179,18 +119,19 @@ export const DashboardLayout = () => {
           </div>
           <div className="hidden md:block">
             <h1 className="font-display text-lg font-extrabold capitalize tracking-tight">
-              {user.role} dashboard
+              {t(`roles.${user.role === "super_admin" ? "admin" : user.role}`)} {t("nav.dashboard").toLowerCase()}
             </h1>
             {user.verificationStatus === "pending" && (
               <Badge
                 variant="outline"
                 className="mt-0.5 border-warning/40 bg-warning/10 text-warning-foreground"
               >
-                Verification pending
+                {t("dashboard.verificationPending")}
               </Badge>
             )}
           </div>
           <div className="ml-auto flex items-center gap-3">
+            <LanguageSwitcher />
             <NotificationsBell variant="light" />
             <div className="flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1.5 pr-3">
               <Avatar className="h-7 w-7">
@@ -232,7 +173,7 @@ export const DashboardLayout = () => {
               }
             >
               {item.icon}
-              {item.label}
+              {t(item.labelKey)}
             </NavLink>
           ))}
         </nav>
