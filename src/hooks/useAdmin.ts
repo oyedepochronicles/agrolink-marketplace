@@ -48,7 +48,7 @@ export const useReviewVerification = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async ({ id, action }: { id: string; action: "approve" | "reject" }) => {
-      const { data } = await api.post<User>(`/admin/verifications/${id}/${action}`);
+      const { data } = await api.patch<User>(`/admin/verifications/${id}/${action}`);
       return data;
     },
     onSuccess: () => {

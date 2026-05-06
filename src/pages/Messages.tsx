@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { MessageSquare } from "lucide-react";
+import { ChatThread } from "@/components/chat/ChatThread";
+import { ConversationList } from "@/components/chat/ConversationList";
 import { useAuth } from "@/contexts/AuthContext";
 import { useConversations } from "@/hooks/useChat";
-import { ConversationList } from "@/components/chat/ConversationList";
-import { ChatThread } from "@/components/chat/ChatThread";
 import { cn } from "@/lib/utils";
 import type { Conversation } from "@/types";
+import { MessageSquare } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 interface Props {
   /** Layout chrome: dashboard pages render flush; marketplace page wraps in container. */
@@ -27,7 +27,12 @@ const Messages = ({ variant = "dashboard" }: Props) => {
 
   // Auto-select first conversation on desktop
   useEffect(() => {
-    if (!activeId && conversations && conversations.length > 0 && window.innerWidth >= 768) {
+    if (
+      !activeId &&
+      conversations &&
+      conversations.length > 0 &&
+      window.innerWidth >= 768
+    ) {
       setActiveId(conversations[0]._id);
     }
   }, [conversations, activeId]);
@@ -43,12 +48,28 @@ const Messages = ({ variant = "dashboard" }: Props) => {
 
   const handleSelect = (c: Conversation) => {
     setActiveId(c._id);
-    setParams((p) => { p.set("conversation", c._id); return p; }, { replace: true });
+    setParams(
+      (p) => {
+        p.set("conversation", c._id);
+        return p;
+      },
+      { replace: true },
+    );
   };
 
   const handleBack = () => {
     setActiveId(undefined);
-    setParams((p) => { p.delete("conversation"); return p; }, { replace: true });
+    setParams(
+      (p) => {
+        p.delete("conversation");
+        return p;
+      },
+      { replace: true },
+    );
+  };
+
+  const handleDelete = (id) => {
+    setActiveId(undefined);
   };
 
   const wrap = variant === "marketplace" ? "container py-6" : "";
@@ -73,6 +94,7 @@ const Messages = ({ variant = "dashboard" }: Props) => {
                 conversations={conversations}
                 isLoading={isLoading}
                 activeId={activeId}
+                onDelete={handleDelete}
                 currentUserId={user?._id}
                 onSelect={handleSelect}
               />
@@ -80,7 +102,13 @@ const Messages = ({ variant = "dashboard" }: Props) => {
           </aside>
 
           {/* Thread */}
-          <section className={cn("min-h-0", activeId ? "flex" : "hidden md:flex", "flex-col")}>
+          <section
+            className={cn(
+              "min-h-0",
+              activeId ? "flex" : "hidden md:flex",
+              "flex-col",
+            )}
+          >
             {active ? (
               <ChatThread conversation={active} onBack={handleBack} />
             ) : (
@@ -89,8 +117,13 @@ const Messages = ({ variant = "dashboard" }: Props) => {
                   <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10">
                     <MessageSquare className="h-6 w-6 text-primary" />
                   </div>
-                  <p className="font-display text-lg font-bold">Select a conversation</p>
-                  <p className="text-sm text-muted-foreground">Your messages with farmers, riders, and buyers will appear here.</p>
+                  <p className="font-display text-lg font-bold">
+                    Select a conversation
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Your messages with farmers, riders, and buyers will appear
+                    here.
+                  </p>
                 </div>
               </div>
             )}

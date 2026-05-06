@@ -1,19 +1,33 @@
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import { HelpCircle, LayoutDashboard, LogOut, Menu, Search, ShoppingBag, ShoppingCart, User as UserIcon, X } from "lucide-react";
+import { Brand } from "@/components/Brand";
 import { NotificationsBell } from "@/components/NotificationsBell";
-import { useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/hooks/useCart";
-import { Brand } from "@/components/Brand";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import {
+  HelpCircle,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Search,
+  ShoppingBag,
+  ShoppingCart,
+  User as UserIcon,
+  X,
+} from "lucide-react";
+import { useState } from "react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 
 const navItems = [
   { to: "/marketplace", label: "Home" },
@@ -23,7 +37,11 @@ const navItems = [
   { to: "/marketplace/profile", label: "Profile" },
 ];
 
-export const MarketplaceNavbar = ({ onSearch }: { onSearch?: (q: string) => void }) => {
+export const MarketplaceNavbar = ({
+  onSearch,
+}: {
+  onSearch?: (q: string) => void;
+}) => {
   const { user, logout } = useAuth();
   const { count } = useCart();
   const navigate = useNavigate();
@@ -41,7 +59,10 @@ export const MarketplaceNavbar = ({ onSearch }: { onSearch?: (q: string) => void
       <div className="container flex h-16 items-center gap-4">
         <Brand />
 
-        <form onSubmit={submitSearch} className="ml-4 hidden flex-1 max-w-xl md:flex">
+        <form
+          onSubmit={submitSearch}
+          className="ml-4 hidden flex-1 max-w-xl md:flex"
+        >
           <div className="relative w-full">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -91,48 +112,72 @@ export const MarketplaceNavbar = ({ onSearch }: { onSearch?: (q: string) => void
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-full p-1 pr-3 transition-base hover:bg-secondary">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.avatar} alt={user.name} />
+                    <AvatarImage src={user.profileImage} alt={user.name} />
                     <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
                       {initials(user.name)}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden text-sm font-medium md:inline">{user.name.split(" ")[0]}</span>
+                  <span className="hidden text-sm font-medium md:inline">
+                    {user.name.split(" ")[0]}
+                  </span>
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 rounded-xl">
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col">
                     <span className="text-sm font-semibold">{user.name}</span>
-                    <span className="text-xs text-muted-foreground">{user.email}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {user.email}
+                    </span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate("/marketplace/profile")}>
+                <DropdownMenuItem
+                  onClick={() => navigate("/marketplace/profile")}
+                >
                   <UserIcon className="mr-2 h-4 w-4" /> Profile
                 </DropdownMenuItem>
                 {user.role !== "buyer" && (
-                  <DropdownMenuItem onClick={() => navigate(`/dashboard/${user.role}`)}>
-                    <LayoutDashboard className="mr-2 h-4 w-4" /> Back to dashboard
+                  <DropdownMenuItem
+                    onClick={() => navigate(`/dashboard/${user.role}`)}
+                  >
+                    <LayoutDashboard className="mr-2 h-4 w-4" /> Back to
+                    dashboard
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={() => navigate("/marketplace/cart")}>
                   <ShoppingBag className="mr-2 h-4 w-4" /> Cart
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/marketplace/support")}>
+                <DropdownMenuItem
+                  onClick={() => navigate("/marketplace/support")}
+                >
                   <HelpCircle className="mr-2 h-4 w-4" /> Help center
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => { logout(); navigate("/login"); }} className="text-destructive">
+                <DropdownMenuItem
+                  onClick={() => {
+                    logout();
+                    navigate("/login");
+                  }}
+                  className="text-destructive"
+                >
                   <LogOut className="mr-2 h-4 w-4" /> Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
             <div className="hidden items-center gap-2 md:flex">
-              <Button variant="ghost" onClick={() => navigate("/login")} className="rounded-full">
+              <Button
+                variant="ghost"
+                onClick={() => navigate("/login")}
+                className="rounded-full"
+              >
                 Sign in
               </Button>
-              <Button onClick={() => navigate("/register")} className="rounded-full bg-gradient-primary shadow-glow">
+              <Button
+                onClick={() => navigate("/register")}
+                className="rounded-full bg-gradient-primary shadow-glow"
+              >
                 Get started
               </Button>
             </div>
@@ -145,7 +190,11 @@ export const MarketplaceNavbar = ({ onSearch }: { onSearch?: (q: string) => void
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle menu"
           >
-            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {mobileOpen ? (
+              <X className="h-5 w-5" />
+            ) : (
+              <Menu className="h-5 w-5" />
+            )}
           </Button>
         </div>
       </div>
@@ -172,7 +221,9 @@ export const MarketplaceNavbar = ({ onSearch }: { onSearch?: (q: string) => void
                   className={({ isActive }) =>
                     cn(
                       "rounded-lg px-3 py-2 text-sm font-medium",
-                      isActive ? "bg-secondary text-primary" : "text-foreground/80",
+                      isActive
+                        ? "bg-secondary text-primary"
+                        : "text-foreground/80",
                     )
                   }
                 >
@@ -181,10 +232,17 @@ export const MarketplaceNavbar = ({ onSearch }: { onSearch?: (q: string) => void
               ))}
               {!user && (
                 <div className="mt-2 flex gap-2">
-                  <Button variant="outline" className="flex-1 rounded-full" asChild>
+                  <Button
+                    variant="outline"
+                    className="flex-1 rounded-full"
+                    asChild
+                  >
                     <Link to="/login">Sign in</Link>
                   </Button>
-                  <Button className="flex-1 rounded-full bg-gradient-primary" asChild>
+                  <Button
+                    className="flex-1 rounded-full bg-gradient-primary"
+                    asChild
+                  >
                     <Link to="/register">Get started</Link>
                   </Button>
                 </div>

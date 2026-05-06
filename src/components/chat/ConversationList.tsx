@@ -4,12 +4,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Conversation, User } from "@/types";
+import { Trash2Icon } from "lucide-react";
 
 interface Props {
   conversations: Conversation[] | undefined;
   isLoading: boolean;
   activeId?: string;
   currentUserId?: string;
+  onDelete?: (id: string) => void;
   onSelect: (c: Conversation) => void;
 }
 
@@ -25,7 +27,14 @@ const previewText = (c: Conversation): string => {
   return "Attachment";
 };
 
-export const ConversationList = ({ conversations, isLoading, activeId, currentUserId, onSelect }: Props) => {
+export const ConversationList = ({
+  conversations,
+  isLoading,
+  activeId,
+  currentUserId,
+  onDelete,
+  onSelect,
+}: Props) => {
   if (isLoading) {
     return (
       <div className="space-y-2 p-2">
@@ -40,11 +49,24 @@ export const ConversationList = ({ conversations, isLoading, activeId, currentUs
     return (
       <div className="px-4 py-10 text-center text-sm text-muted-foreground">
         <p className="font-medium">No conversations yet</p>
-        <p className="mt-1 text-xs">Message a seller from a product page to get started.</p>
+        <p className="mt-1 text-xs">
+          Message a seller from a product page to get started.
+        </p>
       </div>
     );
   }
+  const handleDelete = (e: React.MouseEvent<HTMLButtonElement>, id: string) => {
+    e.stopPropagation();
 
+    if (
+      !confirm(
+        "Are you sure you want to delete this conversation? This action cannot be undone.",
+      )
+    ) {
+      return;
+    }
+    onDelete?.(id);
+  };
   return (
     <ScrollArea className="h-full">
       <ul className="space-y-1 p-2">
@@ -61,22 +83,27 @@ export const ConversationList = ({ conversations, isLoading, activeId, currentUs
                 )}
               >
                 <Avatar className="h-11 w-11 shrink-0">
-                  <AvatarImage src={other?.avatar} alt={other?.name} />
+                  <AvatarImage src={other?.profileImage} alt={other?.name} />
                   <AvatarFallback className="bg-primary/10 text-sm text-primary">
                     {initials(other?.name ?? "?")}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-semibold">{other?.name ?? "Unknown"}</p>
+                    <p className="truncate text-sm font-semibold">
+                      {other?.name ?? "Unknown"}
+                    </p>
                     {!!c.unreadCount && (
                       <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
                         {c.unreadCount}
                       </span>
                     )}
                   </div>
-                  <p className="truncate text-xs text-muted-foreground">{previewText(c)}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {previewText(c)}
+                  </p>
                 </div>
+                <Trash2Icon />
               </button>
             </li>
           );

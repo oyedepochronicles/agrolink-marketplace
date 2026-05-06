@@ -12,7 +12,7 @@ export interface User {
   role: Role;
   verificationStatus?: VerificationStatus;
   isVerified?: boolean;
-  avatar?: string;
+  profileImage?: string;
   state?: string;
   rating?: number;
   reviewsCount?: number;
@@ -65,15 +65,20 @@ export interface FaqItem {
 export interface Product {
   _id: string;
   id?: string;
-  title: string;
+  title?: string;
+  name: string;
   description?: string;
   price: number;
   unit?: string;
+  quantity?: number;
   category?: string;
   state?: string;
   images?: string[];
   stock?: number;
-  farmer?: Pick<User, "_id" | "name" | "avatar" | "state" | "rating" | "reviewsCount">;
+  farmer?: Pick<
+    User,
+    "_id" | "name" | "avatar" | "state" | "rating" | "reviewsCount"
+  >;
   rating?: number;
   reviewsCount?: number;
   createdAt?: string;
@@ -103,14 +108,16 @@ export interface Order {
   total?: number;
   totalAmount?: number;
   deliveryMethod?: "delivery" | "pickup";
-  deliveryAddress?: string | {
-    street?: string;
-    city?: string;
-    state?: string;
-    lga?: string;
-    fullAddress?: string;
-    notes?: string;
-  };
+  deliveryAddress?:
+    | string
+    | {
+        street?: string;
+        city?: string;
+        state?: string;
+        lga?: string;
+        fullAddress?: string;
+        notes?: string;
+      };
   status: OrderStatus;
   paymentStatus?: "unpaid" | "paid";
   paymentReference?: string;

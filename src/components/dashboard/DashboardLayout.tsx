@@ -8,8 +8,8 @@ import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
 import {
-  BarChart3,
   Banknote,
+  BarChart3,
   Box,
   ClipboardList,
   HelpCircle,
@@ -194,7 +194,7 @@ export const DashboardLayout = () => {
             <NotificationsBell variant="light" />
             <div className="flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1.5 pr-3">
               <Avatar className="h-7 w-7">
-                <AvatarImage src={user.avatar} alt={user.name} />
+                <AvatarImage src={user.profileImage} alt={user.name} />
                 <AvatarFallback className="bg-primary/10 text-xs text-primary">
                   {initials(user.name)}
                 </AvatarFallback>

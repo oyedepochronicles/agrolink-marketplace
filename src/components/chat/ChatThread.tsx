@@ -1,19 +1,24 @@
-import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, Send, X } from "lucide-react";
-import { Link } from "react-router-dom";
-import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
-import { useMessages, useMessageSocket, useSendMessage, uploadFile } from "@/hooks/useChat";
-import { apiErrorMessage } from "@/lib/api";
-import { formatNaira, initials } from "@/lib/format";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  uploadFile,
+  useMessages,
+  useMessageSocket,
+  useSendMessage,
+} from "@/hooks/useChat";
+import { apiErrorMessage } from "@/lib/api";
+import { formatNaira, initials } from "@/lib/format";
+import type { Conversation, User } from "@/types";
+import { ChevronLeft, Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { AttachmentPicker } from "./AttachmentPicker";
 import { MessageBubble } from "./MessageBubble";
 import { VoiceRecorder } from "./VoiceRecorder";
-import { AttachmentPicker } from "./AttachmentPicker";
-import type { Conversation, User } from "@/types";
 
 interface Props {
   conversation: Conversation;
@@ -29,9 +34,15 @@ export const ChatThread = ({ conversation, onBack }: Props) => {
   const send = useSendMessage();
   useMessageSocket(conversation._id);
   const [text, setText] = useState("");
-  const [attachment, setAttachment] = useState<{ url: string; name: string; type: "image" | "file" } | null>(null);
+  const [attachment, setAttachment] = useState<{
+    url: string;
+    name: string;
+    type: "image" | "file";
+  } | null>(null);
   // Attach the conversation's product to the FIRST message in this session as context
-  const [pendingProductId, setPendingProductId] = useState<string | undefined>(conversation.product?._id);
+  const [pendingProductId, setPendingProductId] = useState<string | undefined>(
+    conversation.product?._id,
+  );
   const scrollRef = useRef<HTMLDivElement>(null);
   const other = otherParticipant(conversation, user?._id);
 
@@ -40,7 +51,10 @@ export const ChatThread = ({ conversation, onBack }: Props) => {
   }, [conversation._id, conversation.product?._id]);
 
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+    scrollRef.current?.scrollTo({
+      top: scrollRef.current.scrollHeight,
+      behavior: "smooth",
+    });
   }, [messages?.length]);
 
   const submitText = async () => {
@@ -88,35 +102,61 @@ export const ChatThread = ({ conversation, onBack }: Props) => {
     <div className="flex h-full min-h-0 flex-col bg-background">
       <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border bg-card/50 px-4">
         {onBack && (
-          <Button variant="ghost" size="icon" onClick={onBack} aria-label="Back" className="md:hidden">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onBack}
+            aria-label="Back"
+            className="md:hidden"
+          >
             <ChevronLeft className="h-5 w-5" />
           </Button>
         )}
         <Avatar className="h-10 w-10">
-          <AvatarImage src={other?.avatar} alt={other?.name} />
-          <AvatarFallback className="bg-primary/10 text-primary">{initials(other?.name ?? "?")}</AvatarFallback>
+          <AvatarImage src={other?.profileImage} alt={other?.name} />
+          <AvatarFallback className="bg-primary/10 text-primary">
+            {initials(other?.name ?? "?")}
+          </AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold">{other?.name ?? "Conversation"}</p>
-          <p className="truncate text-xs capitalize text-muted-foreground">{other?.role ?? ""}</p>
+          <p className="truncate font-semibold">
+            {other?.name ?? "Conversation"}
+          </p>
+          <p className="truncate text-xs capitalize text-muted-foreground">
+            {other?.role ?? ""}
+          </p>
         </div>
         {product && (
           <Link
             to={`/marketplace/product/${product._id}`}
             className="hidden items-center gap-2 rounded-full border border-border bg-secondary px-2.5 py-1 text-xs hover:bg-secondary/70 sm:flex"
           >
-            <img src={product.images?.[0] ?? "/placeholder.svg"} alt="" className="h-6 w-6 rounded object-cover" />
-            <span className="max-w-[140px] truncate font-medium">{product.title}</span>
-            <span className="text-muted-foreground">· {formatNaira(product.price)}</span>
+            <img
+              src={product.images?.[0] ?? "/placeholder.svg"}
+              alt=""
+              className="h-6 w-6 rounded object-cover"
+            />
+            <span className="max-w-[140px] truncate font-medium">
+              {product.title}
+            </span>
+            <span className="text-muted-foreground">
+              · {formatNaira(product.price)}
+            </span>
           </Link>
         )}
       </header>
 
-      <div ref={scrollRef} className="flex-1 space-y-2 overflow-y-auto px-4 py-5">
+      <div
+        ref={scrollRef}
+        className="flex-1 space-y-2 overflow-y-auto px-4 py-5"
+      >
         {isLoading ? (
           <div className="space-y-3">
             {Array.from({ length: 4 }).map((_, i) => (
-              <Skeleton key={i} className={`h-12 ${i % 2 ? "ml-auto w-1/2" : "w-2/3"} rounded-2xl`} />
+              <Skeleton
+                key={i}
+                className={`h-12 ${i % 2 ? "ml-auto w-1/2" : "w-2/3"} rounded-2xl`}
+              />
             ))}
           </div>
         ) : !messages || messages.length === 0 ? (
@@ -125,27 +165,23 @@ export const ChatThread = ({ conversation, onBack }: Props) => {
           </div>
         ) : (
           messages.map((m) => (
-            <MessageBubble key={m._id} message={m} mine={m.sender === user?._id} />
+            <MessageBubble
+              key={m._id}
+              message={m}
+              mine={m.sender === user?._id}
+            />
           ))
         )}
       </div>
 
       <div className="shrink-0 border-t border-border bg-card/50 p-3">
-        {pendingProductId && product && (
-          <div className="mb-2 flex items-center gap-2 rounded-xl border border-dashed border-primary/40 bg-primary/5 p-2 text-xs">
-            <img src={product.images?.[0] ?? "/placeholder.svg"} alt="" className="h-8 w-8 rounded object-cover" />
-            <div className="min-w-0 flex-1">
-              <p className="truncate font-semibold">Referencing: {product.title}</p>
-              <p className="text-muted-foreground">{formatNaira(product.price)} — attached to your next message</p>
-            </div>
-            <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setPendingProductId(undefined)} aria-label="Remove product reference">
-              <X className="h-3.5 w-3.5" />
-            </Button>
-          </div>
-        )}
         <div className="flex items-end gap-2">
           <VoiceRecorder onSend={submitVoice} disabled={send.isPending} />
-          <AttachmentPicker picked={attachment} onPicked={setAttachment} disabled={send.isPending} />
+          <AttachmentPicker
+            picked={attachment}
+            onPicked={setAttachment}
+            disabled={send.isPending}
+          />
           <Textarea
             value={text}
             onChange={(e) => setText(e.target.value)}

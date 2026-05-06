@@ -1,20 +1,30 @@
-import { Loader2, PackageCheck } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/dashboard/EmptyState";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { useBuyerOrders } from "@/hooks/useOrders";
 import { formatDate, formatNaira, formatOrderAddress } from "@/lib/format";
 import type { Order } from "@/types";
+import { Loader2, PackageCheck } from "lucide-react";
 
-const orderProductName = (order: Order) =>
-  order.product?.title || order.productId?.title || "Order item";
+const orderProductName = (order: Order) => {
+  console.log(order);
+  return order.productId?.name || "Order item";
+};
 
 const orderTotal = (order: Order) =>
-  order.totalAmount ?? order.total ?? (order.amount ?? 0) + (order.deliveryFee ?? 0);
+  order.totalAmount ??
+  order.total ??
+  (order.amount ?? 0) + (order.deliveryFee ?? 0);
 
 const orderAddress = (order: Order) => {
   if (!order.deliveryAddress) return "Farm pickup";
   return formatOrderAddress(order.deliveryAddress);
+};
+const productAvalability = (order: Order) => {
+  if (order.productId?.quantity === 0) return "Out of stock";
+  if (order.productId?.quantity && order.quantity > order.productId.quantity)
+    return "Partially available";
+  return "Available";
 };
 
 const Orders = () => {
@@ -22,8 +32,12 @@ const Orders = () => {
 
   return (
     <div className="container max-w-4xl py-8">
-      <h1 className="font-display text-2xl font-extrabold md:text-3xl">Orders</h1>
-      <p className="text-sm text-muted-foreground">Track purchases, payment status, and delivery updates.</p>
+      <h1 className="font-display text-2xl font-extrabold md:text-3xl">
+        Orders
+      </h1>
+      <p className="text-sm text-muted-foreground">
+        Track purchases, payment status, and delivery updates.
+      </p>
 
       {isLoading ? (
         <div className="flex justify-center py-16">
@@ -43,18 +57,33 @@ const Orders = () => {
             <Card key={order._id} className="rounded-2xl p-4 shadow-card">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-semibold">{orderProductName(order)}</p>
+                  <p className="truncate font-semibold">
+                    {orderProductName(order)}
+                  </p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     Qty {order.quantity} · {formatDate(order.createdAt)}
                   </p>
-                  <p className="mt-2 text-xs text-muted-foreground">{orderAddress(order)}</p>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {orderAddress(order)}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-display text-lg font-extrabold">{formatNaira(orderTotal(order))}</p>
+                  <p className="font-display text-lg font-extrabold">
+                    {formatNaira(orderTotal(order))}
+                  </p>
                   <div className="mt-1 flex justify-end gap-1">
-                    <Badge variant="outline" className="capitalize">{order.status}</Badge>
+                    <Badge variant="outline" className="capitalize">
+                      {order.status}
+                    </Badge>
                     {order.paymentStatus && (
-                      <Badge variant={order.paymentStatus === "paid" ? "default" : "secondary"} className="capitalize">
+                      <Badge
+                        variant={
+                          order.paymentStatus === "paid"
+                            ? "default"
+                            : "secondary"
+                        }
+                        className="capitalize"
+                      >
                         {order.paymentStatus}
                       </Badge>
                     )}
