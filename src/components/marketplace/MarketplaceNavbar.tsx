@@ -75,7 +75,7 @@ export const MarketplaceNavbar = ({
             <Input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search tomatoes, yam, palm oil..."
+              placeholder={t("common.search") + "…"}
               className="h-10 rounded-full border-border bg-secondary pl-10 focus-visible:bg-background"
             />
           </div>
@@ -100,9 +100,10 @@ export const MarketplaceNavbar = ({
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:ml-2">
+          <LanguageSwitcher />
           <Link
             to="/marketplace/cart"
-            aria-label="Cart"
+            aria-label={t("nav.cart")}
             className="relative inline-flex h-10 w-10 items-center justify-center rounded-full hover:bg-secondary"
           >
             <ShoppingCart className="h-5 w-5" />
@@ -142,23 +143,22 @@ export const MarketplaceNavbar = ({
                 <DropdownMenuItem
                   onClick={() => navigate("/marketplace/profile")}
                 >
-                  <UserIcon className="mr-2 h-4 w-4" /> Profile
+                  <UserIcon className="mr-2 h-4 w-4" /> {t("nav.profile")}
                 </DropdownMenuItem>
                 {user.role !== "buyer" && (
                   <DropdownMenuItem
                     onClick={() => navigate(`/dashboard/${user.role}`)}
                   >
-                    <LayoutDashboard className="mr-2 h-4 w-4" /> Back to
-                    dashboard
+                    <LayoutDashboard className="mr-2 h-4 w-4" /> {t("nav.backToDashboard")}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={() => navigate("/marketplace/cart")}>
-                  <ShoppingBag className="mr-2 h-4 w-4" /> Cart
+                  <ShoppingBag className="mr-2 h-4 w-4" /> {t("nav.cart")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => navigate("/marketplace/support")}
                 >
-                  <HelpCircle className="mr-2 h-4 w-4" /> Help center
+                  <HelpCircle className="mr-2 h-4 w-4" /> {t("nav.support")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
@@ -168,7 +168,7 @@ export const MarketplaceNavbar = ({
                   }}
                   className="text-destructive"
                 >
-                  <LogOut className="mr-2 h-4 w-4" /> Sign out
+                  <LogOut className="mr-2 h-4 w-4" /> {t("nav.signOut")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -179,13 +179,13 @@ export const MarketplaceNavbar = ({
                 onClick={() => navigate("/login")}
                 className="rounded-full"
               >
-                Sign in
+                {t("nav.signIn")}
               </Button>
               <Button
                 onClick={() => navigate("/register")}
                 className="rounded-full bg-gradient-primary shadow-glow"
               >
-                Get started
+                {t("nav.getStarted")}
               </Button>
             </div>
           )}
