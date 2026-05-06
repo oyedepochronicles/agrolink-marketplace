@@ -5,8 +5,10 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Sprout, Truck } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { useAuth } from "@/contexts/AuthContext";
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +27,7 @@ type FormValues = z.infer<typeof schema>;
 
 const Affiliate = () => {
   const { registerAffiliate } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation() as {
     state?: { from?: { pathname?: string; search?: string } };
@@ -59,58 +62,59 @@ const Affiliate = () => {
 
   return (
     <AuthLayout
-      title="Join PhyhanAgro"
-      subtitle="Apply as a farmer or rider. We'll verify your account shortly after signup."
+      title={t("auth.joinTitle")}
+      subtitle={t("auth.joinSubtitle")}
       footer={
         <>
-          Just want to shop?{" "}
-          <Link to="/register" state={location.state} className="font-semibold text-primary hover:underline">Create a buyer account</Link>
+          {t("auth.justWantToShop")}{" "}
+          <Link to="/register" state={location.state} className="font-semibold text-primary hover:underline">{t("auth.createBuyer")}</Link>
         </>
       }
     >
+      <div className="mb-3 flex justify-end"><LanguageSwitcher compact={false} /></div>
       <div className="grid grid-cols-2 gap-3">
-        <RoleCard active={role === "farmer"} onClick={() => setRole("farmer")} icon={<Sprout className="h-5 w-5" />} label="Farmer" desc="Sell your harvest" />
-        <RoleCard active={role === "rider"} onClick={() => setRole("rider")} icon={<Truck className="h-5 w-5" />} label="Rider" desc="Deliver orders" />
+        <RoleCard active={role === "farmer"} onClick={() => setRole("farmer")} icon={<Sprout className="h-5 w-5" />} label={t("auth.farmer")} desc={t("auth.sellHarvest")} />
+        <RoleCard active={role === "rider"} onClick={() => setRole("rider")} icon={<Truck className="h-5 w-5" />} label={t("auth.rider")} desc={t("auth.deliverOrders")} />
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="name">Full name</Label>
+          <Label htmlFor="name">{t("auth.fullName")}</Label>
           <Input id="name" placeholder="Jane Doe" {...register("name")} />
           {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("auth.email")}</Label>
             <Input id="email" type="email" placeholder="you@example.com" {...register("email")} />
             {errors.email && <p className="text-xs text-destructive">{errors.email.message}</p>}
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="phone">Phone</Label>
+            <Label htmlFor="phone">{t("auth.phone")}</Label>
             <Input id="phone" placeholder="080..." {...register("phone")} />
             {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
           </div>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="state">State</Label>
+            <Label htmlFor="state">{t("auth.state")}</Label>
             <Input id="state" placeholder="Lagos, Oyo, ..." {...register("state")} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="address">{t("auth.address")}</Label>
             <Input id="address" placeholder="Street, area" {...register("address")} />
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="password">Password</Label>
-          <Input id="password" type="password" placeholder="At least 6 characters" {...register("password")} />
+          <Label htmlFor="password">{t("auth.password")}</Label>
+          <Input id="password" type="password" placeholder={t("auth.passwordHint")} {...register("password")} />
           {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
         </div>
         <Button type="submit" disabled={submitting} className="h-11 w-full rounded-full bg-gradient-primary text-base font-semibold shadow-glow">
-          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : `Apply as ${role}`}
+          {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : t("auth.applyAs", { role: role === "farmer" ? t("auth.farmer") : t("auth.rider") })}
         </Button>
         <p className="text-center text-xs text-muted-foreground">
-          Your account will be limited until our team approves your verification.
+          {t("auth.verificationNotice")}
         </p>
       </form>
     </AuthLayout>
