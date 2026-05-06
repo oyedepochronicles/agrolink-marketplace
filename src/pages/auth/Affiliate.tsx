@@ -40,17 +40,16 @@ const Affiliate = () => {
   const onSubmit = async (values: FormValues) => {
     setSubmitting(true);
     try {
-      const user = await registerAffiliate({
+      await registerAffiliate({
         ...(values as Required<FormValues>),
         role,
         state: values.state || undefined,
         address: values.address || undefined,
       });
-      toast.success("Application received! Your account is pending verification.");
-      const from = location.state?.from
-        ? `${location.state.from.pathname ?? ""}${location.state.from.search ?? ""}`
-        : undefined;
-      navigate(from ?? `/dashboard/${user.role}`, { replace: true });
+      toast.success("Application received! Submit your verification documents to get started.");
+      // Always send affiliates to the verification page after signup —
+      // they'll see either the upload form or the pending status screen.
+      navigate("/verify-pending", { replace: true });
     } catch (err) {
       toast.error(apiErrorMessage(err));
     } finally {
