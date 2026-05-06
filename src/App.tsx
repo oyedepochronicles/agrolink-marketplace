@@ -1,4 +1,5 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { VerifiedRoute } from "@/components/VerifiedRoute";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +15,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ResetPassword from "./pages/auth/ResetPassword";
+import VerifyPending from "./pages/auth/VerifyPending";
 
 import { MarketplaceLayout } from "@/components/marketplace/MarketplaceLayout";
 import Cart from "./pages/marketplace/Cart";
