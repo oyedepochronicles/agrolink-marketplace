@@ -133,7 +133,9 @@ const App = () => (
                 <ProtectedRoute
                   roles={["farmer", "rider", "admin", "super_admin"]}
                 >
-                  <DashboardLayout />
+                  <VerifiedRoute>
+                    <DashboardLayout />
+                  </VerifiedRoute>
                 </ProtectedRoute>
               }
             >
@@ -220,6 +222,14 @@ const App = () => (
                 element={
                   <ProtectedRoute roles={["admin"]}>
                     <AdminVerifications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="admin/orders"
+                element={
+                  <ProtectedRoute roles={["admin"]}>
+                    <AdminOrders />
                   </ProtectedRoute>
                 }
               />
