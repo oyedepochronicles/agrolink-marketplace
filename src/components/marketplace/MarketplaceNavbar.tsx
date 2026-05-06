@@ -1,4 +1,5 @@
 import { Brand } from "@/components/Brand";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -27,15 +28,19 @@ import {
   X,
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 
-const navItems = [
-  { to: "/marketplace", label: "Home" },
-  { to: "/marketplace/search", label: "Browse" },
-  { to: "/marketplace/orders", label: "Orders" },
-  { to: "/marketplace/messages", label: "Messages" },
-  { to: "/marketplace/profile", label: "Profile" },
-];
+const useNavItems = () => {
+  const { t } = useTranslation();
+  return [
+    { to: "/marketplace", label: t("nav.home") },
+    { to: "/marketplace/search", label: t("nav.browse") },
+    { to: "/marketplace/orders", label: t("nav.orders") },
+    { to: "/marketplace/messages", label: t("nav.messages") },
+    { to: "/marketplace/profile", label: t("nav.profile") },
+  ];
+};
 
 export const MarketplaceNavbar = ({
   onSearch,
@@ -44,7 +49,9 @@ export const MarketplaceNavbar = ({
 }) => {
   const { user, logout } = useAuth();
   const { count } = useCart();
+  const { t } = useTranslation();
   const navigate = useNavigate();
+  const navItems = useNavItems();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [q, setQ] = useState("");
 
