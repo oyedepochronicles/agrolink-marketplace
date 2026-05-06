@@ -214,7 +214,7 @@ export const MarketplaceNavbar = ({
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="Search produce..."
+                placeholder={t("common.search") + "…"}
                 className="h-11 rounded-full bg-secondary pl-10"
               />
             </form>
@@ -239,18 +239,11 @@ export const MarketplaceNavbar = ({
               ))}
               {!user && (
                 <div className="mt-2 flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 rounded-full"
-                    asChild
-                  >
-                    <Link to="/login">Sign in</Link>
+                  <Button variant="outline" className="flex-1 rounded-full" asChild>
+                    <Link to="/login">{t("nav.signIn")}</Link>
                   </Button>
-                  <Button
-                    className="flex-1 rounded-full bg-gradient-primary"
-                    asChild
-                  >
-                    <Link to="/register">Get started</Link>
+                  <Button className="flex-1 rounded-full bg-gradient-primary" asChild>
+                    <Link to="/register">{t("nav.getStarted")}</Link>
                   </Button>
                 </div>
               )}
