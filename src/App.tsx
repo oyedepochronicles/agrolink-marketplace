@@ -28,6 +28,7 @@ import SupportTicket from "./pages/marketplace/SupportTicket";
 
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import AdminAnalytics from "./pages/dashboard/AdminAnalytics";
+import AdminOrders from "./pages/dashboard/AdminOrders";
 import AdminOverview from "./pages/dashboard/AdminOverview";
 import AdminPayouts from "./pages/dashboard/AdminPayouts";
 import AdminProducts from "./pages/dashboard/AdminProducts";
@@ -63,6 +64,14 @@ const App = () => (
             <Route path="/affiliate" element={<Affiliate />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route
+              path="/verify-pending"
+              element={
+                <ProtectedRoute>
+                  <VerifyPending />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Marketplace */}
             <Route path="/marketplace" element={<MarketplaceLayout />}>
