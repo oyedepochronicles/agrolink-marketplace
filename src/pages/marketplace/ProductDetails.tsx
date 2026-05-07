@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ChevronLeft, MapPin, MessageCircle, Plus, ShieldCheck, ShoppingBag, Zap } from "lucide-react";
+import { CalendarDays, ChevronLeft, MapPin, MessageCircle, Plus, ShieldCheck, ShoppingBag, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { useProduct } from "@/hooks/useProducts";
 import { useAuth } from "@/contexts/AuthContext";
@@ -54,6 +54,7 @@ const ProductDetails = () => {
 
   const images = product.images?.length ? product.images : ["/placeholder.svg"];
   const total = product.price * quantity;
+  const harvestDate = product.expectedHarvestDate || product.harvestDate;
 
   const addToCart = (goCheckout = false) => {
     if (!user) { navigate("/login"); return; }
@@ -133,6 +134,11 @@ const ProductDetails = () => {
             <h1 className="font-display text-3xl font-extrabold tracking-tight md:text-4xl">{product.title}</h1>
             <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
               <span className="inline-flex items-center gap-1"><MapPin className="h-4 w-4" />{product.state ?? product.farmer?.state ?? "Nigeria"}</span>
+              {product.isPreHarvest && harvestDate && (
+                <span className="inline-flex items-center gap-1 font-medium text-amber-700">
+                  <CalendarDays className="h-4 w-4" /> Harvests {new Date(harvestDate).toLocaleDateString()}
+                </span>
+              )}
               {(rating?.count ?? 0) > 0 && (
                 <span className="inline-flex items-center gap-1.5">
                   <RatingStars value={rating?.average ?? 0} size="sm" />

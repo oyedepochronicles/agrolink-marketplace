@@ -22,6 +22,9 @@ export interface ProductInput {
   category?: string;
   state?: string;
   stock?: number;
+  harvestDate?: string;
+  expectedHarvestDate?: string;
+  isPreHarvest?: boolean;
   images?: string[];
 }
 

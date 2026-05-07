@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Plus, Upload, X } from "lucide-react";
 import { toast } from "sonner";
@@ -22,6 +23,12 @@ const STATES = [
   "Enugu", "Plateau", "Benue", "Cross River", "Edo", "Delta", "Imo", "Other",
 ];
 
+const toDateInput = (value?: string) => {
+  if (!value) return "";
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10);
+};
+
 interface Props {
   open: boolean;
   onOpenChange: (v: boolean) => void;
@@ -37,23 +44,26 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
 
   const [form, setForm] = useState<ProductInput>({
     title: "", description: "", price: 0, unit: "kg",
-    category: "Grains", state: "Lagos", stock: 0, images: [],
+    category: "Grains", state: "Lagos", stock: 0, harvestDate: toDateInput(new Date().toISOString()), isPreHarvest: false, images: [],
   });
 
   useEffect(() => {
     if (open) {
       setForm(product ? {
-        title: product.title,
+        title: product.title || product.name || "",
         description: product.description ?? "",
         price: product.price,
         unit: product.unit ?? "kg",
         category: product.category ?? "Grains",
         state: product.state ?? "Lagos",
         stock: product.stock ?? 0,
+        harvestDate: toDateInput(product.harvestDate),
+        expectedHarvestDate: toDateInput(product.expectedHarvestDate),
+        isPreHarvest: Boolean(product.isPreHarvest),
         images: product.images ?? [],
       } : {
         title: "", description: "", price: 0, unit: "kg",
-        category: "Grains", state: "Lagos", stock: 0, images: [],
+        category: "Grains", state: "Lagos", stock: 0, harvestDate: toDateInput(new Date().toISOString()), isPreHarvest: false, images: [],
       });
     }
   }, [open, product]);
@@ -141,6 +151,25 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
               </Select>
             </div>
           </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="harvestDate">Harvest date</Label>
+              <Input id="harvestDate" type="date" value={form.harvestDate ?? ""} onChange={(e) => setForm({ ...form, harvestDate: e.target.value })} />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="expectedHarvestDate">Expected harvest date</Label>
+              <Input id="expectedHarvestDate" type="date" value={form.expectedHarvestDate ?? ""} onChange={(e) => setForm({ ...form, expectedHarvestDate: e.target.value })} />
+            </div>
+          </div>
+
+          <label className="flex items-start gap-3 rounded-lg border border-border p-3 text-sm">
+            <Checkbox checked={Boolean(form.isPreHarvest)} onCheckedChange={(checked) => setForm({ ...form, isPreHarvest: Boolean(checked), expectedHarvestDate: form.expectedHarvestDate || form.harvestDate })} />
+            <span>
+              <span className="block font-medium">Pre-harvest listing</span>
+              <span className="text-xs text-muted-foreground">Let buyers reserve produce before harvest to reduce post-harvest loss.</span>
+            </span>
+          </label>
 
           <div className="space-y-2">
             <Label>Images</Label>

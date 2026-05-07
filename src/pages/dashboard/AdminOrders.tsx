@@ -19,6 +19,8 @@ interface Row {
   farmer: string;
   amount: number;
   payment: string;
+  paymentMethod: string;
+  delivery: string;
   status: Order["status"];
   date: string;
   rawDate: number;
@@ -34,6 +36,8 @@ const buildRow = (o: Order): Row => ({
   farmer: o.farmer?.name || o.farmerId?.name || "—",
   amount: o.totalAmount ?? o.total ?? (o.amount ?? 0) + (o.deliveryFee ?? 0),
   payment: o.paymentStatus ?? "unpaid",
+  paymentMethod: o.paymentMethod ?? "in_app",
+  delivery: `${o.deliveryMethod ?? "delivery"} / ${o.deliveryUrgency ?? "standard"}`,
   status: o.status,
   date: formatDate(o.createdAt),
   rawDate: new Date(o.createdAt ?? 0).getTime(),
@@ -57,6 +61,8 @@ const AdminOrders = () => {
         {row.original.payment}
       </Badge>
     ) },
+    { accessorKey: "paymentMethod", header: "Payment method", cell: ({ row }) => <Badge variant="outline">{row.original.paymentMethod.replace("_", " ")}</Badge> },
+    { accessorKey: "delivery", header: "Delivery", cell: ({ row }) => <span className="capitalize">{row.original.delivery.replace("_", " ")}</span> },
     { accessorKey: "status", header: t("admin.columns.status"), cell: ({ row }) => <OrderStatusBadge status={row.original.status} /> },
     { accessorKey: "rawDate", header: t("admin.columns.date"), cell: ({ row }) => <span className="text-muted-foreground">{row.original.date}</span> },
   ], [t]);
@@ -72,7 +78,7 @@ const AdminOrders = () => {
         <DataTable
           data={rows}
           columns={columns}
-          searchableKeys={["shortId", "product", "buyer", "farmer", "status", "payment"]}
+          searchableKeys={["shortId", "product", "buyer", "farmer", "status", "payment", "paymentMethod", "delivery"]}
         />
       )}
     </div>

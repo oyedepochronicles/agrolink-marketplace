@@ -22,6 +22,8 @@ interface Row {
   farmer: string;
   state: string;
   stock: number;
+  harvest: string;
+  availability: string;
   raw: Product;
 }
 
@@ -39,6 +41,8 @@ const AdminProducts = () => {
     farmer: p.farmer?.name ?? "—",
     state: p.state ?? "—",
     stock: p.stock ?? p.quantity ?? 0,
+    harvest: p.expectedHarvestDate || p.harvestDate ? new Date(p.expectedHarvestDate || p.harvestDate || "").toLocaleDateString() : "—",
+    availability: p.isPreHarvest ? "Pre-harvest" : "Harvested",
     raw: p,
   })), [products]);
 
@@ -63,6 +67,8 @@ const AdminProducts = () => {
     { accessorKey: "category", header: t("admin.columns.category"), cell: ({ row }) => <Badge variant="outline">{row.original.category}</Badge> },
     { accessorKey: "price", header: t("admin.columns.price"), cell: ({ row }) => <span className="font-semibold text-primary">{formatNaira(row.original.price)}</span> },
     { accessorKey: "stock", header: t("admin.columns.stock") },
+    { accessorKey: "availability", header: "Availability", cell: ({ row }) => <Badge variant="outline">{row.original.availability}</Badge> },
+    { accessorKey: "harvest", header: "Harvest date" },
     { accessorKey: "farmer", header: t("admin.columns.farmer") },
     { accessorKey: "state", header: t("auth.state") },
     {

@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { Order, OrderStatus, User } from "@/types";
+import type { DeliveryStatus, Order, OrderStatus, User } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 interface ListResp {
@@ -145,6 +145,23 @@ export const useAcceptDelivery = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["available-deliveries"] });
       qc.invalidateQueries({ queryKey: ["rider-deliveries"] });
+    },
+  });
+};
+
+export const useUpdateDeliveryStatus = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, deliveryStatus }: { id: string; deliveryStatus: DeliveryStatus }) => {
+      const { data } = await api.patch<Order>(`/orders/${id}/delivery-status`, {
+        deliveryStatus,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["rider-deliveries"] });
+      qc.invalidateQueries({ queryKey: ["buyer-orders"] });
+      qc.invalidateQueries({ queryKey: ["farmer-orders"] });
     },
   });
 };

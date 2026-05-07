@@ -1,7 +1,12 @@
 // PhyhanAgro shared TypeScript types
 
 export type Role = "buyer" | "farmer" | "rider" | "admin" | "super_admin";
-export type VerificationStatus = "pending" | "approved" | "rejected";
+export type VerificationStatus =
+  | "pending"
+  | "pending_verification"
+  | "approved"
+  | "rejected"
+  | "not_verify";
 
 export interface User {
   _id: string;
@@ -18,6 +23,16 @@ export interface User {
   rating?: number;
   reviewsCount?: number;
   createdAt?: string;
+  location?: {
+    state?: string;
+    lga?: string;
+    fullAddress?: string;
+    landmark?: string;
+  };
+  farmerProfile?: {
+    farmName?: string;
+    farmAddress?: string;
+  };
 }
 
 export interface Review {
@@ -76,6 +91,10 @@ export interface Product {
   state?: string;
   images?: string[];
   stock?: number;
+  harvestDate?: string;
+  expectedHarvestDate?: string;
+  isPreHarvest?: boolean;
+  farmerId?: string;
   farmer?: Pick<
     User,
     "_id" | "name" | "avatar" | "state" | "rating" | "reviewsCount"
@@ -87,11 +106,22 @@ export interface Product {
 
 export type OrderStatus =
   | "pending"
+  | "accepted"
+  | "rejected"
+  | "completed"
   | "paid"
   | "processing"
   | "in_transit"
   | "delivered"
   | "cancelled";
+
+export type DeliveryStatus =
+  | "pending"
+  | "assigned"
+  | "picked_up"
+  | "in_transit"
+  | "delivered"
+  | "pickup";
 
 export interface Order {
   _id: string;
@@ -109,6 +139,8 @@ export interface Order {
   total?: number;
   totalAmount?: number;
   deliveryMethod?: "delivery" | "pickup";
+  deliveryUrgency?: "standard" | "urgent";
+  deliveryStatus?: DeliveryStatus;
   deliveryAddress?:
     | string
     | {
@@ -119,8 +151,18 @@ export interface Order {
         fullAddress?: string;
         notes?: string;
       };
+  pickupAddress?: {
+    farmName?: string;
+    contactName?: string;
+    contactPhone?: string;
+    state?: string;
+    lga?: string;
+    fullAddress?: string;
+    landmark?: string;
+  };
   status: OrderStatus;
   paymentStatus?: "unpaid" | "paid";
+  paymentMethod?: "in_app" | "offline" | "pay_later";
   paymentReference?: string;
   createdAt: string;
 }

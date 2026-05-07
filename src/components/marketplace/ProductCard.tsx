@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin } from "lucide-react";
+import { CalendarDays, MapPin } from "lucide-react";
 import type { Product } from "@/types";
 import { formatNaira } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,7 @@ interface Props { product: Product; className?: string }
 export const ProductCard = ({ product, className }: Props) => {
   const id = product._id ?? product.id;
   const image = product.images?.[0];
+  const harvestDate = product.expectedHarvestDate || product.harvestDate;
   return (
     <Link
       to={`/marketplace/product/${id}`}
@@ -42,6 +43,12 @@ export const ProductCard = ({ product, className }: Props) => {
           <MapPin className="h-3.5 w-3.5" />
           <span>{product.state ?? product.farmer?.state ?? "Nigeria"}</span>
         </div>
+        {product.isPreHarvest && harvestDate && (
+          <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700">
+            <CalendarDays className="h-3.5 w-3.5" />
+            <span>Harvests {new Date(harvestDate).toLocaleDateString()}</span>
+          </div>
+        )}
         <div className="mt-auto flex items-end justify-between pt-2">
           <span className="font-display text-lg font-extrabold text-primary">
             {formatNaira(product.price)}
