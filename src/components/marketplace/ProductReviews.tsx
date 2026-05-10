@@ -57,7 +57,7 @@ export const ProductReviews = ({ productId, farmerId }: Props) => {
   };
 
   return (
-    <section className="space-y-5">
+    <section id="reviews" className="space-y-5">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="font-display text-2xl font-extrabold">Reviews</h2>

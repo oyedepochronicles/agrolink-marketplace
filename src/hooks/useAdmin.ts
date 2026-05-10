@@ -33,6 +33,13 @@ export const useAdminVerifications = () =>
       unwrapUsers((await api.get<UserListResp | User[]>("/admin/verifications")).data),
   });
 
+export const useAdminVerification = (id?: string) =>
+  useQuery({
+    queryKey: ["admin-verification", id],
+    enabled: !!id,
+    queryFn: async () => (await api.get<User>(`/admin/verifications/${id}`)).data,
+  });
+
 export const useAdminUsers = () =>
   useQuery({
     queryKey: ["admin-users"],
@@ -59,8 +66,8 @@ export const useAdminStats = () =>
 export const useReviewVerification = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, action }: { id: string; action: "approve" | "reject" }) => {
-      const { data } = await api.patch<User>(`/admin/verifications/${id}/${action}`);
+    mutationFn: async ({ id, action, reason }: { id: string; action: "approve" | "reject"; reason?: string }) => {
+      const { data } = await api.patch<User>(`/admin/verifications/${id}/${action}`, reason ? { reason } : undefined);
       return data;
     },
     onSuccess: () => {
@@ -92,3 +99,4 @@ export const useDeleteAdminProduct = () => {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-products"] }),
   });
 };
+

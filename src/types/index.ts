@@ -32,7 +32,30 @@ export interface User {
   farmerProfile?: {
     farmName?: string;
     farmAddress?: string;
+    farmState?: string;
+    farmLga?: string;
+    farmLandmark?: string;
+    farmPhone?: string;
+    idType?: string;
+    idNumber?: string;
+    idDocumentUrl?: string;
+    farmPhotoUrl?: string;
   };
+  riderProfile?: {
+    vehicleType?: string;
+    vehicleNumber?: string;
+    licenseNumber?: string;
+    idType?: string;
+    idDocumentUrl?: string;
+    driverLicenseUrl?: string;
+  };
+  buyerProfile?: {
+    idType?: string;
+    idDocumentUrl?: string;
+  };
+  verificationSubmittedAt?: string;
+  verificationReviewedAt?: string;
+  verificationRejectionReason?: string;
 }
 
 export interface Review {
@@ -101,12 +124,14 @@ export interface Product {
   >;
   rating?: number;
   reviewsCount?: number;
+  status?: "available" | "reserved" | "sold" | "expired";
   createdAt?: string;
 }
 
 export type OrderStatus =
   | "pending"
   | "accepted"
+  | "ready_for_pickup"
   | "rejected"
   | "completed"
   | "paid"
@@ -144,6 +169,9 @@ export interface Order {
   deliveryAddress?:
     | string
     | {
+        recipient?: string;
+        phone?: string;
+        secondPhone?: string;
         street?: string;
         city?: string;
         state?: string;
@@ -155,6 +183,7 @@ export interface Order {
     farmName?: string;
     contactName?: string;
     contactPhone?: string;
+    secondPhone?: string;
     state?: string;
     lga?: string;
     fullAddress?: string;
@@ -250,3 +279,4 @@ export interface ApiResponse<T> {
   data: T;
   message?: string;
 }
+

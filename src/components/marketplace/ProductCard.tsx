@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarDays, MapPin, Package } from "lucide-react";
 import type { Product } from "@/types";
 import { formatNaira } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -42,6 +42,10 @@ export const ProductCard = ({ product, className }: Props) => {
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <MapPin className="h-3.5 w-3.5" />
           <span>{product.state ?? product.farmer?.state ?? "Nigeria"}</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs font-medium text-foreground/75">
+          <Package className="h-3.5 w-3.5" />
+          <span>{product.quantity ?? product.stock ?? 0} {product.unit || "unit"} available</span>
         </div>
         {product.isPreHarvest && harvestDate && (
           <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700">

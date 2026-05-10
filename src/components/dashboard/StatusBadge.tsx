@@ -5,6 +5,7 @@ import type { OrderStatus, VerificationStatus } from "@/types";
 const ORDER_STYLES: Record<OrderStatus, string> = {
   pending: "bg-muted text-foreground",
   accepted: "bg-primary/10 text-primary",
+  ready_for_pickup: "bg-accent/40 text-accent-foreground",
   rejected: "bg-destructive/10 text-destructive",
   completed: "bg-primary/15 text-primary",
   paid: "bg-primary/10 text-primary",
@@ -33,3 +34,4 @@ export const VerificationBadge = ({ status }: { status: VerificationStatus }) =>
     {status}
   </Badge>
 );
+

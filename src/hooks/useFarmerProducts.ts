@@ -70,6 +70,20 @@ export const useDeleteProduct = () => {
   });
 };
 
+export const useUpdateProductStatus = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: "available" | "reserved" | "sold" | "expired" }) => {
+      const { data } = await api.patch<Product>(`/products/${id}/status`, { status });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["farmer-products"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+};
+
 export const useUploadImage = () =>
   useMutation({
     mutationFn: async (file: File): Promise<string> => {

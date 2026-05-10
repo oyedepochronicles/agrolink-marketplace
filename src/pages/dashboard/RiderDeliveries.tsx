@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Loader2, MapPin, Phone, Truck, UserRound } from "lucide-react";
+import { Loader2, MapPin, MessageCircle, Phone, Truck, UserRound } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -11,11 +11,13 @@ import { EmptyState } from "@/components/dashboard/EmptyState";
 import { OrderStatusBadge } from "@/components/dashboard/StatusBadge";
 import {
   useAcceptDelivery, useAvailableDeliveries, useRiderDeliveries,
+  useOrderConversation,
   useUpdateDeliveryStatus,
 } from "@/hooks/useOrders";
 import { formatDate, formatNaira, formatOrderAddress, initials } from "@/lib/format";
 import { apiErrorMessage } from "@/lib/api";
 import type { DeliveryStatus, Order } from "@/types";
+import { useNavigate } from "react-router-dom";
 
 const NEXT: Partial<Record<DeliveryStatus, DeliveryStatus>> = {
   assigned: "picked_up",
@@ -45,6 +47,8 @@ const RiderDeliveries = () => {
   const mine = useRiderDeliveries();
   const accept = useAcceptDelivery();
   const update = useUpdateDeliveryStatus();
+  const orderConversation = useOrderConversation();
+  const navigate = useNavigate();
   const activeDeliveries = (mine.data ?? []).filter((o) => o.deliveryStatus !== "delivered");
   const history = (mine.data ?? []).filter((o) => o.deliveryStatus === "delivered");
 
@@ -63,6 +67,16 @@ const RiderDeliveries = () => {
     try {
       await update.mutateAsync({ id: o._id, deliveryStatus: next });
       toast.success(`Marked ${next.replace("_", " ")}`);
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    }
+  };
+
+  const openConversation = async (order: Order, recipientId?: string) => {
+    try {
+      const conversation = await orderConversation.mutateAsync({ orderId: order._id, recipientId });
+      const cid = conversation._id ?? conversation.id;
+      navigate(`/dashboard/rider/messages${cid ? `?conversation=${cid}` : ""}`);
     } catch (e) {
       toast.error(apiErrorMessage(e));
     }
@@ -93,6 +107,8 @@ const RiderDeliveries = () => {
                   key={o._id}
                   order={o}
                   onDetails={() => setDetails(o)}
+                  onMessageBuyer={() => openConversation(o, o.buyer?._id || o.buyerId?._id)}
+                  onMessageFarmer={() => openConversation(o, o.farmer?._id || o.farmerId?._id)}
                   action={NEXT[o.deliveryStatus || "assigned"] && (
                     <Button size="sm" onClick={() => advance(o)} disabled={update.isPending}>
                       {NEXT_LABEL[o.deliveryStatus || "assigned"]}
@@ -134,7 +150,15 @@ const RiderDeliveries = () => {
             <EmptyState icon={<Truck className="h-6 w-6" />} title="No delivery history" />
           ) : (
             <div className="space-y-3">
-              {history.map((o) => <DeliveryCard key={o._id} order={o} onDetails={() => setDetails(o)} />)}
+              {history.map((o) => (
+                <DeliveryCard
+                  key={o._id}
+                  order={o}
+                  onDetails={() => setDetails(o)}
+                  onMessageBuyer={() => openConversation(o, o.buyer?._id || o.buyerId?._id)}
+                  onMessageFarmer={() => openConversation(o, o.farmer?._id || o.farmerId?._id)}
+                />
+              ))}
             </div>
           )}
         </TabsContent>
@@ -149,7 +173,19 @@ const CenterSpin = () => (
   <div className="flex justify-center py-16"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>
 );
 
-const DeliveryCard = ({ order, action, onDetails }: { order: Order; action?: React.ReactNode; onDetails?: () => void }) => (
+const DeliveryCard = ({
+  order,
+  action,
+  onDetails,
+  onMessageBuyer,
+  onMessageFarmer,
+}: {
+  order: Order;
+  action?: React.ReactNode;
+  onDetails?: () => void;
+  onMessageBuyer?: () => void;
+  onMessageFarmer?: () => void;
+}) => (
   <Card className="rounded-2xl p-4 shadow-card">
     <div className="flex flex-wrap items-start gap-4">
       <div className="flex flex-1 items-center gap-3 min-w-[220px]">
@@ -169,6 +205,16 @@ const DeliveryCard = ({ order, action, onDetails }: { order: Order; action?: Rea
       </div>
       <div className="flex w-full gap-2 sm:w-auto">
         <Button size="sm" variant="outline" onClick={onDetails}>Details</Button>
+        {onMessageBuyer && (
+          <Button size="sm" variant="outline" onClick={onMessageBuyer} className="gap-1">
+            <MessageCircle className="h-4 w-4" /> Buyer
+          </Button>
+        )}
+        {onMessageFarmer && (
+          <Button size="sm" variant="outline" onClick={onMessageFarmer} className="gap-1">
+            <MessageCircle className="h-4 w-4" /> Farmer
+          </Button>
+        )}
         {action}
       </div>
     </div>

@@ -95,6 +95,9 @@ const Checkout = () => {
           apiDeliveryMethod === "pickup"
             ? undefined
             : {
+                recipient: selectedAddress!.recipient,
+                phone: selectedAddress!.phone,
+                secondPhone: selectedAddress!.secondPhone,
                 street: selectedAddress!.street,
                 city: selectedAddress!.city,
                 state: selectedAddress!.state,
@@ -124,8 +127,15 @@ const Checkout = () => {
         orderId: orderIds[0],
       });
       const url =
-        (payment as { authorization_url?: string; url?: string })
-          .authorization_url ?? (payment as { url?: string }).url;
+        (
+          payment as {
+            authorization_url?: string;
+            authorizationUrl?: string;
+            url?: string;
+          }
+        ).authorization_url ??
+        (payment as { authorizationUrl?: string }).authorizationUrl ??
+        (payment as { url?: string }).url;
       clear();
       if (url) window.location.href = url;
       else {
@@ -286,3 +296,4 @@ const Row = ({
 );
 
 export default Checkout;
+

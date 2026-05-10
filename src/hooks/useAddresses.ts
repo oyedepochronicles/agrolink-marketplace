@@ -8,6 +8,7 @@ export interface Address {
   label: string;
   recipient: string;
   phone: string;
+  secondPhone?: string;
   street: string;
   city: string;
   state: string;
@@ -115,3 +116,4 @@ export const useAddresses = () => {
 
 export const formatAddress = (a: Address) =>
   `${a.street}, ${a.city}, ${a.state}`;
+

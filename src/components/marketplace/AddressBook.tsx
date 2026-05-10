@@ -17,7 +17,7 @@ interface Props {
   selectable?: boolean;
 }
 
-const empty = { label: "Home", recipient: "", phone: "", street: "", city: "", lga: "", state: "", notes: "", isDefault: false };
+const empty = { label: "Home", recipient: "", phone: "", secondPhone: "", street: "", city: "", lga: "", state: "", notes: "", isDefault: false };
 
 export const AddressBook = ({ selectedId, onSelect, selectable }: Props) => {
   const { addresses, create, update, remove, setDefault, defaultAddress } = useAddresses();
@@ -89,7 +89,7 @@ export const AddressBook = ({ selectedId, onSelect, selectable }: Props) => {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm font-medium">{a.recipient} · {a.phone}</p>
+                    <p className="text-sm font-medium">{a.recipient} � {a.phone}{a.secondPhone ? ` / ${a.secondPhone}` : ""}</p>
                     <p className="text-xs text-muted-foreground">{formatAddress(a)}</p>
                     {a.notes && <p className="mt-1 text-xs italic text-muted-foreground">“{a.notes}”</p>}
                   </div>
@@ -131,9 +131,14 @@ export const AddressBook = ({ selectedId, onSelect, selectable }: Props) => {
                 <Input value={form.recipient} onChange={(e) => setForm({ ...form, recipient: e.target.value })} />
               </Field>
             </div>
-            <Field label="Phone *">
-              <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+234..." />
-            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Phone *">
+                <Input value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} placeholder="+234..." />
+              </Field>
+              <Field label="Second phone">
+                <Input value={form.secondPhone ?? ""} onChange={(e) => setForm({ ...form, secondPhone: e.target.value })} placeholder="Optional" />
+              </Field>
+            </div>
             <Field label="Street *">
               <Input value={form.street} onChange={(e) => setForm({ ...form, street: e.target.value })} />
             </Field>
@@ -181,3 +186,4 @@ const Field = ({ label, children }: { label: string; children: React.ReactNode }
     {children}
   </div>
 );
+

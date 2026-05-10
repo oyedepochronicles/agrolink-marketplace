@@ -44,3 +44,10 @@ export const apiErrorMessage = (err: unknown): string => {
     "Something went wrong. Please try again."
   );
 };
+
+export const assetUrl = (url?: string) => {
+  if (!url) return "";
+  if (/^(https?:|data:|blob:)/i.test(url)) return url;
+  const base = API_BASE_URL.replace(/\/$/, "");
+  return `${base}${url.startsWith("/") ? url : `/${url}`}`;
+};

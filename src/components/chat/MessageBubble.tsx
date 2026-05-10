@@ -1,6 +1,7 @@
 import { FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { assetUrl } from "@/lib/api";
 import { formatNaira } from "@/lib/format";
 import type { Message } from "@/types";
 
@@ -20,6 +21,7 @@ export const MessageBubble = ({ message, mine }: Props) => {
   const isImage = message.attachmentType === "image" && message.attachmentUrl;
   const isFile = message.attachmentType === "file" && message.attachmentUrl;
   const product = message.product;
+  const attachmentHref = assetUrl(message.attachmentUrl);
 
   return (
     <div className={cn("flex w-full", mine ? "justify-end" : "justify-start")}>
@@ -56,16 +58,16 @@ export const MessageBubble = ({ message, mine }: Props) => {
         )}
 
         {isImage && (
-          <a href={message.attachmentUrl} target="_blank" rel="noreferrer">
-            <img src={message.attachmentUrl} alt="attachment" className="max-h-60 rounded-lg object-cover" />
+          <a href={attachmentHref} target="_blank" rel="noreferrer">
+            <img src={attachmentHref} alt="attachment" className="max-h-60 rounded-lg object-cover" />
           </a>
         )}
         {isAudio && (
-          <audio src={message.attachmentUrl} controls className="h-10 w-64 max-w-full" />
+          <audio src={attachmentHref} controls className="h-10 w-64 max-w-full" />
         )}
         {isFile && (
           <a
-            href={message.attachmentUrl}
+            href={attachmentHref}
             target="_blank"
             rel="noreferrer"
             className={cn(

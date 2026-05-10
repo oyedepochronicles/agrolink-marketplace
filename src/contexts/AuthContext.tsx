@@ -8,7 +8,7 @@ interface RegisterBuyerInput { name: string; email: string; phone?: string; pass
 interface AffiliateInput {
   name: string; email: string; phone: string; password: string;
   role: Extract<Role, "farmer" | "rider">;
-  state?: string; address?: string;
+  state?: string; address?: string; farmName?: string; farmAddress?: string; farmLandmark?: string;
 }
 
 interface AuthContextValue {
@@ -70,7 +70,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const registerAffiliate = async (input: AffiliateInput) => {
-    const { data } = await api.post("/auth/affiliate", input);
+    const { state, address, farmName, farmAddress, farmLandmark, ...rest } = input;
+    const { data } = await api.post("/auth/affiliate", {
+      ...rest,
+      termsAccepted: true,
+      location: state
+        ? {
+            state,
+            lga: "Unknown",
+            fullAddress: address,
+          }
+        : undefined,
+      ...(input.role === "farmer"
+        ? { farmerProfile: { farmName: farmName || input.name, farmAddress: farmAddress || address, farmState: state, farmLga: "Unknown", farmLandmark, farmPhone: input.phone } }
+        : {}),
+      ...(input.role === "rider" ? { riderProfile: {} } : {}),
+    });
     return handleAuthResponse(data);
   };
 
@@ -92,3 +107,4 @@ export const useAuth = () => {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 };
+

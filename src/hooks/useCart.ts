@@ -10,6 +10,7 @@ export interface CartItem {
   unit?: string;
   image?: string;
   farmerId?: string;
+  farmerName?: string;
   quantity: number;
 }
 
@@ -44,6 +45,7 @@ const fromRemote = (
         unit: product.unit,
         image: product.images?.[0],
         farmerId: product.farmerId,
+        farmerName: product.farmer?.name,
         quantity: item.quantity,
       };
     })
@@ -123,6 +125,7 @@ export const useCart = () => {
           unit: product.unit,
           image: product.images?.[0],
           farmerId: product.farmerId,
+          farmerName: product.farmer?.name,
           quantity,
         });
       }
