@@ -21,6 +21,8 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquare,
+  Package,
   Search,
   ShoppingBag,
   ShoppingCart,
@@ -141,6 +143,21 @@ export const MarketplaceNavbar = ({
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
+                  onClick={() => navigate("/marketplace/search")}
+                >
+                  <Search className="mr-2 h-4 w-4" /> {t("nav.browse")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => navigate("/marketplace/orders")}
+                >
+                  <Package className="mr-2 h-4 w-4" /> {t("nav.orders")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => navigate("/marketplace/messages")}
+                >
+                  <MessageSquare className="mr-2 h-4 w-4" /> {t("nav.messages")}
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   onClick={() => navigate("/marketplace/profile")}
                 >
                   <UserIcon className="mr-2 h-4 w-4" /> {t("nav.profile")}
@@ -149,7 +166,8 @@ export const MarketplaceNavbar = ({
                   <DropdownMenuItem
                     onClick={() => navigate(`/dashboard/${user.role}`)}
                   >
-                    <LayoutDashboard className="mr-2 h-4 w-4" /> {t("nav.backToDashboard")}
+                    <LayoutDashboard className="mr-2 h-4 w-4" />{" "}
+                    {t("nav.backToDashboard")}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuItem onClick={() => navigate("/marketplace/cart")}>
@@ -239,10 +257,17 @@ export const MarketplaceNavbar = ({
               ))}
               {!user && (
                 <div className="mt-2 flex gap-2">
-                  <Button variant="outline" className="flex-1 rounded-full" asChild>
+                  <Button
+                    variant="outline"
+                    className="flex-1 rounded-full"
+                    asChild
+                  >
                     <Link to="/login">{t("nav.signIn")}</Link>
                   </Button>
-                  <Button className="flex-1 rounded-full bg-gradient-primary" asChild>
+                  <Button
+                    className="flex-1 rounded-full bg-gradient-primary"
+                    asChild
+                  >
                     <Link to="/register">{t("nav.getStarted")}</Link>
                   </Button>
                 </div>
