@@ -8,7 +8,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
-import { useTranslation } from "react-i18next";
 import {
   Banknote,
   BarChart3,
@@ -23,10 +22,20 @@ import {
   ShieldCheck,
   ShoppingCart,
   Truck,
+  UserIcon,
   Users,
   Wallet,
 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 
 interface NavEntry {
   to: string;
@@ -39,27 +48,95 @@ const NAV_BY_ROLE: Record<
   NavEntry[]
 > = {
   farmer: [
-    { to: "/dashboard/farmer", labelKey: "dashboard.overview", icon: <LayoutDashboard className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/products", labelKey: "dashboard.products", icon: <Box className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/orders", labelKey: "dashboard.orders", icon: <ShoppingCart className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/wallet", labelKey: "dashboard.wallet", icon: <Wallet className="h-4 w-4" /> },
+    {
+      to: "/dashboard/farmer",
+      labelKey: "dashboard.overview",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/products",
+      labelKey: "dashboard.products",
+      icon: <Box className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/orders",
+      labelKey: "dashboard.orders",
+      icon: <ShoppingCart className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/messages",
+      labelKey: "dashboard.messages",
+      icon: <MessageSquare className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/wallet",
+      labelKey: "dashboard.wallet",
+      icon: <Wallet className="h-4 w-4" />,
+    },
   ],
   rider: [
-    { to: "/dashboard/rider", labelKey: "dashboard.deliveries", icon: <Truck className="h-4 w-4" /> },
-    { to: "/dashboard/rider/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
-    { to: "/dashboard/rider/earnings", labelKey: "dashboard.earnings", icon: <Wallet className="h-4 w-4" /> },
+    {
+      to: "/dashboard/rider",
+      labelKey: "dashboard.deliveries",
+      icon: <Truck className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/rider/messages",
+      labelKey: "dashboard.messages",
+      icon: <MessageSquare className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/rider/earnings",
+      labelKey: "dashboard.earnings",
+      icon: <Wallet className="h-4 w-4" />,
+    },
   ],
   admin: [
-    { to: "/dashboard/admin", labelKey: "dashboard.overview", icon: <BarChart3 className="h-4 w-4" /> },
-    { to: "/dashboard/admin/orders", labelKey: "dashboard.orders", icon: <ShoppingCart className="h-4 w-4" /> },
-    { to: "/dashboard/admin/verifications", labelKey: "dashboard.verifications", icon: <ShieldCheck className="h-4 w-4" /> },
-    { to: "/dashboard/admin/users", labelKey: "dashboard.users", icon: <Users className="h-4 w-4" /> },
-    { to: "/dashboard/admin/products", labelKey: "dashboard.products", icon: <PackageCheck className="h-4 w-4" /> },
-    { to: "/dashboard/admin/payouts", labelKey: "dashboard.payouts", icon: <Banknote className="h-4 w-4" /> },
-    { to: "/dashboard/admin/analytics", labelKey: "dashboard.analytics", icon: <LineChart className="h-4 w-4" /> },
-    { to: "/dashboard/admin/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
-    { to: "/dashboard/admin/support", labelKey: "dashboard.support", icon: <HelpCircle className="h-4 w-4" /> },
+    {
+      to: "/dashboard/admin",
+      labelKey: "dashboard.overview",
+      icon: <BarChart3 className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/orders",
+      labelKey: "dashboard.orders",
+      icon: <ShoppingCart className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/verifications",
+      labelKey: "dashboard.verifications",
+      icon: <ShieldCheck className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/users",
+      labelKey: "dashboard.users",
+      icon: <Users className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/products",
+      labelKey: "dashboard.products",
+      icon: <PackageCheck className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/payouts",
+      labelKey: "dashboard.payouts",
+      icon: <Banknote className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/analytics",
+      labelKey: "dashboard.analytics",
+      icon: <LineChart className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/messages",
+      labelKey: "dashboard.messages",
+      icon: <MessageSquare className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/support",
+      labelKey: "dashboard.support",
+      icon: <HelpCircle className="h-4 w-4" />,
+    },
   ],
 };
 
@@ -106,7 +183,8 @@ export const DashboardLayout = () => {
             className="w-full justify-start rounded-xl border-white/15 bg-white/5 text-sidebar-foreground hover:bg-white/10 hover:text-white"
             onClick={() => navigate("/marketplace")}
           >
-            <ClipboardList className="mr-2 h-4 w-4" /> {t("nav.goToMarketplace")}
+            <ClipboardList className="mr-2 h-4 w-4" />{" "}
+            {t("nav.goToMarketplace")}
           </Button>
         </div>
       </aside>
@@ -119,7 +197,8 @@ export const DashboardLayout = () => {
           </div>
           <div className="hidden md:block">
             <h1 className="font-display text-lg font-extrabold capitalize tracking-tight">
-              {t(`roles.${user.role === "super_admin" ? "admin" : user.role}`)} {t("nav.dashboard").toLowerCase()}
+              {t(`roles.${user.role === "super_admin" ? "admin" : user.role}`)}{" "}
+              {t("nav.dashboard").toLowerCase()}
             </h1>
             {user.verificationStatus === "pending" && (
               <Badge
@@ -133,17 +212,48 @@ export const DashboardLayout = () => {
           <div className="ml-auto flex items-center gap-3">
             <LanguageSwitcher />
             <NotificationsBell variant="light" />
-            <div className="flex items-center gap-2 rounded-full border border-border bg-card px-2 py-1.5 pr-3">
-              <Avatar className="h-7 w-7">
-                <AvatarImage src={user.profileImage} alt={user.name} />
-                <AvatarFallback className="bg-primary/10 text-xs text-primary">
-                  {initials(user.name)}
-                </AvatarFallback>
-              </Avatar>
-              <span className="hidden text-sm font-medium md:inline">
-                {user.name.split(" ")[0]}
-              </span>
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 rounded-full p-1 pr-3 transition-base hover:bg-secondary">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={user.profileImage} alt={user.name} />
+                    <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
+                      {initials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="hidden text-sm font-medium md:inline">
+                    {user.name.split(" ")[0]}
+                  </span>
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 rounded-xl">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold">{user.name}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {user.email}
+                    </span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => navigate("/marketplace/profile")}
+                >
+                  <UserIcon className="mr-2 h-4 w-4" /> {t("nav.profile")}
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => {
+                    logout();
+                    navigate("/marketplace");
+                  }}
+                >
+                  <ClipboardList className="mr-2 h-4 w-4" />{" "}
+                  {t("nav.goToMarketplace")}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <Button
               variant="ghost"
               size="icon"

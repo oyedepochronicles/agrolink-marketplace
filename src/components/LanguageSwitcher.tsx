@@ -1,5 +1,4 @@
-import { Globe } from "lucide-react";
-import { useTranslation } from "react-i18next";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,9 +7,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { cn } from "@/lib/utils";
+import { Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   variant?: "default" | "ghost" | "outline";
@@ -19,16 +19,30 @@ interface Props {
   className?: string;
 }
 
-export const LanguageSwitcher = ({ variant = "ghost", compact = true, align = "end", className }: Props) => {
+export const LanguageSwitcher = ({
+  variant = "ghost",
+  compact = true,
+  align = "end",
+  className,
+}: Props) => {
   const { i18n, t } = useTranslation();
-  const current = SUPPORTED_LANGUAGES.find((l) => l.code === i18n.resolvedLanguage) ?? SUPPORTED_LANGUAGES[0];
+  const current =
+    SUPPORTED_LANGUAGES.find((l) => l.code === i18n.resolvedLanguage) ??
+    SUPPORTED_LANGUAGES[0];
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant={variant} size={compact ? "icon" : "sm"} className={cn("gap-2", className)} aria-label={t("common.language")}>
+        <Button
+          variant={variant}
+          size={compact ? "icon" : "sm"}
+          className={cn("gap-2", className)}
+          aria-label={t("common.language")}
+        >
           <Globe className="h-4 w-4" />
-          {!compact && <span className="text-sm font-medium">{current.native}</span>}
+          {!compact && (
+            <span className="text-sm font-medium">{current.native}</span>
+          )}
           {compact && <span className="sr-only">{current.native}</span>}
         </Button>
       </DropdownMenuTrigger>
@@ -39,10 +53,15 @@ export const LanguageSwitcher = ({ variant = "ghost", compact = true, align = "e
           <DropdownMenuItem
             key={l.code}
             onClick={() => i18n.changeLanguage(l.code)}
-            className={cn(current.code === l.code && "bg-secondary font-semibold text-primary")}
+            className={cn(
+              current.code === l.code &&
+                "bg-secondary font-semibold text-primary",
+            )}
           >
             {l.native}
-            <span className="ml-auto text-xs uppercase text-muted-foreground">{l.code}</span>
+            <span className="ml-auto text-xs uppercase text-muted-foreground">
+              {l.code}
+            </span>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

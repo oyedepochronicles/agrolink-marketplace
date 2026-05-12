@@ -1,20 +1,22 @@
-import { Bell, CheckCheck } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuTrigger,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   useMarkAllNotificationsRead,
   useMarkNotificationRead,
   useNotifications,
   useNotificationSocket,
 } from "@/hooks/useNotifications";
-import { useAuth } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
 import type { Notification } from "@/types";
+import { formatDistanceToNow } from "date-fns";
+import { Bell, CheckCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface Props {
   variant?: "default" | "light";
@@ -33,13 +35,18 @@ export const NotificationsBell = ({ variant = "default" }: Props) => {
   const resolveUrl = (n: Notification) => {
     const raw = n.url || n.link;
     const conversationId =
-      typeof n.meta?.conversationId === "string" ? n.meta.conversationId : undefined;
+      typeof n.meta?.conversationId === "string"
+        ? n.meta.conversationId
+        : undefined;
 
     if (n.type === "chat" || raw?.startsWith("/messages")) {
-      const query = conversationId ? `?conversation=${encodeURIComponent(conversationId)}` : "";
+      const query = conversationId
+        ? `?conversation=${encodeURIComponent(conversationId)}`
+        : "";
       if (user?.role === "farmer") return `/dashboard/farmer/messages${query}`;
       if (user?.role === "rider") return `/dashboard/rider/messages${query}`;
-      if (user?.role === "admin" || user?.role === "super_admin") return `/dashboard/admin/messages${query}`;
+      if (user?.role === "admin" || user?.role === "super_admin")
+        return `/dashboard/admin/messages${query}`;
       return `/marketplace/messages${query}`;
     }
 
@@ -50,11 +57,18 @@ export const NotificationsBell = ({ variant = "default" }: Props) => {
     }
 
     if (!raw) return undefined;
-    if (raw === "/farmer" || raw.startsWith("/farmer/")) return "/dashboard/farmer/orders";
-    if (raw === "/rider" || raw.startsWith("/rider/")) return "/dashboard/rider";
-    if (raw === "/orders" || raw.startsWith("/orders")) return "/marketplace/orders";
-    if (raw.startsWith("/products/")) return raw.replace("/products/", "/marketplace/product/");
-    if (raw === "/account") return user?.role === "buyer" ? "/marketplace/profile" : `/dashboard/${user?.role}`;
+    if (raw === "/farmer" || raw.startsWith("/farmer/"))
+      return "/dashboard/farmer/orders";
+    if (raw === "/rider" || raw.startsWith("/rider/"))
+      return "/dashboard/rider";
+    if (raw === "/orders" || raw.startsWith("/orders"))
+      return "/marketplace/orders";
+    if (raw.startsWith("/products/"))
+      return raw.replace("/products/", "/marketplace/product/");
+    if (raw === "/account")
+      return user?.role === "buyer"
+        ? "/marketplace/profile"
+        : `/dashboard/${user?.role}`;
     return raw;
   };
 
@@ -67,7 +81,9 @@ export const NotificationsBell = ({ variant = "default" }: Props) => {
   const safeTime = (s?: string) => {
     if (!s) return "";
     const d = new Date(s);
-    return Number.isNaN(d.getTime()) ? "" : formatDistanceToNow(d, { addSuffix: true });
+    return Number.isNaN(d.getTime())
+      ? ""
+      : formatDistanceToNow(d, { addSuffix: true });
   };
 
   return (
@@ -109,7 +125,7 @@ export const NotificationsBell = ({ variant = "default" }: Props) => {
             </Button>
           )}
         </div>
-        <ScrollArea className="max-h-96">
+        <ScrollArea className="max-h-96 overflow-y-auto">
           {items.length === 0 ? (
             <div className="px-4 py-10 text-center text-sm text-muted-foreground">
               No notifications yet.
@@ -133,9 +149,13 @@ export const NotificationsBell = ({ variant = "default" }: Props) => {
                       )}
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-foreground">{n.title}</p>
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {n.title}
+                      </p>
                       {n.body && (
-                        <p className="line-clamp-2 text-xs text-muted-foreground">{n.body}</p>
+                        <p className="line-clamp-2 text-xs text-muted-foreground">
+                          {n.body}
+                        </p>
                       )}
                       <p className="mt-0.5 text-[10px] uppercase tracking-wide text-muted-foreground/70">
                         {safeTime(n.createdAt)}

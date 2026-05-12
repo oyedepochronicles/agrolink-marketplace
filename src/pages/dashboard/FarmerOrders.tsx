@@ -74,10 +74,10 @@ const FarmerOrders = () => {
       />
 
       <Tabs value={tab} onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="active">Active Orders</TabsTrigger>
-          <TabsTrigger value="delivered">Delivered Orders</TabsTrigger>
-          <TabsTrigger value="cancelled">Canceled Orders</TabsTrigger>
+        <TabsList className="overflow-y-auto">
+          <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="delivered">Delivered</TabsTrigger>
+          <TabsTrigger value="cancelled">Canceled</TabsTrigger>
         </TabsList>
         <TabsContent value="active" className="mt-4">
           {isLoading ? (

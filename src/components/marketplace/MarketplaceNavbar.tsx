@@ -1,5 +1,4 @@
 import { Brand } from "@/components/Brand";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -21,8 +20,6 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
-  MessageSquare,
-  Package,
   Search,
   ShoppingBag,
   ShoppingCart,
@@ -32,6 +29,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, NavLink, useNavigate } from "react-router-dom";
+import { LanguageSwitcher } from "../LanguageSwitcher";
 
 const useNavItems = () => {
   const { t } = useTranslation();
@@ -83,7 +81,7 @@ export const MarketplaceNavbar = ({
           </div>
         </form>
 
-        <nav className="ml-auto hidden items-center gap-1 md:flex">
+        <nav className="ml-auto hidden items-center gap-1 lg:flex">
           {navItems.map((item) => (
             <NavLink
               key={item.to}
@@ -102,7 +100,7 @@ export const MarketplaceNavbar = ({
         </nav>
 
         <div className="ml-auto flex items-center gap-2 md:ml-2">
-          <LanguageSwitcher />
+          <LanguageSwitcher className="hidden md:block" />
           <Link
             to="/marketplace/cart"
             aria-label={t("nav.cart")}
@@ -142,21 +140,6 @@ export const MarketplaceNavbar = ({
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => navigate("/marketplace/search")}
-                >
-                  <Search className="mr-2 h-4 w-4" /> {t("nav.browse")}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => navigate("/marketplace/orders")}
-                >
-                  <Package className="mr-2 h-4 w-4" /> {t("nav.orders")}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => navigate("/marketplace/messages")}
-                >
-                  <MessageSquare className="mr-2 h-4 w-4" /> {t("nav.messages")}
-                </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => navigate("/marketplace/profile")}
                 >
@@ -211,7 +194,7 @@ export const MarketplaceNavbar = ({
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="lg:hidden"
             onClick={() => setMobileOpen((v) => !v)}
             aria-label="Toggle menu"
           >
@@ -225,10 +208,10 @@ export const MarketplaceNavbar = ({
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-border bg-background md:hidden">
+        <div className="border-t border-border bg-background lg:hidden">
           <div className="container space-y-3 py-4">
-            <form onSubmit={submitSearch} className="relative">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <form onSubmit={submitSearch} className="relative md:hidden">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground " />
               <Input
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
@@ -255,6 +238,9 @@ export const MarketplaceNavbar = ({
                   {item.label}
                 </NavLink>
               ))}
+
+              <LanguageSwitcher className="md:hidden" />
+
               {!user && (
                 <div className="mt-2 flex gap-2">
                   <Button
