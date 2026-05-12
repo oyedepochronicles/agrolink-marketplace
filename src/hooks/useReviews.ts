@@ -30,19 +30,22 @@ export const useProductRating = (productId?: string) =>
     enabled: !!productId,
     queryFn: async () => {
       const { data } = await api.get<ProductRatingSummary>(
-        `/products/${productId}/reviews/summary`,
+        `/products/${productId}/reviews/summary?productId=${productId}`,
       );
       return data ?? { average: 0, count: 0 };
     },
   });
 
 export const useCreateReview = (productId?: string) => {
-  console.log("p-id", productId);
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: { rating: number; body?: string }) => {
-      const { data } = await api.post(`/products/${productId}/reviews`, input);
-      console.log("Review", data);
+      if (!productId)
+        throw new Error("productId is required to create a review");
+      const { data } = await api.post(`/products/${productId}/reviews`, {
+        productId,
+        ...input,
+      });
       return data as Review;
     },
     onSuccess: () => {

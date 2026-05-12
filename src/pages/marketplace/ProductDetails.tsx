@@ -108,13 +108,11 @@ const ProductDetails = () => {
       navigate("/login");
       return;
     }
-    console.log("Contacting seller for product:", product);
     try {
       const { data } = await api.post("/conversations", {
         recipientId: product.farmer?._id || product?.farmerId,
         productId: product?._id ?? product.id,
       });
-      console.log("Conversation response:", data);
       const cid =
         (data as { _id?: string; id?: string })._id ??
         (data as { id?: string }).id;

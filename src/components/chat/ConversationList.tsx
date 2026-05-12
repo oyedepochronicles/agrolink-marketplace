@@ -1,6 +1,8 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { useDeleteConversation } from "@/hooks/useChat";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Conversation, User } from "@/types";
@@ -35,26 +37,9 @@ export const ConversationList = ({
   onDelete,
   onSelect,
 }: Props) => {
-  if (isLoading) {
-    return (
-      <div className="space-y-2 p-2">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-16 w-full rounded-xl" />
-        ))}
-      </div>
-    );
-  }
+  const deleteConversation = useDeleteConversation();
+  const { toast } = useToast();
 
-  if (!conversations || conversations.length === 0) {
-    return (
-      <div className="px-4 py-10 text-center text-sm text-muted-foreground">
-        <p className="font-medium">No conversations yet</p>
-        <p className="mt-1 text-xs">
-          Message a seller from a product page to get started.
-        </p>
-      </div>
-    );
-  }
   const handleDelete = (e: React.MouseEvent<HTMLButtonElement>, id: string) => {
     e.stopPropagation();
 
@@ -65,49 +50,84 @@ export const ConversationList = ({
     ) {
       return;
     }
-    onDelete?.(id);
+
+    deleteConversation.mutate(id, {
+      onSuccess: () => {
+        toast({
+          title: "Conversation deleted",
+          description: "The conversation has been hidden from your list.",
+        });
+        onDelete?.(id);
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: "Failed to delete conversation. Please try again.",
+          variant: "destructive",
+        });
+      },
+    });
   };
   return (
     <ScrollArea className="h-full">
       <ul className="space-y-1 p-2">
-        {conversations.map((c) => {
-          const other = otherParticipant(c, currentUserId);
-          const isActive = c._id === activeId;
-          return (
-            <li key={c._id}>
-              <button
-                onClick={() => onSelect(c)}
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-base",
-                  isActive ? "bg-primary/10" : "hover:bg-secondary",
-                )}
-              >
-                <Avatar className="h-11 w-11 shrink-0">
-                  <AvatarImage src={other?.profileImage} alt={other?.name} />
-                  <AvatarFallback className="bg-primary/10 text-sm text-primary">
-                    {initials(other?.name ?? "?")}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-semibold">
-                      {other?.name ?? "Unknown"}
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full rounded-xl" />
+          ))
+        ) : !conversations || conversations.length === 0 ? (
+          <div className="px-4 py-10 text-center text-sm text-muted-foreground">
+            <p className="font-medium">No conversations yet</p>
+            <p className="mt-1 text-xs">
+              Message a seller from a product page to get started.
+            </p>
+          </div>
+        ) : (
+          conversations.map((c) => {
+            const other = otherParticipant(c, currentUserId);
+            const isActive = c._id === activeId;
+            return (
+              <li key={c._id}>
+                <button
+                  onClick={() => onSelect(c)}
+                  className={cn(
+                    "group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-base",
+                    isActive ? "bg-primary/10" : "hover:bg-secondary",
+                  )}
+                >
+                  <Avatar className="h-11 w-11 shrink-0">
+                    <AvatarImage src={other?.profileImage} alt={other?.name} />
+                    <AvatarFallback className="bg-primary/10 text-sm text-primary">
+                      {initials(other?.name ?? "?")}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="truncate text-sm font-semibold">
+                        {other?.name ?? "Unknown"}
+                      </p>
+                      {!!c.unreadCount && (
+                        <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
+                          {c.unreadCount}
+                        </span>
+                      )}
+                    </div>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {previewText(c)}
                     </p>
-                    {!!c.unreadCount && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
-                        {c.unreadCount}
-                      </span>
-                    )}
                   </div>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {previewText(c)}
-                  </p>
-                </div>
-                <Trash2Icon />
-              </button>
-            </li>
-          );
-        })}
+                  <button
+                    onClick={(e) => handleDelete(e, c._id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 rounded"
+                    title="Delete conversation"
+                  >
+                    <Trash2Icon className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                  </button>
+                </button>
+              </li>
+            );
+          })
+        )}
       </ul>
     </ScrollArea>
   );

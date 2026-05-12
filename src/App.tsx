@@ -1,8 +1,8 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { VerifiedRoute } from "@/components/VerifiedRoute";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { VerifiedRoute } from "@/components/VerifiedRoute";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
@@ -15,6 +15,7 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ResetPassword from "./pages/auth/ResetPassword";
+import VerifyOTP from "./pages/auth/VerifyOTP";
 import VerifyPending from "./pages/auth/VerifyPending";
 
 import { MarketplaceLayout } from "@/components/marketplace/MarketplaceLayout";
@@ -34,9 +35,9 @@ import AdminOrders from "./pages/dashboard/AdminOrders";
 import AdminOverview from "./pages/dashboard/AdminOverview";
 import AdminPayouts from "./pages/dashboard/AdminPayouts";
 import AdminProducts from "./pages/dashboard/AdminProducts";
+import AdminSupport from "./pages/dashboard/AdminSupport";
 import AdminUsers from "./pages/dashboard/AdminUsers";
 import AdminVerifications from "./pages/dashboard/AdminVerifications";
-import AdminSupport from "./pages/dashboard/AdminSupport";
 import FarmerOrders from "./pages/dashboard/FarmerOrders";
 import FarmerOverview from "./pages/dashboard/FarmerOverview";
 import FarmerProducts from "./pages/dashboard/FarmerProducts";
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/register" element={<Register />} />
             <Route path="/affiliate" element={<Affiliate />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/verify-otp" element={<VerifyOTP />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route
               path="/verify-pending"
@@ -106,7 +108,14 @@ const App = () => (
                 }
               />
               <Route path="support" element={<Support />} />
-              <Route path="support/:id" element={<ProtectedRoute><SupportTicket /></ProtectedRoute>} />
+              <Route
+                path="support/:id"
+                element={
+                  <ProtectedRoute>
+                    <SupportTicket />
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="profile"
                 element={

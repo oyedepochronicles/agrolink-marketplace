@@ -1,3 +1,4 @@
+import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
 import { VerificationRequestDialog } from "@/components/profile/VerificationRequestDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -139,6 +140,13 @@ const Profile = () => {
           )}
 
           <div className="flex flex-wrap items-center justify-end gap-2 pt-6">
+            <ChangePasswordDialog
+              trigger={
+                <Button variant="outline" className="rounded-full">
+                  <Lock className="mr-2 h-4 w-4" /> Change password
+                </Button>
+              }
+            />
             <Button variant="outline" className="rounded-full" asChild>
               <Link to="/marketplace/support">
                 <HelpCircle className="mr-2 h-4 w-4" /> Contact support

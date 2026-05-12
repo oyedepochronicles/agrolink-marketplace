@@ -1,10 +1,10 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { api } from "@/lib/api";
 import { getSocket } from "@/lib/socket";
 import type { Conversation, Message } from "@/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 
-const unwrap = <T,>(data: unknown): T => {
+const unwrap = <T>(data: unknown): T => {
   const d = data as { data?: T; items?: T; conversations?: T; messages?: T };
   return (d?.data ?? d?.items ?? d?.conversations ?? d?.messages ?? data) as T;
 };
@@ -24,7 +24,9 @@ export const useMessages = (conversationId?: string) =>
     queryKey: ["messages", conversationId],
     enabled: !!conversationId,
     queryFn: async () => {
-      const { data } = await api.get(`/conversations/${conversationId}/messages`);
+      const { data } = await api.get(
+        `/conversations/${conversationId}/messages`,
+      );
       return unwrap<Message[]>(data);
     },
   });
@@ -72,6 +74,16 @@ export const useStartConversation = () => {
   });
 };
 
+export const useDeleteConversation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (conversationId: string) => {
+      await api.delete(`/conversations/${conversationId}`);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["conversations"] }),
+  });
+};
+
 /** Subscribe to incoming messages in real-time via socket. */
 export const useMessageSocket = (conversationId?: string) => {
   const qc = useQueryClient();
@@ -84,7 +96,11 @@ export const useMessageSocket = (conversationId?: string) => {
       const cid = msg.conversation;
       if (!cid) return;
       qc.setQueryData<Message[]>(["messages", cid], (prev) =>
-        prev ? (prev.some((m) => m._id === msg._id) ? prev : [...prev, msg]) : [msg],
+        prev
+          ? prev.some((m) => m._id === msg._id)
+            ? prev
+            : [...prev, msg]
+          : [msg],
       );
       qc.invalidateQueries({ queryKey: ["conversations"] });
     };
@@ -98,13 +114,23 @@ export const useMessageSocket = (conversationId?: string) => {
 };
 
 /** Upload a file (image/audio) and return its URL. */
-export const uploadFile = async (file: File | Blob, filename = "voice-note.webm"): Promise<string> => {
+export const uploadFile = async (
+  file: File | Blob,
+  filename = "voice-note.webm",
+): Promise<string> => {
   const fd = new FormData();
-  const f = file instanceof File ? file : new File([file], filename, { type: file.type });
+  const f =
+    file instanceof File
+      ? file
+      : new File([file], filename, { type: file.type });
   fd.append("file", f);
   const { data } = await api.post("/uploads", fd, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-  const d = data as { url?: string; data?: { url?: string }; secure_url?: string };
+  const d = data as {
+    url?: string;
+    data?: { url?: string };
+    secure_url?: string;
+  };
   return d.url ?? d.data?.url ?? d.secure_url ?? "";
 };

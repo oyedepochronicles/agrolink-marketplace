@@ -49,7 +49,7 @@ const FARMER_OPTIONS: OrderStatus[] = [
 ];
 
 const productName = (order: Order) =>
-  order.product?.title || order.productId?.title || "Order item";
+  order.product?.title || order.productId?.name || "Order item";
 const productUnit = (order: Order) =>
   order.product?.unit || order.productId?.unit || "unit";
 const productId = (order: Order) => order.product?._id || order.productId?._id;
@@ -213,7 +213,6 @@ function FarmerOrdersCard(o) {
         orderId: order._id,
         recipientId,
       });
-      console.log("Conversation:", conversation);
       const cid = conversation._id ?? conversation.id;
       navigate(`/marketplace/messages${cid ? `?conversation=${cid}` : ""}`);
     } catch (e) {

@@ -105,7 +105,6 @@ const Checkout = () => {
                 fullAddress: formatAddress(selectedAddress!),
                 notes: selectedAddress!.notes,
               };
-        console.log("Placing order for item: ", item);
         const { data: order } = await api.post("/orders", {
           productId: item.productId,
           quantity: item.quantity,
@@ -115,7 +114,6 @@ const Checkout = () => {
           paymentMethod: "in_app",
           saleChannel: "marketplace",
         });
-        console.log("Created order", order);
         const oid =
           (order as { _id?: string; id?: string })._id ??
           (order as { id?: string }).id;
@@ -296,4 +294,3 @@ const Row = ({
 );
 
 export default Checkout;
-

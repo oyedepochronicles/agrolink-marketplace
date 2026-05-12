@@ -191,7 +191,6 @@ function OrderCard(order) {
         orderId: order._id,
         recipientId,
       });
-      console.log("Conversation:", conversation);
       const cid = conversation._id ?? conversation.id;
       navigate(`/marketplace/messages${cid ? `?conversation=${cid}` : ""}`);
     } catch (e) {
@@ -215,6 +214,10 @@ function OrderCard(order) {
           <p className="mt-1 text-xs text-muted-foreground">
             Qty {order.quantity} · {formatDate(order.createdAt)}
           </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Order ID: {`#${(order._id ?? "").slice(-6).toUpperCase()}`}
+          </p>
+
           <p className="mt-2 text-xs text-muted-foreground">
             {orderAddress(order)}
           </p>

@@ -1,8 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { api } from "@/lib/api";
-import { uploadFile } from "@/hooks/useChat";
 import { useAuth } from "@/contexts/AuthContext";
+import { uploadFile } from "@/hooks/useChat";
+import { api } from "@/lib/api";
 import type { User } from "@/types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const unwrapUser = (data: unknown): User => {
   const d = data as { user?: User; data?: User };
@@ -44,5 +44,18 @@ export const useSubmitVerification = () => {
       return data;
     },
     onSuccess: () => refresh(),
+  });
+};
+
+/** Change user password. */
+export const useChangePassword = () => {
+  return useMutation({
+    mutationFn: async (payload: {
+      currentPassword: string;
+      newPassword: string;
+    }) => {
+      const { data } = await api.post("/auth/change-password", payload);
+      return data;
+    },
   });
 };

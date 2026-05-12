@@ -34,7 +34,6 @@ export const AssignRiderDialog = ({ order, trigger }: Props) => {
   const [open, setOpen] = useState(false);
   const [riderId, setRiderId] = useState(order.rider?._id ?? "");
   const { data: riders = [], isLoading } = useRiders(order);
-  console.log(riders);
   const assign = useAssignRider();
 
   const submit = async (e: React.FormEvent) => {

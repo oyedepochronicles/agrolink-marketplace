@@ -35,7 +35,6 @@ const fromRemote = (
 ): CartItem[] =>
   items
     .map((item) => {
-      console.log("item from remote: ", item);
       const product = item.productId;
       if (!product || typeof product === "string") return null;
       return {

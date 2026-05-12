@@ -68,8 +68,17 @@ const Messages = ({ variant = "dashboard" }: Props) => {
     );
   };
 
-  const handleDelete = (id) => {
-    setActiveId(undefined);
+  const handleDelete = (id: string) => {
+    if (activeId === id) {
+      setActiveId(undefined);
+      setParams(
+        (p) => {
+          p.delete("conversation");
+          return p;
+        },
+        { replace: true },
+      );
+    }
   };
 
   const wrap = variant === "marketplace" ? "container py-6" : "";
