@@ -36,10 +36,10 @@ export const LanguageSwitcher = ({
         <Button
           variant={variant}
           size={compact ? "icon" : "sm"}
-          className={cn("gap-2", className)}
+          className={cn("gap-2  hover:bg-secondary r", className)}
           aria-label={t("common.language")}
         >
-          <Globe className="h-4 w-4" />
+          <Globe className="h-4 w-4 round-full hover:bg-secondary" />
           {!compact && (
             <span className="text-sm font-medium">{current.native}</span>
           )}

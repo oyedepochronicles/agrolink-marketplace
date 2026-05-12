@@ -245,7 +245,6 @@ export const DashboardLayout = () => {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
-                    logout();
                     navigate("/marketplace");
                   }}
                 >

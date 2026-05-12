@@ -88,8 +88,16 @@ export const ConversationList = ({
             const isActive = c._id === activeId;
             return (
               <li key={c._id}>
-                <button
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => onSelect(c)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      onSelect(c);
+                    }
+                  }}
                   className={cn(
                     "group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-base",
                     isActive ? "bg-primary/10" : "hover:bg-secondary",
@@ -117,13 +125,15 @@ export const ConversationList = ({
                     </p>
                   </div>
                   <button
+                    type="button"
                     onClick={(e) => handleDelete(e, c._id)}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-destructive/10 rounded"
+                    className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-surface text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
                     title="Delete conversation"
+                    aria-label="Delete conversation"
                   >
-                    <Trash2Icon className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                    <Trash2Icon className="h-4 w-4" />
                   </button>
-                </button>
+                </div>
               </li>
             );
           })

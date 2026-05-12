@@ -214,7 +214,9 @@ function FarmerOrdersCard(o) {
         recipientId,
       });
       const cid = conversation._id ?? conversation.id;
-      navigate(`/marketplace/messages${cid ? `?conversation=${cid}` : ""}`);
+      navigate(
+        `/dashboard/farmer/messages${cid ? `?conversation=${cid}` : ""}`,
+      );
     } catch (e) {
       toast.error(apiErrorMessage(e));
     }

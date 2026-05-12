@@ -214,12 +214,8 @@ const RiderDeliveries = () => {
                   key={o._id}
                   order={o}
                   onDetails={() => setDetails(o)}
-                  onMessageBuyer={() =>
-                    openConversation(o, o.buyer?._id || o.buyerId?._id)
-                  }
-                  onMessageFarmer={() =>
-                    openConversation(o, o.farmer?._id || o.farmerId?._id)
-                  }
+                  onMessageBuyer={() => openConversation(o, o.buyerId?._id)}
+                  onMessageFarmer={() => openConversation(o, o.farmerId?._id)}
                 />
               ))}
             </div>

@@ -7,8 +7,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { useChangePassword } from "@/hooks/useProfile";
 import { apiErrorMessage } from "@/lib/api";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -90,9 +90,8 @@ export const ChangePasswordDialog = ({
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-1.5">
             <Label htmlFor="currentPassword">Current Password</Label>
-            <Input
+            <PasswordInput
               id="currentPassword"
-              type="password"
               autoComplete="current-password"
               placeholder="Enter current password"
               {...register("currentPassword")}
@@ -106,9 +105,8 @@ export const ChangePasswordDialog = ({
 
           <div className="space-y-1.5">
             <Label htmlFor="newPassword">New Password</Label>
-            <Input
+            <PasswordInput
               id="newPassword"
-              type="password"
               autoComplete="new-password"
               placeholder="Enter new password"
               {...register("newPassword")}
@@ -122,9 +120,8 @@ export const ChangePasswordDialog = ({
 
           <div className="space-y-1.5">
             <Label htmlFor="confirmPassword">Confirm New Password</Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
               autoComplete="new-password"
               placeholder="Confirm new password"
               {...register("confirmPassword")}
