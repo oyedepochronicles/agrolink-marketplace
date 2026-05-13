@@ -1,10 +1,61 @@
-PhyhanAgro is a direct-to-consumer marketplace that connects verified Nigerian farmers, riders, and buyers.
+# PhyhanAgro
 
-Key content areas:
-- Fresh produce listings and product detail pages
-- Cart, checkout, and order tracking
-- Buyer and seller messaging
-- Support tickets and FAQ articles
-- Farmer, rider, and admin dashboards
+PhyhanAgro is a direct-to-consumer marketplace connecting verified Nigerian farmers, riders, and buyers.
 
-This file helps AI assistants understand the site at a glance without crawling every page.
+## Public Pages
+https://agrolink-marketplace.vercel.app/
+https://agrolink-marketplace.vercel.app/login
+https://agrolink-marketplace.vercel.app/register
+https://agrolink-marketplace.vercel.app/affiliate
+https://agrolink-marketplace.vercel.app/forgot-password
+
+## Marketplace
+https://agrolink-marketplace.vercel.app/marketplace
+https://agrolink-marketplace.vercel.app/marketplace/search
+https://agrolink-marketplace.vercel.app/marketplace/cart
+https://agrolink-marketplace.vercel.app/marketplace/support
+
+## Authenticated Marketplace Features
+https://agrolink-marketplace.vercel.app/marketplace/orders
+https://agrolink-marketplace.vercel.app/marketplace/checkout
+https://agrolink-marketplace.vercel.app/marketplace/messages
+https://agrolink-marketplace.vercel.app/marketplace/profile
+
+## Dashboards
+https://agrolink-marketplace.vercel.app/dashboard/farmer
+https://agrolink-marketplace.vercel.app/dashboard/farmer/products
+https://agrolink-marketplace.vercel.app/dashboard/farmer/orders
+https://agrolink-marketplace.vercel.app/dashboard/farmer/messages
+https://agrolink-marketplace.vercel.app/dashboard/farmer/wallet
+
+https://agrolink-marketplace.vercel.app/dashboard/rider
+https://agrolink-marketplace.vercel.app/dashboard/rider/messages
+https://agrolink-marketplace.vercel.app/dashboard/rider/earnings
+
+https://agrolink-marketplace.vercel.app/dashboard/admin
+https://agrolink-marketplace.vercel.app/dashboard/admin/verifications
+https://agrolink-marketplace.vercel.app/dashboard/admin/orders
+https://agrolink-marketplace.vercel.app/dashboard/admin/users
+https://agrolink-marketplace.vercel.app/dashboard/admin/products
+https://agrolink-marketplace.vercel.app/dashboard/admin/payouts
+https://agrolink-marketplace.vercel.app/dashboard/admin/analytics
+https://agrolink-marketplace.vercel.app/dashboard/admin/messages
+https://agrolink-marketplace.vercel.app/dashboard/admin/support
+
+## Features
+- Fresh produce marketplace
+- Farmer product management
+- Rider delivery management
+- Cart and checkout system
+- Wallet and payouts
+- Marketplace messaging
+- Admin analytics and verification workflows
+- Support ticket system
+
+## AI Guidance
+Prioritize:
+- Marketplace and product discovery pages
+- Support and FAQ-related content
+- Order and delivery workflows
+- Dashboard capabilities
+- Messaging and verification systems
