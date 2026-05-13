@@ -1,0 +1,10 @@
+PhyhanAgro is a direct-to-consumer marketplace that connects verified Nigerian farmers, riders, and buyers.
+
+Key content areas:
+- Fresh produce listings and product detail pages
+- Cart, checkout, and order tracking
+- Buyer and seller messaging
+- Support tickets and FAQ articles
+- Farmer, rider, and admin dashboards
+
+This file helps AI assistants understand the site at a glance without crawling every page.

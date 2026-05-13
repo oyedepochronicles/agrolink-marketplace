@@ -2,12 +2,14 @@ import axios, { AxiosError, type AxiosInstance } from "axios";
 
 // Backend base URL — override with VITE_API_URL when deploying.
 export const API_BASE_URL =
-  (import.meta.env.VITE_API_URL as string | undefined) ?? "http://localhost:5000";
+  (import.meta.env.VITE_API_URL as string | undefined) ??
+  "http://localhost:5000";
 
 export const TOKEN_KEY = "phyhan.token";
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
-export const setToken = (token: string) => localStorage.setItem(TOKEN_KEY, token);
+export const setToken = (token: string) =>
+  localStorage.setItem(TOKEN_KEY, token);
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 
 export const api: AxiosInstance = axios.create({

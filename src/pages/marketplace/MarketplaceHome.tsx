@@ -1,11 +1,18 @@
-import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
-import { ArrowRight, Sparkles, Truck, ShieldCheck, MessageCircle } from "lucide-react";
-import { useProducts } from "@/hooks/useProducts";
+import heroImage from "@/assets/marketplace-hero.jpg";
 import { ProductCard } from "@/components/marketplace/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import heroImage from "@/assets/marketplace-hero.jpg";
+import { usePageMeta } from "@/hooks/usePageMeta";
+import { useProducts } from "@/hooks/useProducts";
+import {
+  ArrowRight,
+  MessageCircle,
+  ShieldCheck,
+  Sparkles,
+  Truck,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 
 const categories = [
   { label: "All", value: "All" },
@@ -20,19 +27,36 @@ const categories = [
 
 const MarketplaceHome = () => {
   const [activeCat, setActiveCat] = useState("All");
-  const { data: products, isLoading, isError } = useProducts(
-    activeCat === "All" ? {} : { category: activeCat },
-  );
+  const {
+    data: products,
+    isLoading,
+    isError,
+  } = useProducts(activeCat === "All" ? {} : { category: activeCat });
 
   const featured = useMemo(() => products?.slice(0, 8) ?? [], [products]);
   const fresh = useMemo(() => products?.slice(8, 20) ?? [], [products]);
+
+  usePageMeta({
+    title: "Fresh Farm Produce Marketplace | PhyhanAgro",
+    description:
+      "Shop fresh produce from verified Nigerian farms, chat with sellers in real time, and get local delivery across Nigeria.",
+    path: "/marketplace",
+    image: "/og-image.svg",
+  });
 
   return (
     <>
       {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0">
-          <img src={heroImage} alt="" aria-hidden className="h-full w-full object-cover" width={1600} height={1024} />
+          <img
+            src={heroImage}
+            alt=""
+            aria-hidden
+            className="h-full w-full object-cover"
+            width={1600}
+            height={1024}
+          />
           <div className="absolute inset-0 bg-gradient-hero opacity-90" />
         </div>
         <div className="container relative grid gap-10 py-16 md:grid-cols-2 md:py-24">
@@ -41,19 +65,32 @@ const MarketplaceHome = () => {
               <Sparkles className="h-3.5 w-3.5" /> Direct from farm
             </span>
             <h1 className="font-display text-4xl font-extrabold leading-[1.05] tracking-tight md:text-6xl">
-              Fresh harvests,<br />
+              Fresh harvests,
+              <br />
               <span className="bg-gradient-to-r from-primary-glow to-accent bg-clip-text text-transparent">
                 delivered fast.
               </span>
             </h1>
             <p className="max-w-lg text-base text-white/80 md:text-lg">
-              Shop verified Nigerian farms, talk to sellers in real time, and get your order delivered by trusted riders — all on PhyhanAgro.
+              Shop verified Nigerian farms, talk to sellers in real time, and
+              get your order delivered by trusted riders — all on PhyhanAgro.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="rounded-full bg-white text-primary-deep shadow-glow hover:bg-white/90">
-                <Link to="/marketplace/search">Browse marketplace <ArrowRight className="ml-1 h-4 w-4" /></Link>
+              <Button
+                asChild
+                size="lg"
+                className="rounded-full bg-white text-primary-deep shadow-glow hover:bg-white/90"
+              >
+                <Link to="/marketplace/search">
+                  Browse marketplace <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full border-white/30 bg-white/10 text-white backdrop-blur hover:bg-white/20 hover:text-white">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="rounded-full border-white/30 bg-white/10 text-white backdrop-blur hover:bg-white/20 hover:text-white"
+              >
                 <Link to="/affiliate">Sell on PhyhanAgro</Link>
               </Button>
             </div>
@@ -69,9 +106,21 @@ const MarketplaceHome = () => {
       {/* Trust strip */}
       <section className="border-y border-border bg-secondary/40">
         <div className="container grid gap-6 py-8 md:grid-cols-3">
-          <Trust icon={<ShieldCheck className="h-5 w-5" />} title="Verified farmers" desc="Every seller is vetted by our team." />
-          <Trust icon={<Truck className="h-5 w-5" />} title="Fast delivery" desc="Trusted riders across all 36 states." />
-          <Trust icon={<MessageCircle className="h-5 w-5" />} title="Real-time chat" desc="Talk to sellers before you buy." />
+          <Trust
+            icon={<ShieldCheck className="h-5 w-5" />}
+            title="Verified farmers"
+            desc="Every seller is vetted by our team."
+          />
+          <Trust
+            icon={<Truck className="h-5 w-5" />}
+            title="Fast delivery"
+            desc="Trusted riders across all 36 states."
+          />
+          <Trust
+            icon={<MessageCircle className="h-5 w-5" />}
+            title="Real-time chat"
+            desc="Talk to sellers before you buy."
+          />
         </div>
       </section>
 
@@ -79,10 +128,17 @@ const MarketplaceHome = () => {
       <section className="container py-12">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">Shop by category</h2>
-            <p className="text-sm text-muted-foreground">Pick a category to explore fresh listings.</p>
+            <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">
+              Shop by category
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Pick a category to explore fresh listings.
+            </p>
           </div>
-          <Link to="/marketplace/search" className="text-sm font-semibold text-primary hover:underline">
+          <Link
+            to="/marketplace/search"
+            className="text-sm font-semibold text-primary hover:underline"
+          >
             View all →
           </Link>
         </div>
@@ -107,20 +163,23 @@ const MarketplaceHome = () => {
       {/* Featured grid */}
       <section className="container pb-12">
         <div className="mb-6 flex items-end justify-between">
-          <h2 className="font-display text-xl font-extrabold tracking-tight md:text-2xl">Featured listings</h2>
+          <h2 className="font-display text-xl font-extrabold tracking-tight md:text-2xl">
+            Featured listings
+          </h2>
         </div>
         {isLoading && <ProductGridSkeleton count={8} />}
         {isError && (
           <div className="rounded-2xl border border-border bg-secondary/40 p-8 text-center text-sm text-muted-foreground">
-            Couldn't load products. Make sure the API is running at <code className="font-mono">localhost:5000</code>.
+            Couldn't load products. Make sure the API is running at{" "}
+            <code className="font-mono">localhost:5000</code>.
           </div>
         )}
-        {!isLoading && !isError && featured.length === 0 && (
-          <EmptyState />
-        )}
+        {!isLoading && !isError && featured.length === 0 && <EmptyState />}
         {!isLoading && featured.length > 0 && (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {featured.map((p) => <ProductCard key={p._id ?? p.id} product={p} />)}
+            {featured.map((p) => (
+              <ProductCard key={p._id ?? p.id} product={p} />
+            ))}
           </div>
         )}
       </section>
@@ -128,9 +187,13 @@ const MarketplaceHome = () => {
       {/* Fresh today */}
       {fresh.length > 0 && (
         <section className="container pb-20">
-          <h2 className="mb-6 font-display text-xl font-extrabold tracking-tight md:text-2xl">Fresh today</h2>
+          <h2 className="mb-6 font-display text-xl font-extrabold tracking-tight md:text-2xl">
+            Fresh today
+          </h2>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {fresh.map((p) => <ProductCard key={p._id ?? p.id} product={p} />)}
+            {fresh.map((p) => (
+              <ProductCard key={p._id ?? p.id} product={p} />
+            ))}
           </div>
         </section>
       )}
@@ -141,15 +204,24 @@ const MarketplaceHome = () => {
           <div className="grid items-center gap-8 md:grid-cols-2">
             <div>
               <h3 className="font-display text-3xl font-extrabold leading-tight md:text-4xl">
-                Are you a farmer?<br />Reach buyers across Nigeria.
+                Are you a farmer?
+                <br />
+                Reach buyers across Nigeria.
               </h3>
               <p className="mt-3 max-w-md text-white/85">
-                List your harvest in minutes. We handle payments, chat, and delivery logistics.
+                List your harvest in minutes. We handle payments, chat, and
+                delivery logistics.
               </p>
             </div>
             <div className="md:justify-self-end">
-              <Button asChild size="lg" className="rounded-full bg-white text-primary-deep hover:bg-white/90">
-                <Link to="/affiliate">Apply as farmer <ArrowRight className="ml-1 h-4 w-4" /></Link>
+              <Button
+                asChild
+                size="lg"
+                className="rounded-full bg-white text-primary-deep hover:bg-white/90"
+              >
+                <Link to="/affiliate">
+                  Apply as farmer <ArrowRight className="ml-1 h-4 w-4" />
+                </Link>
               </Button>
             </div>
           </div>
@@ -166,9 +238,19 @@ const Stat = ({ value, label }: { value: string; label: string }) => (
   </div>
 );
 
-const Trust = ({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) => (
+const Trust = ({
+  icon,
+  title,
+  desc,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  desc: string;
+}) => (
   <div className="flex items-start gap-3">
-    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">{icon}</span>
+    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+      {icon}
+    </span>
     <div>
       <p className="font-semibold">{title}</p>
       <p className="text-sm text-muted-foreground">{desc}</p>
@@ -191,7 +273,9 @@ const ProductGridSkeleton = ({ count }: { count: number }) => (
 const EmptyState = () => (
   <div className="rounded-2xl border border-dashed border-border bg-secondary/30 p-12 text-center">
     <p className="font-semibold">No products yet</p>
-    <p className="mt-1 text-sm text-muted-foreground">Check back soon — farmers are listing fresh produce daily.</p>
+    <p className="mt-1 text-sm text-muted-foreground">
+      Check back soon — farmers are listing fresh produce daily.
+    </p>
   </div>
 );
 

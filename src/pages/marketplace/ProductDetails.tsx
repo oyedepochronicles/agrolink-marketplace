@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/hooks/useCart";
+import { useJsonLd, usePageMeta } from "@/hooks/usePageMeta";
 import { useProduct } from "@/hooks/useProducts";
 import { useProductRating } from "@/hooks/useReviews";
 import { api, apiErrorMessage } from "@/lib/api";
@@ -22,7 +23,7 @@ import {
   ShoppingBag,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -68,6 +69,51 @@ const ProductDetails = () => {
   const availableQuantity = product.quantity ?? product.stock ?? 0;
   const total = product.price * quantity;
   const harvestDate = product.expectedHarvestDate || product.harvestDate;
+
+  usePageMeta({
+    title: `${product.title} | PhyhanAgro`,
+    description: product.description
+      ? product.description
+      : `Buy ${product.title} from a verified Nigerian farmer on PhyhanAgro with local delivery available.`,
+    path: `/marketplace/product/${product._id ?? product.id}`,
+    image: images[0] ?? "/og-image.svg",
+    type: "product",
+  });
+
+  const productStructuredData = useMemo(() => {
+    const origin = window.location.origin;
+    const imageUrls = images.map((img) =>
+      img.startsWith("http")
+        ? img
+        : `${origin}${img.startsWith("/") ? "" : "/"}${img}`,
+    );
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name: product.title,
+      description:
+        product.description ?? "Fresh produce from a verified Nigerian farmer.",
+      image: imageUrls,
+      sku: product._id ?? product.id,
+      brand: {
+        "@type": "Brand",
+        name: "PhyhanAgro",
+      },
+      offers: {
+        "@type": "Offer",
+        url: `${origin}/marketplace/product/${product._id ?? product.id}`,
+        priceCurrency: "NGN",
+        price: product.price?.toString() ?? "0",
+        availability:
+          availableQuantity > 0
+            ? "https://schema.org/InStock"
+            : "https://schema.org/OutOfStock",
+      },
+    };
+  }, [product, images, availableQuantity]);
+
+  useJsonLd(productStructuredData);
 
   const addToCart = (goCheckout = false) => {
     if (!user) {
