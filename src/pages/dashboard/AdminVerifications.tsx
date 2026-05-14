@@ -1,6 +1,6 @@
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { PageHeader } from "@/components/dashboard/PageHeader";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -17,6 +17,7 @@ import {
 } from "@/hooks/useAdmin";
 import { apiErrorMessage, assetUrl } from "@/lib/api";
 import { initials } from "@/lib/format";
+import { User } from "@/types";
 import {
   ExternalLink,
   FileText,
@@ -35,14 +36,14 @@ const AdminVerifications = () => {
   const { data: selected, isLoading: loadingDetails } =
     useAdminVerification(selectedId);
 
-  const act = async (id: string, action: "approve" | "reject") => {
+  const act = async (u: User, action: "approve" | "reject") => {
     const reason =
       action === "reject"
         ? window.prompt("Reason for rejection")?.trim()
         : undefined;
     if (action === "reject" && !reason) return;
     try {
-      await review.mutateAsync({ id, action, reason });
+      await review.mutateAsync({ id: u._id, action, reason });
       toast.success(
         action === "approve" ? "Account approved" : "Application rejected",
       );
@@ -74,6 +75,7 @@ const AdminVerifications = () => {
             <Card key={u._id} className="rounded-2xl p-4 shadow-card">
               <div className="flex flex-wrap items-center gap-4">
                 <Avatar className="h-12 w-12">
+                  <AvatarImage src={u.profileImage} alt={u.name} />
                   <AvatarFallback className="bg-primary/10 text-primary">
                     {initials(u.name)}
                   </AvatarFallback>
@@ -82,7 +84,9 @@ const AdminVerifications = () => {
                   <div className="flex items-center gap-2">
                     <p className="font-semibold">{u.name}</p>
                     <Badge variant="outline" className="capitalize">
-                      {u.role}
+                      {u.requestedRole
+                        ? u.role + "=>" + u.requestedRole
+                        : u.role}
                     </Badge>
                   </div>
                   <p className="text-xs text-muted-foreground">
@@ -102,14 +106,14 @@ const AdminVerifications = () => {
                     variant="outline"
                     size="sm"
                     className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => act(u._id, "reject")}
+                    onClick={() => act(u, "reject")}
                     disabled={review.isPending}
                   >
                     <ShieldX className="h-4 w-4" /> Reject
                   </Button>
                   <Button
                     size="sm"
-                    onClick={() => act(u._id, "approve")}
+                    onClick={() => act(u, "approve")}
                     disabled={review.isPending}
                   >
                     <ShieldCheck className="h-4 w-4" /> Approve
@@ -117,7 +121,7 @@ const AdminVerifications = () => {
                 </div>
               </div>
               <div className="mt-4 grid gap-3 border-t pt-4 text-sm md:grid-cols-3">
-                {u.role === "farmer" && (
+                {(u.role === "farmer" || u.requestedRole === "farmer") && (
                   <>
                     <Detail
                       icon={<MapPin className="h-4 w-4" />}
@@ -143,7 +147,7 @@ const AdminVerifications = () => {
                     />
                   </>
                 )}
-                {u.role === "rider" && (
+                {(u.role === "rider" || u.requestedRole === "rider") && (
                   <>
                     <Detail
                       icon={<FileText className="h-4 w-4" />}
@@ -189,7 +193,11 @@ const AdminVerifications = () => {
               <div className="grid gap-3 md:grid-cols-2">
                 <Detail
                   label="Applicant"
-                  value={`${selected.name} (${selected.role})`}
+                  value={`${selected.name} (${
+                    selected.requestedRole
+                      ? selected.role + "=>" + selected.requestedRole
+                      : selected.role
+                  })`}
                 />
                 <Detail
                   label="Contact"
@@ -209,7 +217,8 @@ const AdminVerifications = () => {
                   }
                 />
               </div>
-              {selected.role === "farmer" && (
+              {(selected.role === "farmer" ||
+                selected.requestedRole === "farmer") && (
                 <div className="grid gap-3 md:grid-cols-2">
                   <Detail
                     label="Farm name"
@@ -242,7 +251,8 @@ const AdminVerifications = () => {
                   />
                 </div>
               )}
-              {selected.role === "rider" && (
+              {(selected.role === "rider" ||
+                selected.requestedRole === "rider") && (
                 <div className="grid gap-3 md:grid-cols-2">
                   <Detail
                     label="Vehicle"

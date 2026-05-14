@@ -91,7 +91,7 @@ export const AssignRiderDialog = ({ order, trigger }: Props) => {
           {selected && (
             <div className="flex items-center gap-3 rounded-xl border border-border p-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={selected.avatar} />
+                <AvatarImage src={selected.profileImage} alt={selected.name} />
                 <AvatarFallback className="bg-primary/10 text-primary">
                   {initials(selected.name)}
                 </AvatarFallback>

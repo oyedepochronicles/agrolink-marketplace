@@ -1,7 +1,7 @@
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { OrderStatusBadge } from "@/components/dashboard/StatusBadge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -256,6 +256,10 @@ const DeliveryCard = ({
       <div className="flex flex-wrap items-start gap-4">
         <div className="flex flex-1 items-center gap-3 min-w-[220px]">
           <Avatar className="h-10 w-10">
+            <AvatarImage
+              src={order.buyerId?.profileImage}
+              alt={farmerName(order)}
+            />
             <AvatarFallback className="bg-primary/10 text-primary">
               {initials(buyerName(order))}
             </AvatarFallback>

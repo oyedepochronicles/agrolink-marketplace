@@ -38,50 +38,31 @@ const ProductDetails = () => {
   const [quantity, setQuantity] = useState(1);
   const [placing, setPlacing] = useState(false);
 
-  if (isLoading) {
-    return (
-      <div className="container py-8">
-        <div className="grid gap-8 md:grid-cols-2">
-          <Skeleton className="aspect-square w-full rounded-2xl" />
-          <div className="space-y-4">
-            <Skeleton className="h-8 w-3/4" />
-            <Skeleton className="h-6 w-1/3" />
-            <Skeleton className="h-32 w-full" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-  if (isError || !product) {
-    return (
-      <div className="container py-20 text-center">
-        <p className="text-lg font-semibold">Product not found</p>
-        <Button asChild variant="outline" className="mt-4 rounded-full">
-          <Link to="/marketplace">
-            <ChevronLeft className="mr-1 h-4 w-4" /> Back to marketplace
-          </Link>
-        </Button>
-      </div>
-    );
-  }
+  const images = product?.images?.length
+    ? product.images
+    : ["/placeholder.svg"];
 
-  const images = product.images?.length ? product.images : ["/placeholder.svg"];
-  const availableQuantity = product.quantity ?? product.stock ?? 0;
-  const total = product.price * quantity;
-  const harvestDate = product.expectedHarvestDate || product.harvestDate;
+  const availableQuantity = product?.quantity ?? product?.stock ?? 0;
+
+  const productTitle = product?.title ?? "Product";
+
+  const productDescription =
+    product?.description ??
+    `Buy ${productTitle} from a verified Nigerian farmer on PhyhanAgro with local delivery available.`;
 
   usePageMeta({
-    title: `${product.title} | PhyhanAgro`,
-    description: product.description
-      ? product.description
-      : `Buy ${product.title} from a verified Nigerian farmer on PhyhanAgro with local delivery available.`,
-    path: `/marketplace/product/${product._id ?? product.id}`,
+    title: `${productTitle} | PhyhanAgro`,
+    description: productDescription,
+    path: `/marketplace/product/${product?._id ?? product?.id ?? ""}`,
     image: images[0] ?? "/og-image.svg",
     type: "product",
   });
 
   const productStructuredData = useMemo(() => {
+    if (!product) return null;
+
     const origin = window.location.origin;
+
     const imageUrls = images.map((img) =>
       img.startsWith("http")
         ? img
@@ -114,6 +95,39 @@ const ProductDetails = () => {
   }, [product, images, availableQuantity]);
 
   useJsonLd(productStructuredData);
+
+  if (isLoading) {
+    return (
+      <div className="container py-8">
+        <div className="grid gap-8 md:grid-cols-2">
+          <Skeleton className="aspect-square w-full rounded-2xl" />
+          <div className="space-y-4">
+            <Skeleton className="h-8 w-3/4" />
+            <Skeleton className="h-6 w-1/3" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError || !product) {
+    return (
+      <div className="container py-20 text-center">
+        <p className="text-lg font-semibold">Product not found</p>
+
+        <Button asChild variant="outline" className="mt-4 rounded-full">
+          <Link to="/marketplace">
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            Back to marketplace
+          </Link>
+        </Button>
+      </div>
+    );
+  }
+
+  const total = product.price * quantity;
+  const harvestDate = product.expectedHarvestDate || product.harvestDate;
 
   const addToCart = (goCheckout = false) => {
     if (!user) {
@@ -269,8 +283,8 @@ const ProductDetails = () => {
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10">
                   <AvatarImage
-                    src={product.farmer.avatar}
-                    alt={product.farmer.name}
+                    src={product.farmer?.profileImage}
+                    alt={product.farmer?.name}
                   />
                   <AvatarFallback className="bg-primary/10 text-primary">
                     {initials(product.farmer.name)}
@@ -283,15 +297,15 @@ const ProductDetails = () => {
                       <ShieldCheck className="h-3 w-3 text-primary" /> Verified
                       seller
                     </span>
-                    {(product.farmer.reviewsCount ?? 0) > 0 && (
+                    {(product.farmer.ratingsCount ?? 0) > 0 && (
                       <span className="inline-flex items-center gap-1">
-                        ·{" "}
+                        {" "}
                         <RatingStars
-                          value={product.farmer.rating ?? 0}
+                          value={product.farmer.avgRating ?? 0}
                           size="sm"
                         />
                         <span className="font-semibold text-foreground">
-                          {(product.farmer.rating ?? 0).toFixed(1)}
+                          {(product.farmer.avgRating ?? 0).toFixed(1)}
                         </span>
                       </span>
                     )}

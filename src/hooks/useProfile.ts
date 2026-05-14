@@ -47,6 +47,40 @@ export const useSubmitVerification = () => {
   });
 };
 
+interface RoleUpgradePayload {
+  role: "farmer" | "rider";
+  termsAccepted: boolean;
+  farmerProfile?: {
+    farmName: string;
+    farmAddress: string;
+    farmState?: string;
+    farmLga?: string;
+    farmLandmark?: string;
+    farmPhone?: string;
+  };
+  riderProfile?: {
+    vehicleType: string;
+    vehicleNumber: string;
+    licenseNumber?: string;
+  };
+  documentType: string;
+  documentNumber?: string;
+  documentUrl: string;
+  selfieUrl?: string;
+  note?: string;
+}
+
+export const useRequestRoleUpgrade = () => {
+  const { refresh } = useAuth();
+  return useMutation({
+    mutationFn: async (payload: RoleUpgradePayload) => {
+      const { data } = await api.post("/users/me/upgrade-role", payload);
+      return data;
+    },
+    onSuccess: () => refresh(),
+  });
+};
+
 /** Change user password. */
 export const useChangePassword = () => {
   return useMutation({

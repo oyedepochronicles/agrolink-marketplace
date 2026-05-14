@@ -3,7 +3,7 @@ import { EmptyState } from "@/components/dashboard/EmptyState";
 import { OfflinePaymentDialog } from "@/components/dashboard/OfflinePaymentDialog";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { OrderStatusBadge } from "@/components/dashboard/StatusBadge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
@@ -233,6 +233,7 @@ function FarmerOrdersCard(o) {
       <div className="flex flex-wrap items-start gap-4">
         <div className="flex flex-1 items-center gap-3 min-w-[220px]">
           <Avatar className="h-10 w-10">
+            <AvatarImage src={o.buyerId?.profileImage} alt={buyerName(o)} />
             <AvatarFallback className="bg-primary/10 text-primary">
               {initials(buyerName(o))}
             </AvatarFallback>

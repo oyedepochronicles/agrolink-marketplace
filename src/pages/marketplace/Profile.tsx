@@ -1,4 +1,5 @@
 import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
+import { RoleUpgradeDialog } from "@/components/profile/RoleUpgradeDialog";
 import { VerificationRequestDialog } from "@/components/profile/VerificationRequestDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -31,7 +32,9 @@ const Profile = () => {
   if (!user) return <Navigate to="/login" replace />;
 
   const isVerified = user.isVerified || user.verificationStatus === "approved";
-  const isPending = user.verificationStatus === "pending";
+  const isPending =
+    user.verificationStatus === "pending" ||
+    user.verificationStatus === "pending_verification";
 
   const onPick = async (file?: File) => {
     if (!file) return;
@@ -152,6 +155,15 @@ const Profile = () => {
                 <HelpCircle className="mr-2 h-4 w-4" /> Contact support
               </Link>
             </Button>
+            {user.role === "buyer" && !user.requestedRole && (
+              <RoleUpgradeDialog
+                trigger={
+                  <Button className="rounded-full bg-gradient-primary shadow-glow">
+                    <ShieldCheck className="mr-2 h-4 w-4" /> Request role upgrade
+                  </Button>
+                }
+              />
+            )}
             {!isVerified && !isPending && (
               <VerificationRequestDialog
                 trigger={
@@ -161,6 +173,11 @@ const Profile = () => {
                   </Button>
                 }
               />
+            )}
+            {user.role === "buyer" && user.requestedRole && (
+              <Badge className="rounded-full bg-warning/20 text-warning">
+                Upgrade request pending: {user.requestedRole}
+              </Badge>
             )}
             <Button onClick={logout} variant="outline" className="rounded-full">
               <LogOut className="mr-2 h-4 w-4" /> Sign out

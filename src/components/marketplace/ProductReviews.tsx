@@ -47,7 +47,7 @@ export const ProductReviews = ({ productId, farmerId }: Props) => {
   const [replyBody, setReplyBody] = useState("");
 
   const isFarmer = user?.role === "farmer" && user?._id === farmerId;
-  const canReview = !!user && user.role === "buyer";
+  const canReview = !!user && user?._id !== farmerId;
 
   const submit = async () => {
     if (!rating) {
@@ -63,7 +63,7 @@ export const ProductReviews = ({ productId, farmerId }: Props) => {
       toast.error(apiErrorMessage(e));
     }
   };
-
+  console.log(reviews);
   const submitReply = async (reviewId: string) => {
     const text = replyBody.trim();
     if (!text) return;
@@ -134,15 +134,18 @@ export const ProductReviews = ({ productId, farmerId }: Props) => {
             <Card key={r._id} className="rounded-2xl p-4 shadow-card">
               <div className="flex items-start gap-3">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src={r.user?.avatar} alt={r.user?.name} />
+                  <AvatarImage
+                    src={r.buyerId?.profileImage}
+                    alt={r.buyerId?.name}
+                  />
                   <AvatarFallback className="bg-primary/10 text-xs text-primary">
-                    {initials(r.user?.name ?? "?")}
+                    {initials(r.buyerId?.name ?? "?")}
                   </AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-semibold">
-                      {r.user?.name ?? "Buyer"}
+                      {r.buyerId?.name ?? "Buyer"}
                     </p>
                     <RatingStars value={r.rating} size="sm" />
                     <span className="text-xs text-muted-foreground">

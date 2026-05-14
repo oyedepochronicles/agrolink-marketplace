@@ -20,8 +20,8 @@ export interface User {
   profileImage?: string;
   avatar?: string;
   state?: string;
-  rating?: number;
-  reviewsCount?: number;
+  avgRating?: number;
+  ratingsCount?: number;
   createdAt?: string;
   location?: {
     state?: string;
@@ -56,6 +56,9 @@ export interface User {
   verificationSubmittedAt?: string;
   verificationReviewedAt?: string;
   verificationRejectionReason?: string;
+  requestedRole?: Extract<Role, "farmer" | "rider">;
+  requestedRoleProfile?: Record<string, unknown>;
+  requestedRoleSubmittedAt?: string;
 }
 
 export interface Review {
@@ -63,7 +66,8 @@ export interface Review {
   product: string;
   rating: number;
   body?: string;
-  user?: Pick<User, "_id" | "name" | "avatar">;
+  buyerId: Pick<User, "_id" | "name" | "profileImage">;
+  user?: Pick<User, "_id" | "name">;
   reply?: { body: string; createdAt: string };
   createdAt: string;
 }
@@ -88,7 +92,7 @@ export interface SupportTicket {
   body: string;
   category?: string;
   status: SupportTicketStatus;
-  user?: Pick<User, "_id" | "name" | "avatar" | "email">;
+  user?: Pick<User, "_id" | "name" | "profileImage" | "email">;
   replies?: SupportTicketReply[];
   createdAt: string;
   updatedAt: string;
@@ -120,7 +124,7 @@ export interface Product {
   farmerId?: string;
   farmer?: Pick<
     User,
-    "_id" | "name" | "avatar" | "state" | "rating" | "reviewsCount"
+    "_id" | "name" | "profileImage" | "state" | "avgRating" | "ratingsCount"
   >;
   rating?: number;
   reviewsCount?: number;
@@ -279,4 +283,3 @@ export interface ApiResponse<T> {
   data: T;
   message?: string;
 }
-
