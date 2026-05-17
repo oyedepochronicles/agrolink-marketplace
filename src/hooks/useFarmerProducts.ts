@@ -1,8 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import type { Product } from "@/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-interface ListResp { items?: Product[]; data?: Product[]; products?: Product[] }
+interface ListResp {
+  items?: Product[];
+  data?: Product[];
+  products?: Product[];
+}
 
 export const useFarmerProducts = () =>
   useQuery({
@@ -26,6 +30,14 @@ export interface ProductInput {
   expectedHarvestDate?: string;
   isPreHarvest?: boolean;
   images?: string[];
+  location?: {
+    state: string;
+    lga: string;
+    fullAddress?: string;
+    city?: string;
+    landmark?: string;
+    coordinates?: [number, number];
+  };
 }
 
 export const useCreateProduct = () => {
@@ -73,8 +85,16 @@ export const useDeleteProduct = () => {
 export const useUpdateProductStatus = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: "available" | "reserved" | "sold" | "expired" }) => {
-      const { data } = await api.patch<Product>(`/products/${id}/status`, { status });
+    mutationFn: async ({
+      id,
+      status,
+    }: {
+      id: string;
+      status: "available" | "reserved" | "sold" | "expired";
+    }) => {
+      const { data } = await api.patch<Product>(`/products/${id}/status`, {
+        status,
+      });
       return data;
     },
     onSuccess: () => {
@@ -89,11 +109,13 @@ export const useUploadImage = () =>
     mutationFn: async (file: File): Promise<string> => {
       const fd = new FormData();
       fd.append("file", file);
-      const { data } = await api.post<{ url?: string; secure_url?: string; path?: string }>(
-        "/uploads",
-        fd,
-        { headers: { "Content-Type": "multipart/form-data" } },
-      );
+      const { data } = await api.post<{
+        url?: string;
+        secure_url?: string;
+        path?: string;
+      }>("/uploads", fd, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       return data.url ?? data.secure_url ?? data.path ?? "";
     },
   });

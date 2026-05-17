@@ -16,6 +16,7 @@ interface Props<TData> {
   pageSize?: number;
   emptyMessage?: string;
   toolbar?: React.ReactNode;
+  onRowClick?: (row: TData) => void;
 }
 
 export function DataTable<TData>({
@@ -26,6 +27,7 @@ export function DataTable<TData>({
   pageSize = 10,
   emptyMessage,
   toolbar,
+  onRowClick,
 }: Props<TData>) {
   const { t } = useTranslation();
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -113,7 +115,11 @@ export function DataTable<TData>({
                 </TableRow>
               ) : (
                 table.getRowModel().rows.map((row) => (
-                  <TableRow key={row.id} className="hover:bg-secondary/40">
+                  <TableRow
+                    key={row.id}
+                    className={cn("hover:bg-secondary/40", onRowClick && "cursor-pointer")}
+                    onClick={() => onRowClick?.(row.original)}
+                  >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id} className="text-sm">
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}

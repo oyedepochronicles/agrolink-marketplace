@@ -147,7 +147,11 @@ export const MarketplaceNavbar = ({
                 </DropdownMenuItem>
                 {user.role !== "buyer" && (
                   <DropdownMenuItem
-                    onClick={() => navigate(`/dashboard/${user.role}`)}
+                    onClick={() =>
+                      navigate(
+                        `/dashboard/${user.role === "super_admin" ? "admin" : user.role}`,
+                      )
+                    }
                   >
                     <LayoutDashboard className="mr-2 h-4 w-4" />{" "}
                     {t("nav.backToDashboard")}

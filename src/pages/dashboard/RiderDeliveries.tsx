@@ -16,6 +16,7 @@ import {
   useAvailableDeliveries,
   useOrderConversation,
   useRiderDeliveries,
+  useRiderLiveLocation,
   useUpdateDeliveryStatus,
 } from "@/hooks/useOrders";
 import { apiErrorMessage } from "@/lib/api";
@@ -30,6 +31,7 @@ import {
   Loader2,
   MapPin,
   MessageCircle,
+  Navigation,
   Phone,
   Truck,
   UserRound,
@@ -66,11 +68,91 @@ const orderTotal = (order: Order) =>
   order.total ??
   (order.amount ?? 0) + (order.deliveryFee ?? 0);
 
+type LatLng = { lat: number; lng: number };
+
+const geoToLatLng = (geo?: { coordinates?: number[] }): LatLng | null => {
+  const coordinates = geo?.coordinates;
+  if (!Array.isArray(coordinates) || coordinates.length !== 2) return null;
+  const [lng, lat] = coordinates.map(Number);
+  return Number.isFinite(lat) && Number.isFinite(lng) ? { lat, lng } : null;
+};
+
+const pickupPoint = (order: Order) =>
+  geoToLatLng(order.pickupLocation?.coordinates) ||
+  geoToLatLng(order.pickupAddress?.geo);
+
+const deliveryPoint = (order: Order) =>
+  geoToLatLng(order.deliveryLocation?.coordinates) ||
+  (typeof order.deliveryAddress === "object"
+    ? geoToLatLng(order.deliveryAddress?.geo)
+    : null);
+
+const directionsUrl = (destination: LatLng, origin?: LatLng | null) => {
+  const params = new URLSearchParams({
+    api: "1",
+    destination: `${destination.lat},${destination.lng}`,
+    travelmode: "driving",
+  });
+  if (origin) params.set("origin", `${origin.lat},${origin.lng}`);
+  return `https://www.google.com/maps/dir/?${params.toString()}`;
+};
+
+const staticMapUrl = (order: Order, rider?: LatLng | null) => {
+  const token = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN as string | undefined;
+  console.log(order);
+  const pickup = pickupPoint(order);
+  const delivery = deliveryPoint(order);
+  if (!token || !pickup || !delivery) return "";
+
+  const features = [
+    rider && {
+      type: "Feature",
+      properties: { "marker-color": "#2563eb", "marker-symbol": "b" },
+      geometry: { type: "Point", coordinates: [rider.lng, rider.lat] },
+    },
+    {
+      type: "Feature",
+      properties: { "marker-color": "#16a34a", "marker-symbol": "1" },
+      geometry: { type: "Point", coordinates: [pickup.lng, pickup.lat] },
+    },
+    {
+      type: "Feature",
+      properties: { "marker-color": "#dc2626", "marker-symbol": "2" },
+      geometry: { type: "Point", coordinates: [delivery.lng, delivery.lat] },
+    },
+    {
+      type: "Feature",
+      properties: {
+        stroke: "#111827",
+        "stroke-width": 4,
+        "stroke-opacity": 0.8,
+      },
+      geometry: {
+        type: "LineString",
+        coordinates: [
+          ...(rider ? [[rider.lng, rider.lat]] : []),
+          [pickup.lng, pickup.lat],
+          [delivery.lng, delivery.lat],
+        ],
+      },
+    },
+  ].filter(Boolean);
+
+  const overlay = encodeURIComponent(
+    JSON.stringify({ type: "FeatureCollection", features }),
+  );
+  return `https://api.mapbox.com/styles/v1/mapbox/streets-v12/static/geojson(${overlay})/auto/900x520@2x?padding=60&access_token=${token}`;
+};
+
 const RiderDeliveries = () => {
   const [tab, setTab] = useState("active");
   const [details, setDetails] = useState<Order | null>(null);
+  const [directions, setDirections] = useState<Order | null>(null);
+  const [riderPoint, setRiderPoint] = useState<LatLng | null>(null);
+  useRiderLiveLocation(true);
   const available = useAvailableDeliveries();
   const mine = useRiderDeliveries();
+  console.log(mine);
   const accept = useAcceptDelivery();
   const update = useUpdateDeliveryStatus();
   const orderConversation = useOrderConversation();
@@ -115,6 +197,20 @@ const RiderDeliveries = () => {
     }
   };
 
+  const openDirections = (order: Order) => {
+    setDirections(order);
+    if (!("geolocation" in navigator)) return;
+    navigator.geolocation.getCurrentPosition(
+      (position) =>
+        setRiderPoint({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        }),
+      () => setRiderPoint(null),
+      { enableHighAccuracy: true, maximumAge: 30000, timeout: 8000 },
+    );
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -145,6 +241,7 @@ const RiderDeliveries = () => {
                   key={o._id}
                   order={o}
                   onDetails={() => setDetails(o)}
+                  onDirections={() => openDirections(o)}
                   onMessageBuyer={() =>
                     openConversation(o, o.buyer?._id || o.buyerId?._id)
                   }
@@ -184,6 +281,7 @@ const RiderDeliveries = () => {
                   key={o._id}
                   order={o}
                   onDetails={() => setDetails(o)}
+                  onDirections={() => openDirections(o)}
                   action={
                     <Button
                       size="sm"
@@ -214,6 +312,7 @@ const RiderDeliveries = () => {
                   key={o._id}
                   order={o}
                   onDetails={() => setDetails(o)}
+                  onDirections={() => openDirections(o)}
                   onMessageBuyer={() => openConversation(o, o.buyerId?._id)}
                   onMessageFarmer={() => openConversation(o, o.farmerId?._id)}
                 />
@@ -226,6 +325,11 @@ const RiderDeliveries = () => {
       <DeliveryDetails
         order={details}
         onOpenChange={(open) => !open && setDetails(null)}
+      />
+      <DirectionsDialog
+        order={directions}
+        riderPoint={riderPoint}
+        onOpenChange={(open) => !open && setDirections(null)}
       />
     </div>
   );
@@ -243,14 +347,15 @@ const DeliveryCard = ({
   onDetails,
   onMessageBuyer,
   onMessageFarmer,
+  onDirections,
 }: {
   order: Order;
   action?: React.ReactNode;
   onDetails?: () => void;
   onMessageBuyer?: () => void;
   onMessageFarmer?: () => void;
+  onDirections?: () => void;
 }) => {
-  console.log(order);
   return (
     <Card className="rounded-2xl p-4 shadow-card">
       <div className="flex flex-wrap items-start gap-4">
@@ -282,6 +387,14 @@ const DeliveryCard = ({
           <Button size="sm" variant="outline" onClick={onDetails}>
             Details
           </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onDirections}
+            className="gap-1"
+          >
+            <Navigation className="h-4 w-4" /> Directions
+          </Button>
           {onMessageBuyer && (
             <Button
               size="sm"
@@ -306,10 +419,21 @@ const DeliveryCard = ({
         </div>
       </div>
       {order.deliveryAddress && (
-        <p className="mt-3 inline-flex items-center gap-1 text-xs text-muted-foreground">
-          <MapPin className="h-3 w-3" />{" "}
-          {formatOrderAddress(order.deliveryAddress)}
-        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <MapPin className="h-3 w-3" />{" "}
+            {formatOrderAddress(order.deliveryAddress)}
+          </span>
+          {order.matching && (
+            <span>
+              {order.matching.source === "mapbox" &&
+              order.matching.totalDurationMin
+                ? `${order.matching.totalDurationMin} min ETA`
+                : `${order.matching.pickupDistanceKm} km to pickup`}{" "}
+              - {order.matching.deliveryDistanceKm} km delivery
+            </span>
+          )}
+        </div>
       )}
     </Card>
   );
@@ -386,6 +510,118 @@ const DeliveryDetails = ({
     </DialogContent>
   </Dialog>
 );
+
+const DirectionsDialog = ({
+  order,
+  riderPoint,
+  onOpenChange,
+}: {
+  order: Order | null;
+  riderPoint?: LatLng | null;
+  onOpenChange: (open: boolean) => void;
+}) => {
+  const pickup = order ? pickupPoint(order) : null;
+  const delivery = order ? deliveryPoint(order) : null;
+  const mapUrl = order ? staticMapUrl(order, riderPoint) : "";
+  const nextStop =
+    order?.deliveryStatus === "picked_up" ||
+    order?.deliveryStatus === "in_transit"
+      ? delivery
+      : pickup;
+
+  return (
+    <Dialog open={!!order} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-3xl rounded-xl">
+        <DialogHeader>
+          <DialogTitle>Directions</DialogTitle>
+        </DialogHeader>
+        {order && (
+          <div className="space-y-4">
+            {mapUrl ? (
+              <img
+                src={mapUrl}
+                alt="Pickup and delivery route map"
+                className="aspect-[16/9] w-full rounded-lg border border-border object-cover"
+              />
+            ) : (
+              <div className="flex aspect-[16/9] items-center justify-center rounded-lg border border-dashed border-border bg-muted text-center text-sm text-muted-foreground">
+                Add VITE_MAPBOX_PUBLIC_TOKEN and make sure this order has pickup
+                and delivery coordinates to preview the map.
+              </div>
+            )}
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Info
+                icon={<MapPin className="h-4 w-4" />}
+                label="Pickup"
+                value={
+                  order.pickupLocation?.address ||
+                  order.pickupAddress?.fullAddress ||
+                  "Pickup coordinates not provided"
+                }
+              />
+              <Info
+                icon={<MapPin className="h-4 w-4" />}
+                label="Delivery"
+                value={
+                  order.deliveryLocation?.address ||
+                  formatOrderAddress(order.deliveryAddress) ||
+                  "Delivery coordinates not provided"
+                }
+              />
+            </div>
+
+            {order.matching && (
+              <p className="text-sm text-muted-foreground">
+                {order.matching.source === "mapbox" &&
+                order.matching.totalDurationMin
+                  ? `${order.matching.totalDurationMin} min estimated drive`
+                  : `${order.matching.pickupDistanceKm} km to pickup`}{" "}
+                - {order.matching.deliveryDistanceKm} km delivery
+              </p>
+            )}
+
+            <div className="flex flex-wrap gap-2">
+              {nextStop && (
+                <Button asChild className="gap-2">
+                  <a
+                    href={directionsUrl(nextStop, riderPoint)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <Navigation className="h-4 w-4" /> Navigate next stop
+                  </a>
+                </Button>
+              )}
+              {pickup && (
+                <Button asChild variant="outline">
+                  <a
+                    href={directionsUrl(pickup, riderPoint)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Pickup
+                  </a>
+                </Button>
+              )}
+              {delivery && (
+                <Button asChild variant="outline">
+                  <a
+                    href={directionsUrl(delivery, pickup)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Pickup to delivery
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+};
 
 const Info = ({
   label,

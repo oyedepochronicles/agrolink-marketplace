@@ -43,10 +43,7 @@ interface NavEntry {
   icon: React.ReactNode;
 }
 
-const NAV_BY_ROLE: Record<
-  Exclude<Role, "buyer" | "super_admin">,
-  NavEntry[]
-> = {
+const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
   farmer: [
     {
       to: "/dashboard/farmer",
@@ -138,6 +135,53 @@ const NAV_BY_ROLE: Record<
       icon: <HelpCircle className="h-4 w-4" />,
     },
   ],
+  super_admin: [
+    {
+      to: "/dashboard/admin",
+      labelKey: "dashboard.overview",
+      icon: <BarChart3 className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/orders",
+      labelKey: "dashboard.orders",
+      icon: <ShoppingCart className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/verifications",
+      labelKey: "dashboard.verifications",
+      icon: <ShieldCheck className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/users",
+      labelKey: "dashboard.users",
+      icon: <Users className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/products",
+      labelKey: "dashboard.products",
+      icon: <PackageCheck className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/payouts",
+      labelKey: "dashboard.payouts",
+      icon: <Banknote className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/analytics",
+      labelKey: "dashboard.analytics",
+      icon: <LineChart className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/messages",
+      labelKey: "dashboard.messages",
+      icon: <MessageSquare className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/support",
+      labelKey: "dashboard.support",
+      icon: <HelpCircle className="h-4 w-4" />,
+    },
+  ],
 };
 
 export const DashboardLayout = () => {
@@ -145,6 +189,7 @@ export const DashboardLayout = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   if (!user || user.role === "buyer") return null;
+  const dashboardRole = user.role === "super_admin" ? "admin" : user.role;
   const items = NAV_BY_ROLE[user.role];
 
   return (
@@ -154,7 +199,7 @@ export const DashboardLayout = () => {
         <div className="px-6 py-6">
           <Brand
             variant="light"
-            to={`/dashboard/${user.role === "super_admin" ? "admin" : user.role}`}
+            to={`/dashboard/${dashboardRole}`}
           />
         </div>
         <nav className="flex-1 space-y-1 px-3">
@@ -193,7 +238,7 @@ export const DashboardLayout = () => {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur md:px-8">
           <div className="flex items-center gap-3 md:hidden">
-            <Brand to={`/dashboard/${user.role}`} />
+            <Brand to={`/dashboard/${dashboardRole}`} />
           </div>
           <div className="hidden md:block">
             <h1 className="font-display text-lg font-extrabold capitalize tracking-tight">

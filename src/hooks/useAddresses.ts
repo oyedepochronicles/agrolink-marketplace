@@ -14,6 +14,11 @@ export interface Address {
   state: string;
   lga?: string;
   notes?: string;
+  coordinates?: [number, number];
+  geo?: {
+    type?: "Point";
+    coordinates?: [number, number] | number[];
+  };
   isDefault?: boolean;
 }
 
@@ -116,4 +121,13 @@ export const useAddresses = () => {
 
 export const formatAddress = (a: Address) =>
   `${a.street}, ${a.city}, ${a.state}`;
+
+export const addressCoordinates = (a?: Address) => {
+  const coordinates = a?.coordinates ?? a?.geo?.coordinates;
+  if (!Array.isArray(coordinates) || coordinates.length !== 2) return undefined;
+  const [lng, lat] = coordinates.map(Number);
+  return Number.isFinite(lat) && Number.isFinite(lng)
+    ? ([lng, lat] as [number, number])
+    : undefined;
+};
 

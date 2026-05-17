@@ -1,3 +1,4 @@
+import { DataTable } from "@/components/dashboard/DataTable";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { ProductFormDialog } from "@/components/dashboard/ProductFormDialog";
@@ -13,18 +14,78 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   useDeleteProduct,
   useFarmerProducts,
   useUpdateProductStatus,
 } from "@/hooks/useFarmerProducts";
 import { apiErrorMessage } from "@/lib/api";
-import { formatNaira } from "@/lib/format";
+import { formatDate, formatNaira } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
-import { Clock, Loader2, Pencil, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { Loader2, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
+
+type ProductStatus = NonNullable<Product["status"]>;
+type AdminStatus = NonNullable<Product["adminStatus"]>;
+
+interface Row {
+  _id: string;
+  title: string;
+  description: string;
+  category: string;
+  price: number;
+  unit: string;
+  stock: number;
+  status: ProductStatus;
+  adminStatus: AdminStatus;
+  harvest: string;
+  preHarvest: string;
+  location: string;
+  raw: Product;
+}
+
+const STATUS_OPTIONS: ProductStatus[] = ["available", "reserved", "sold", "expired"];
+
+const STATUS_STYLES: Record<ProductStatus, string> = {
+  available: "bg-primary/15 text-primary",
+  reserved: "bg-warning/15 text-warning-foreground",
+  sold: "bg-muted text-muted-foreground",
+  expired: "bg-destructive/10 text-destructive",
+};
+
+const ADMIN_STATUS_STYLES: Record<AdminStatus, string> = {
+  active: "bg-primary/15 text-primary",
+  inactive: "bg-destructive/10 text-destructive",
+};
+
+const ProductStatusBadge = ({ status }: { status: ProductStatus }) => (
+  <Badge
+    variant="outline"
+    className={cn("rounded-full border-transparent capitalize", STATUS_STYLES[status])}
+  >
+    {status}
+  </Badge>
+);
+
+const AdminStatusBadge = ({ status }: { status: AdminStatus }) => (
+  <Badge
+    variant="outline"
+    className={cn("rounded-full border-transparent capitalize", ADMIN_STATUS_STYLES[status])}
+  >
+    {status}
+  </Badge>
+);
 
 const FarmerProducts = () => {
   const { data: products = [], isLoading } = useFarmerProducts();
@@ -34,12 +95,38 @@ const FarmerProducts = () => {
   const [open, setOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Product | null>(null);
 
+  const rows = useMemo<Row[]>(
+    () =>
+      products.map((p) => ({
+        _id: p._id,
+        title: p.title || p.name || "-",
+        description: p.description || "-",
+        category: p.category || "-",
+        price: p.price,
+        unit: p.unit || "unit",
+        stock: p.stock ?? p.quantity ?? 0,
+        status: p.status || "available",
+        adminStatus: p.adminStatus || "active",
+        harvest: formatDate(p.expectedHarvestDate || p.harvestDate) || "-",
+        preHarvest: p.isPreHarvest ? "Pre-harvest" : "Harvested",
+        location:
+          p.location?.fullAddress ||
+          [p.location?.city, p.location?.lga, p.location?.state || p.state]
+            .filter(Boolean)
+            .join(", ") ||
+          "-",
+        raw: p,
+      })),
+    [products],
+  );
+
   const onNew = () => {
     setEditing(undefined);
     setOpen(true);
   };
-  const onEdit = (p: Product) => {
-    setEditing(p);
+
+  const onEdit = (product: Product) => {
+    setEditing(product);
     setOpen(true);
   };
 
@@ -54,20 +141,119 @@ const FarmerProducts = () => {
     }
   };
 
-  const markExpired = async (product: Product) => {
+  const setStatus = useCallback(async (product: Product, status: ProductStatus) => {
     try {
-      await updateStatus.mutateAsync({ id: product._id, status: "expired" });
-      toast.success("Product marked expired");
+      await updateStatus.mutateAsync({ id: product._id, status });
+      toast.success(`Product marked ${status}`);
     } catch (e) {
       toast.error(apiErrorMessage(e));
     }
-  };
+  }, [updateStatus]);
+
+  const columns = useMemo<ColumnDef<Row>[]>(
+    () => [
+      {
+        accessorKey: "title",
+        header: "Product",
+        cell: ({ row }) => {
+          const product = row.original.raw;
+          return (
+            <div className="flex min-w-[220px] items-center gap-3">
+              <div className="h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+                {product.images?.[0] ? (
+                  <img
+                    src={product.images[0]}
+                    alt={row.original.title}
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                ) : null}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate font-medium">{row.original.title}</p>
+                <p className="truncate text-xs text-muted-foreground">
+                  {row.original.description}
+                </p>
+              </div>
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "category",
+        header: "Category",
+        cell: ({ row }) => <Badge variant="outline">{row.original.category}</Badge>,
+      },
+      {
+        accessorKey: "price",
+        header: "Price",
+        cell: ({ row }) => (
+          <span className="font-semibold text-primary">
+            {formatNaira(row.original.price)}
+          </span>
+        ),
+      },
+      { accessorKey: "unit", header: "Unit" },
+      { accessorKey: "stock", header: "Stock" },
+      {
+        accessorKey: "status",
+        header: "Inventory status",
+        cell: ({ row }) => <ProductStatusBadge status={row.original.status} />,
+      },
+      {
+        accessorKey: "adminStatus",
+        header: "Admin status",
+        cell: ({ row }) => <AdminStatusBadge status={row.original.adminStatus} />,
+      },
+      { accessorKey: "preHarvest", header: "Harvest type" },
+      { accessorKey: "harvest", header: "Harvest date" },
+      { accessorKey: "location", header: "Location" },
+      {
+        id: "actions",
+        header: "Actions",
+        enableSorting: false,
+        cell: ({ row }) => (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild onClick={(event) => event.stopPropagation()}>
+              <Button variant="ghost" size="icon" aria-label={`Actions for ${row.original.title}`}>
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" onClick={(event) => event.stopPropagation()}>
+              <DropdownMenuItem onClick={() => onEdit(row.original.raw)}>
+                <Pencil className="mr-2 h-4 w-4" /> Edit
+              </DropdownMenuItem>
+              <DropdownMenuLabel>Set status</DropdownMenuLabel>
+              {STATUS_OPTIONS.map((status) => (
+                <DropdownMenuItem
+                  key={status}
+                  className="capitalize"
+                  disabled={updateStatus.isPending}
+                  onClick={() => setStatus(row.original.raw, status)}
+                >
+                  {status}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="text-destructive focus:text-destructive"
+                onClick={() => setConfirmDelete(row.original.raw)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ),
+      },
+    ],
+    [setStatus, updateStatus.isPending],
+  );
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="My products"
-        description="Manage your farm listings — buyers will see them in the marketplace."
+        description="Manage your farm listings. Buyers will see available products in the marketplace."
         action={
           <Button onClick={onNew}>
             <Plus className="h-4 w-4" /> New product
@@ -79,7 +265,7 @@ const FarmerProducts = () => {
         <div className="flex justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
-      ) : products.length === 0 ? (
+      ) : rows.length === 0 ? (
         <EmptyState
           icon={<Plus className="h-6 w-6" />}
           title="No products yet"
@@ -91,73 +277,12 @@ const FarmerProducts = () => {
           }
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {products.map((p) => (
-            <Card
-              key={p._id}
-              className="overflow-hidden rounded-2xl shadow-card"
-            >
-              <div className="aspect-[4/3] w-full overflow-hidden bg-muted">
-                {p.images?.[0] ? (
-                  <img
-                    src={p.images[0]}
-                    alt={p.title}
-                    className="h-full w-full object-cover"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="flex h-full items-center justify-center text-xs text-muted-foreground">
-                    No image
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2 p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <h3 className="line-clamp-1 font-semibold">{p.title}</h3>
-                  <Badge variant="outline" className="rounded-full">
-                    {p.category ?? "—"}
-                  </Badge>
-                </div>
-                <p className="font-display text-lg font-extrabold text-primary">
-                  {formatNaira(p.price)}{" "}
-                  <span className="text-xs font-medium text-muted-foreground">
-                    / {p.unit ?? "unit"}
-                  </span>
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Stock: {p.stock ?? 0} • {p.state ?? "—"}
-                </p>
-                <div className="flex gap-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                    onClick={() => onEdit(p)}
-                  >
-                    <Pencil className="h-3.5 w-3.5" /> Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => markExpired(p)}
-                    disabled={updateStatus.isPending}
-                    className="flex-1"
-                  >
-                    <Clock className="h-3.5 w-3.5" /> Expired
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => setConfirmDelete(p)}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+        <DataTable
+          data={rows}
+          columns={columns}
+          searchableKeys={["title", "description", "category", "status", "adminStatus", "location"]}
+          pageSize={10}
+        />
       )}
 
       <ProductFormDialog open={open} onOpenChange={setOpen} product={editing} />
@@ -170,7 +295,7 @@ const FarmerProducts = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this product?</AlertDialogTitle>
             <AlertDialogDescription>
-              "{confirmDelete?.title}" will be removed from the marketplace.
+              "{confirmDelete?.title || confirmDelete?.name}" will be removed from the marketplace.
               This cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>

@@ -1,4 +1,5 @@
 import { api } from "@/lib/api";
+import { getSocket } from "@/lib/socket";
 import type { DeliveryStatus, Order, OrderStatus, User } from "@/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -55,6 +56,77 @@ const useBrowserLocation = () => {
   }, []);
 
   return coords;
+};
+
+const distanceMeters = (
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+) => {
+  const r = 6371000;
+  const toRad = (value: number) => (value * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const x =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * r * Math.atan2(Math.sqrt(x), Math.sqrt(1 - x));
+};
+
+export const useRiderLiveLocation = (enabled = true) => {
+  const qc = useQueryClient();
+
+  useEffect(() => {
+    if (!enabled || !("geolocation" in navigator)) return;
+
+    const socket = getSocket();
+    let lastSentAt = 0;
+    let lastCoords: { lat: number; lng: number } | null = null;
+
+    const emitLocation = (position: GeolocationPosition) => {
+      const coords = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      };
+      const now = Date.now();
+      const movedEnough =
+        !lastCoords || distanceMeters(lastCoords, coords) >= 50;
+      const waitedEnough = now - lastSentAt >= 10000;
+
+      if (!movedEnough && !waitedEnough) return;
+
+      lastSentAt = now;
+      lastCoords = coords;
+      socket.emit("rider:update-location", coords);
+      qc.invalidateQueries({ queryKey: ["available-deliveries"] });
+    };
+
+    const watchId = navigator.geolocation.watchPosition(
+      emitLocation,
+      () => undefined,
+      {
+        enableHighAccuracy: true,
+        maximumAge: 10000,
+        timeout: 15000,
+      },
+    );
+
+    const onNewOrder = () =>
+      qc.invalidateQueries({ queryKey: ["available-deliveries"] });
+    const onAccepted = () => {
+      qc.invalidateQueries({ queryKey: ["available-deliveries"] });
+      qc.invalidateQueries({ queryKey: ["rider-deliveries"] });
+    };
+    socket.on("order:new", onNewOrder);
+    socket.on("order:accepted", onAccepted);
+
+    return () => {
+      navigator.geolocation.clearWatch(watchId);
+      socket.off("order:new", onNewOrder);
+      socket.off("order:accepted", onAccepted);
+    };
+  }, [enabled, qc]);
 };
 
 export const useAvailableDeliveries = () => {

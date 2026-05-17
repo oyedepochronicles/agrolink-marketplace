@@ -110,11 +110,7 @@ const Orders = () => {
             <div className="mt-6 space-y-3">
               {orders
                 .filter((r) => r.paymentStatus === "paid")
-                .sort(
-                  (a, b) =>
-                    new Date(b.createdAt).getTime() -
-                    new Date(a.createdAt).getTime(),
-                )
+
                 .map((order) => (
                   <OrderCard key={order._id} {...order} />
                 ))}
@@ -139,11 +135,7 @@ const Orders = () => {
             <div className="mt-6 space-y-3">
               {orders
                 .filter((r) => r.paymentStatus === "unpaid")
-                .sort(
-                  (a, b) =>
-                    new Date(b.createdAt).getTime() -
-                    new Date(a.createdAt).getTime(),
-                )
+
                 .map((order) => (
                   <OrderCard key={order._id} {...order} />
                 ))}
@@ -165,15 +157,9 @@ const Orders = () => {
             </div>
           ) : (
             <div className="mt-6 space-y-3">
-              {orders
-                .sort(
-                  (a, b) =>
-                    new Date(b.createdAt).getTime() -
-                    new Date(a.createdAt).getTime(),
-                )
-                .map((order) => (
-                  <OrderCard key={order._id} {...order} />
-                ))}
+              {orders.map((order) => (
+                <OrderCard key={order._id} {...order} />
+              ))}
             </div>
           )}
         </TabsContent>

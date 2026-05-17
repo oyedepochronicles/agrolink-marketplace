@@ -22,7 +22,8 @@ export const ProtectedRoute = ({ children, roles, redirectTo = "/login" }: Props
   }
   if (!user) return <Navigate to={redirectTo} state={{ from: location }} replace />;
   if (roles && !roles.includes(user.role)) {
-    const fallback = user.role === "buyer" ? "/marketplace" : `/dashboard/${user.role}`;
+    const dashboardRole = user.role === "super_admin" ? "admin" : user.role;
+    const fallback = user.role === "buyer" ? "/marketplace" : `/dashboard/${dashboardRole}`;
     return <Navigate to={fallback} replace />;
   }
   return children;

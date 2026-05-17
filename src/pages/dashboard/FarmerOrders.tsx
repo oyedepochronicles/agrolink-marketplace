@@ -1,4 +1,3 @@
-import { AssignRiderDialog } from "@/components/dashboard/AssignRiderDialog";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { OfflinePaymentDialog } from "@/components/dashboard/OfflinePaymentDialog";
 import { PageHeader } from "@/components/dashboard/PageHeader";
@@ -34,7 +33,6 @@ import {
   Loader2,
   MessageCircle,
   ShoppingCart,
-  Truck,
   X,
 } from "lucide-react";
 import { useState } from "react";
@@ -106,11 +104,6 @@ const FarmerOrders = () => {
                     r.status !== "cancelled" &&
                     r.status !== "rejected",
                 )
-                .sort(
-                  (a, b) =>
-                    new Date(b.createdAt).getTime() -
-                    new Date(a.createdAt).getTime(),
-                )
                 .map((o) => (
                   <FarmerOrdersCard key={o._id} {...o} />
                 ))}
@@ -134,11 +127,7 @@ const FarmerOrders = () => {
             <div className="mt-6 space-y-3">
               {orders
                 .filter((r) => r.status === "delivered")
-                .sort(
-                  (a, b) =>
-                    new Date(b.createdAt).getTime() -
-                    new Date(a.createdAt).getTime(),
-                )
+
                 .map((o) => (
                   <FarmerOrdersCard key={o._id} {...o} />
                 ))}
@@ -165,11 +154,6 @@ const FarmerOrders = () => {
               {orders
                 .filter(
                   (r) => r.status === "cancelled" || r.status === "rejected",
-                )
-                .sort(
-                  (a, b) =>
-                    new Date(b.createdAt).getTime() -
-                    new Date(a.createdAt).getTime(),
                 )
                 .map((o) => (
                   <FarmerOrdersCard key={o._id} {...o} />
@@ -312,7 +296,7 @@ function FarmerOrdersCard(o) {
             }
           />
         )}
-
+        {/*
         {canAssignRider && !o.riderId && (
           <AssignRiderDialog
             order={o}
@@ -323,7 +307,7 @@ function FarmerOrdersCard(o) {
               </Button>
             }
           />
-        )}
+        )} */}
 
         <Button variant="ghost" size="sm" asChild disabled={!productId(o)}>
           <a

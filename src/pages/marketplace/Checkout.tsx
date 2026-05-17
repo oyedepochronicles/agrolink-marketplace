@@ -1,7 +1,11 @@
 import { AddressBook } from "@/components/marketplace/AddressBook";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { formatAddress, useAddresses } from "@/hooks/useAddresses";
+import {
+  addressCoordinates,
+  formatAddress,
+  useAddresses,
+} from "@/hooks/useAddresses";
 import { useCart } from "@/hooks/useCart";
 import { api, apiErrorMessage } from "@/lib/api";
 import { formatNaira } from "@/lib/format";
@@ -87,6 +91,10 @@ const Checkout = () => {
       toast.error("Select a delivery address");
       return;
     }
+    if (method !== "pickup" && !addressCoordinates(selectedAddress)) {
+      toast.error("Pick the exact delivery point for this address");
+      return;
+    }
     setPlacing(true);
     try {
       const orderIds: string[] = [];
@@ -104,6 +112,7 @@ const Checkout = () => {
                 lga: selectedAddress!.lga || selectedAddress!.city,
                 fullAddress: formatAddress(selectedAddress!),
                 notes: selectedAddress!.notes,
+                coordinates: addressCoordinates(selectedAddress!),
               };
         const { data: order } = await api.post("/orders", {
           productId: item.productId,

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type { Order, Product, User } from "@/types";
+import type { Order, Product, Role, User } from "@/types";
 
 interface UserListResp { items?: User[]; data?: User[]; users?: User[] }
 interface ProductListResp { items?: Product[]; data?: Product[]; products?: Product[] }
@@ -89,6 +89,48 @@ export const useDeleteAdminUser = () => {
   });
 };
 
+export const useUpdateAdminUserSuspension = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, isSuspended }: { id: string; isSuspended: boolean }) => {
+      const { data } = await api.patch<{ user: User }>(`/admin/users/${id}/suspend`, { isSuspended });
+      return data.user;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["admin-stats"] });
+    },
+  });
+};
+
+export const useUpdateAdminUserDeactivation = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, isDeactivated }: { id: string; isDeactivated: boolean }) => {
+      const { data } = await api.patch<{ user: User }>(`/admin/users/${id}/deactivate`, { isDeactivated });
+      return data.user;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["admin-stats"] });
+    },
+  });
+};
+
+export const useInviteAdminUser = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { name: string; email: string; role: Extract<Role, "admin" | "super_admin"> }) => {
+      const { data } = await api.post<{ user: User; inviteUrl?: string }>("/admin/admin-users/invite", input);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["admin-stats"] });
+    },
+  });
+};
+
 export const useDeleteAdminProduct = () => {
   const qc = useQueryClient();
   return useMutation({
@@ -97,6 +139,34 @@ export const useDeleteAdminProduct = () => {
       return id;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["admin-products"] }),
+  });
+};
+
+export const useUpdateAdminProductStatus = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: NonNullable<Product["status"]> }) => {
+      const { data } = await api.patch<Product>(`/products/${id}/status`, { status });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-products"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
+  });
+};
+
+export const useUpdateAdminProductAdminStatus = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, adminStatus }: { id: string; adminStatus: NonNullable<Product["adminStatus"]> }) => {
+      const { data } = await api.patch<{ product: Product }>(`/admin/products/${id}/admin-status`, { adminStatus });
+      return data.product;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-products"] });
+      qc.invalidateQueries({ queryKey: ["products"] });
+    },
   });
 };
 

@@ -17,6 +17,9 @@ export interface User {
   role: Role;
   verificationStatus?: VerificationStatus;
   isVerified?: boolean;
+  isSuspended?: boolean;
+  isDeactivated?: boolean;
+  accountState?: "active" | "suspended" | "deactivated";
   profileImage?: string;
   avatar?: string;
   state?: string;
@@ -28,7 +31,12 @@ export interface User {
     lga?: string;
     fullAddress?: string;
     landmark?: string;
+    geo?: GeoPoint;
   };
+  currentLocation?: GeoPoint;
+  currentLocationUpdatedAt?: string;
+  isOnline?: boolean;
+  isAvailable?: boolean;
   farmerProfile?: {
     farmName?: string;
     farmAddress?: string;
@@ -59,6 +67,16 @@ export interface User {
   requestedRole?: Extract<Role, "farmer" | "rider">;
   requestedRoleProfile?: Record<string, unknown>;
   requestedRoleSubmittedAt?: string;
+}
+
+export interface GeoPoint {
+  type?: "Point";
+  coordinates?: [number, number] | number[];
+}
+
+export interface OrderLocation {
+  address?: string;
+  coordinates?: GeoPoint;
 }
 
 export interface Review {
@@ -129,6 +147,16 @@ export interface Product {
   rating?: number;
   reviewsCount?: number;
   status?: "available" | "reserved" | "sold" | "expired";
+  adminStatus?: "active" | "inactive";
+  isLimitedVisibility?: boolean;
+  location?: {
+    state?: string;
+    lga?: string;
+    fullAddress?: string;
+    city?: string;
+    landmark?: string;
+    geo?: GeoPoint;
+  };
   createdAt?: string;
 }
 
@@ -182,6 +210,7 @@ export interface Order {
         lga?: string;
         fullAddress?: string;
         notes?: string;
+        geo?: GeoPoint;
       };
   pickupAddress?: {
     farmName?: string;
@@ -192,6 +221,20 @@ export interface Order {
     lga?: string;
     fullAddress?: string;
     landmark?: string;
+    geo?: GeoPoint;
+  };
+  pickupLocation?: OrderLocation;
+  deliveryLocation?: OrderLocation;
+  matching?: {
+    score: number;
+    source?: "mapbox" | "haversine";
+    pickupDistanceKm: number;
+    deliveryDistanceKm: number;
+    pickupDurationMin?: number;
+    deliveryDurationMin?: number;
+    totalDistanceKm?: number;
+    totalDurationMin?: number;
+    waitingMinutes: number;
   };
   status: OrderStatus;
   paymentStatus?: "unpaid" | "paid";

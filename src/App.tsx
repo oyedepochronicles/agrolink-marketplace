@@ -221,7 +221,7 @@ const App = () => (
               <Route
                 path="admin"
                 element={
-                  <ProtectedRoute roles={["admin"]}>
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
                     <AdminOverview />
                   </ProtectedRoute>
                 }
@@ -229,7 +229,7 @@ const App = () => (
               <Route
                 path="admin/verifications"
                 element={
-                  <ProtectedRoute roles={["admin"]}>
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
                     <AdminVerifications />
                   </ProtectedRoute>
                 }
@@ -237,7 +237,7 @@ const App = () => (
               <Route
                 path="admin/orders"
                 element={
-                  <ProtectedRoute roles={["admin"]}>
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
                     <AdminOrders />
                   </ProtectedRoute>
                 }
@@ -245,7 +245,7 @@ const App = () => (
               <Route
                 path="admin/users"
                 element={
-                  <ProtectedRoute roles={["admin"]}>
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
                     <AdminUsers />
                   </ProtectedRoute>
                 }
@@ -253,7 +253,7 @@ const App = () => (
               <Route
                 path="admin/products"
                 element={
-                  <ProtectedRoute roles={["admin"]}>
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
                     <AdminProducts />
                   </ProtectedRoute>
                 }
@@ -261,7 +261,7 @@ const App = () => (
               <Route
                 path="admin/payouts"
                 element={
-                  <ProtectedRoute roles={["admin"]}>
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
                     <AdminPayouts />
                   </ProtectedRoute>
                 }
@@ -269,7 +269,7 @@ const App = () => (
               <Route
                 path="admin/analytics"
                 element={
-                  <ProtectedRoute roles={["admin"]}>
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
                     <AdminAnalytics />
                   </ProtectedRoute>
                 }
@@ -277,7 +277,7 @@ const App = () => (
               <Route
                 path="admin/messages"
                 element={
-                  <ProtectedRoute roles={["admin"]}>
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
                     <Messages />
                   </ProtectedRoute>
                 }
@@ -285,7 +285,7 @@ const App = () => (
               <Route
                 path="admin/support"
                 element={
-                  <ProtectedRoute roles={["admin"]}>
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
                     <AdminSupport />
                   </ProtectedRoute>
                 }
