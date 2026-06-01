@@ -199,6 +199,14 @@ const App = () => (
                 }
               />
               <Route
+                path="farmer/exports"
+                element={
+                  <ProtectedRoute roles={["farmer"]}>
+                    <FarmerExportCenter />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="farmer/wallet"
                 element={
                   <ProtectedRoute roles={["farmer"]}>
@@ -206,6 +214,49 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+
+              {/* Export Partner */}
+              <Route
+                path="export"
+                element={
+                  <ProtectedRoute roles={["export_partner"]}>
+                    <ExportPartnerOverview />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="export/requests"
+                element={
+                  <ProtectedRoute roles={["export_partner"]}>
+                    <ExportPartnerRequests />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="export/applications"
+                element={
+                  <ProtectedRoute roles={["export_partner"]}>
+                    <ExportPartnerApplications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="export/messages"
+                element={
+                  <ProtectedRoute roles={["export_partner"]}>
+                    <Messages />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="export/shipments"
+                element={
+                  <ProtectedRoute roles={["export_partner"]}>
+                    <ExportPartnerShipments />
+                  </ProtectedRoute>
+                }
+              />
+
 
               {/* Rider */}
               <Route
@@ -299,6 +350,14 @@ const App = () => (
                 }
               />
               <Route
+                path="admin/exports"
+                element={
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
+                    <AdminExports />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="admin/support"
                 element={
                   <ProtectedRoute roles={["admin", "super_admin"]}>
@@ -306,6 +365,7 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+
             </Route>
 
             {/* Catch-all */}
