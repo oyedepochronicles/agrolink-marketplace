@@ -239,7 +239,10 @@ export const DashboardLayout = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   if (!user || user.role === "buyer") return null;
-  const dashboardRole = user.role === "super_admin" ? "admin" : user.role;
+  const dashboardRole =
+    user.role === "super_admin" ? "admin"
+    : user.role === "export_partner" ? "export"
+    : user.role;
   const items = NAV_BY_ROLE[user.role];
 
   return (
