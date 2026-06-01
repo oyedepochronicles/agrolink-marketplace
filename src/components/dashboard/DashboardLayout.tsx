@@ -13,12 +13,15 @@ import {
   BarChart3,
   Box,
   ClipboardList,
+  Globe2,
   HelpCircle,
   LayoutDashboard,
   LineChart,
   LogOut,
   MessageSquare,
   PackageCheck,
+  PackageOpen,
+  Ship,
   ShieldCheck,
   ShoppingCart,
   Truck,
@@ -64,6 +67,11 @@ const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
       to: "/dashboard/farmer/messages",
       labelKey: "dashboard.messages",
       icon: <MessageSquare className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/exports",
+      labelKey: "exports.centerNav",
+      icon: <Globe2 className="h-4 w-4" />,
     },
     {
       to: "/dashboard/farmer/wallet",
@@ -130,6 +138,11 @@ const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
       icon: <MessageSquare className="h-4 w-4" />,
     },
     {
+      to: "/dashboard/admin/exports",
+      labelKey: "exports.nav",
+      icon: <Globe2 className="h-4 w-4" />,
+    },
+    {
       to: "/dashboard/admin/support",
       labelKey: "dashboard.support",
       icon: <HelpCircle className="h-4 w-4" />,
@@ -181,6 +194,43 @@ const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
       labelKey: "dashboard.support",
       icon: <HelpCircle className="h-4 w-4" />,
     },
+    {
+      to: "/dashboard/admin/exports",
+      labelKey: "exports.nav",
+      icon: <Globe2 className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/support",
+      labelKey: "dashboard.support",
+      icon: <HelpCircle className="h-4 w-4" />,
+    },
+  ],
+  export_partner: [
+    {
+      to: "/dashboard/export",
+      labelKey: "dashboard.overview",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/export/requests",
+      labelKey: "exports.requests",
+      icon: <PackageOpen className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/export/applications",
+      labelKey: "exports.applications",
+      icon: <Users className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/export/messages",
+      labelKey: "dashboard.messages",
+      icon: <MessageSquare className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/export/shipments",
+      labelKey: "exports.shipments",
+      icon: <Ship className="h-4 w-4" />,
+    },
   ],
 };
 
@@ -189,7 +239,10 @@ export const DashboardLayout = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   if (!user || user.role === "buyer") return null;
-  const dashboardRole = user.role === "super_admin" ? "admin" : user.role;
+  const dashboardRole =
+    user.role === "super_admin" ? "admin"
+    : user.role === "export_partner" ? "export"
+    : user.role;
   const items = NAV_BY_ROLE[user.role];
 
   return (

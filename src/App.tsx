@@ -11,12 +11,23 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 import Affiliate from "./pages/auth/Affiliate";
+import ExportPartnerRegister from "./pages/auth/ExportPartnerRegister";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyOTP from "./pages/auth/VerifyOTP";
 import VerifyPending from "./pages/auth/VerifyPending";
+
+import ExportDetails from "./pages/exports/ExportDetails";
+import ExportsList from "./pages/exports/ExportsList";
+
+import AdminExports from "./pages/dashboard/AdminExports";
+import ExportPartnerApplications from "./pages/dashboard/export/ExportPartnerApplications";
+import ExportPartnerOverview from "./pages/dashboard/export/ExportPartnerOverview";
+import ExportPartnerRequests from "./pages/dashboard/export/ExportPartnerRequests";
+import ExportPartnerShipments from "./pages/dashboard/export/ExportPartnerShipments";
+import FarmerExportCenter from "./pages/dashboard/farmer/FarmerExportCenter";
 
 import { MarketplaceLayout } from "@/components/marketplace/MarketplaceLayout";
 import Cart from "./pages/marketplace/Cart";
@@ -65,6 +76,11 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/affiliate" element={<Affiliate />} />
+            <Route path="/auth/export-partner" element={<ExportPartnerRegister />} />
+
+            {/* Public export marketplace */}
+            <Route path="/exports" element={<ExportsList />} />
+            <Route path="/exports/:id" element={<ExportDetails />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-otp" element={<VerifyOTP />} />
             <Route path="/reset-password" element={<ResetPassword />} />
@@ -140,7 +156,7 @@ const App = () => (
               path="/dashboard"
               element={
                 <ProtectedRoute
-                  roles={["farmer", "rider", "admin", "super_admin"]}
+                  roles={["farmer", "rider", "admin", "super_admin", "export_partner"]}
                 >
                   <VerifiedRoute>
                     <DashboardLayout />
@@ -183,6 +199,14 @@ const App = () => (
                 }
               />
               <Route
+                path="farmer/exports"
+                element={
+                  <ProtectedRoute roles={["farmer"]}>
+                    <FarmerExportCenter />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="farmer/wallet"
                 element={
                   <ProtectedRoute roles={["farmer"]}>
@@ -190,6 +214,49 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+
+              {/* Export Partner */}
+              <Route
+                path="export"
+                element={
+                  <ProtectedRoute roles={["export_partner"]}>
+                    <ExportPartnerOverview />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="export/requests"
+                element={
+                  <ProtectedRoute roles={["export_partner"]}>
+                    <ExportPartnerRequests />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="export/applications"
+                element={
+                  <ProtectedRoute roles={["export_partner"]}>
+                    <ExportPartnerApplications />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="export/messages"
+                element={
+                  <ProtectedRoute roles={["export_partner"]}>
+                    <Messages />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="export/shipments"
+                element={
+                  <ProtectedRoute roles={["export_partner"]}>
+                    <ExportPartnerShipments />
+                  </ProtectedRoute>
+                }
+              />
+
 
               {/* Rider */}
               <Route
@@ -283,6 +350,14 @@ const App = () => (
                 }
               />
               <Route
+                path="admin/exports"
+                element={
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
+                    <AdminExports />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="admin/support"
                 element={
                   <ProtectedRoute roles={["admin", "super_admin"]}>
@@ -290,6 +365,7 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+
             </Route>
 
             {/* Catch-all */}

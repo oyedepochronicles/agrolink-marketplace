@@ -22,7 +22,7 @@ export const VerifiedRoute = ({ children }: Props) => {
   }
   if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
 
-  const requiresGate = user.role === "farmer" || user.role === "rider";
+  const requiresGate = user.role === "farmer" || user.role === "rider" || user.role === "export_partner";
   const isVerified = user.isVerified === true || user.verificationStatus === "approved";
 
   if (requiresGate && !isVerified) {
