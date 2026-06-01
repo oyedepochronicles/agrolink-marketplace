@@ -71,6 +71,14 @@ const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
     {
       to: "/dashboard/farmer/wallet",
       labelKey: "dashboard.wallet",
+    {
+      to: "/dashboard/farmer/exports",
+      labelKey: "exports.centerNav",
+      icon: <Globe2 className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/wallet",
+      labelKey: "dashboard.wallet",
       icon: <Wallet className="h-4 w-4" />,
     },
   ],
