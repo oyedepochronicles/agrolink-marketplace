@@ -36,6 +36,7 @@ const useNavItems = () => {
   return [
     { to: "/marketplace", label: t("nav.home") },
     { to: "/marketplace/search", label: t("nav.browse") },
+    { to: "/exports", label: t("exports.nav") },
     { to: "/marketplace/orders", label: t("nav.orders") },
     { to: "/marketplace/messages", label: t("nav.messages") },
     { to: "/marketplace/profile", label: t("nav.profile") },
@@ -149,7 +150,7 @@ export const MarketplaceNavbar = ({
                   <DropdownMenuItem
                     onClick={() =>
                       navigate(
-                        `/dashboard/${user.role === "super_admin" ? "admin" : user.role}`,
+                        `/dashboard/${user.role === "super_admin" ? "admin" : user.role === "export_partner" ? "export" : user.role}`,
                       )
                     }
                   >
