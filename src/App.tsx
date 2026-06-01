@@ -11,12 +11,23 @@ import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 import Affiliate from "./pages/auth/Affiliate";
+import ExportPartnerRegister from "./pages/auth/ExportPartnerRegister";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyOTP from "./pages/auth/VerifyOTP";
 import VerifyPending from "./pages/auth/VerifyPending";
+
+import ExportDetails from "./pages/exports/ExportDetails";
+import ExportsList from "./pages/exports/ExportsList";
+
+import AdminExports from "./pages/dashboard/AdminExports";
+import ExportPartnerApplications from "./pages/dashboard/export/ExportPartnerApplications";
+import ExportPartnerOverview from "./pages/dashboard/export/ExportPartnerOverview";
+import ExportPartnerRequests from "./pages/dashboard/export/ExportPartnerRequests";
+import ExportPartnerShipments from "./pages/dashboard/export/ExportPartnerShipments";
+import FarmerExportCenter from "./pages/dashboard/farmer/FarmerExportCenter";
 
 import { MarketplaceLayout } from "@/components/marketplace/MarketplaceLayout";
 import Cart from "./pages/marketplace/Cart";
@@ -65,6 +76,11 @@ const App = () => (
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/affiliate" element={<Affiliate />} />
+            <Route path="/auth/export-partner" element={<ExportPartnerRegister />} />
+
+            {/* Public export marketplace */}
+            <Route path="/exports" element={<ExportsList />} />
+            <Route path="/exports/:id" element={<ExportDetails />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-otp" element={<VerifyOTP />} />
             <Route path="/reset-password" element={<ResetPassword />} />
