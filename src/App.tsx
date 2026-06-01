@@ -156,7 +156,7 @@ const App = () => (
               path="/dashboard"
               element={
                 <ProtectedRoute
-                  roles={["farmer", "rider", "admin", "super_admin"]}
+                  roles={["farmer", "rider", "admin", "super_admin", "export_partner"]}
                 >
                   <VerifiedRoute>
                     <DashboardLayout />
