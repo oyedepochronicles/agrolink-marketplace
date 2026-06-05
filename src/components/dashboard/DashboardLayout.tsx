@@ -1,4 +1,5 @@
 import { Brand } from "@/components/Brand";
+import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -333,6 +334,9 @@ export const DashboardLayout = () => {
         </nav>
 
         <main className="flex-1 px-4 pb-24 pt-6 md:px-8 md:pb-10">
+          <div className="mb-4">
+            <EmailVerificationBanner />
+          </div>
           <Outlet />
         </main>
       </div>
