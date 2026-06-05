@@ -1,12 +1,12 @@
 import { AddressBook } from "@/components/marketplace/AddressBook";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/contexts/AuthContext";
 import {
   addressCoordinates,
   formatAddress,
   useAddresses,
 } from "@/hooks/useAddresses";
-import { useCart } from "@/hooks/useCart";
+import { useGroupedCart } from "@/hooks/useGroupedCart";
 import { api, apiErrorMessage } from "@/lib/api";
 import { formatNaira } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -17,6 +17,7 @@ import {
   ShieldCheck,
   Store,
   Truck,
+  Users,
 } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -25,40 +26,53 @@ import { toast } from "sonner";
 type Method = "rider" | "pickup" | "express";
 type ApiDeliveryMethod = "delivery" | "pickup";
 
-const METHODS: {
+interface MethodCopy {
   id: Method;
   label: string;
   desc: string;
-  fee: number;
   icon: React.ElementType;
-}[] = [
+}
+
+const METHODS: MethodCopy[] = [
   {
     id: "rider",
     label: "Standard rider delivery",
     desc: "Assigned to a verified rider · 1–3 days",
-    fee: 1500,
     icon: Bike,
   },
   {
     id: "express",
     label: "Express delivery",
     desc: "Same-day where available",
-    fee: 3500,
     icon: Truck,
   },
   {
     id: "pickup",
     label: "Farm pickup",
-    desc: "Collect directly from the farmer",
-    fee: 0,
+    desc: "Collect directly from each farmer",
     icon: Store,
   },
 ];
 
+interface BulkResponse {
+  parentOrder?: { _id?: string; id?: string };
+  parentOrderId?: string;
+  orderIds?: string[];
+  summary?: {
+    subtotal?: number;
+    deliveryFee?: number;
+    serviceFee?: number;
+    tax?: number;
+    grandTotal?: number;
+  };
+  authorizationUrl?: string;
+  authorization_url?: string;
+  paymentUrl?: string;
+}
+
 const Checkout = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
-  const { items, subtotal, clear } = useCart();
+  const { items, groups, subtotal, clear } = useGroupedCart();
   const { addresses, defaultAddress } = useAddresses();
   const [addressId, setAddressId] = useState<string | undefined>(
     defaultAddress?.id,
@@ -80,8 +94,6 @@ const Checkout = () => {
     );
   }
 
-  const selectedFee = METHODS.find((m) => m.id === method)!.fee;
-  const total = subtotal + (method === "pickup" ? 0 : selectedFee);
   const selectedAddress = addresses.find((a) => a.id === addressId);
   const apiDeliveryMethod: ApiDeliveryMethod =
     method === "pickup" ? "pickup" : "delivery";
@@ -97,57 +109,100 @@ const Checkout = () => {
     }
     setPlacing(true);
     try {
-      const orderIds: string[] = [];
-      for (const item of items) {
-        const deliveryAddress =
-          apiDeliveryMethod === "pickup"
-            ? undefined
-            : {
-                recipient: selectedAddress!.recipient,
-                phone: selectedAddress!.phone,
-                secondPhone: selectedAddress!.secondPhone,
-                street: selectedAddress!.street,
-                city: selectedAddress!.city,
-                state: selectedAddress!.state,
-                lga: selectedAddress!.lga || selectedAddress!.city,
-                fullAddress: formatAddress(selectedAddress!),
-                notes: selectedAddress!.notes,
-                coordinates: addressCoordinates(selectedAddress!),
-              };
-        const { data: order } = await api.post("/orders", {
-          productId: item.productId,
-          quantity: item.quantity,
-          deliveryAddress,
-          deliveryMethod: apiDeliveryMethod,
-          deliveryUrgency: method === "express" ? "urgent" : "standard",
-          paymentMethod: "in_app",
-          saleChannel: "marketplace",
+      const deliveryAddress =
+        apiDeliveryMethod === "pickup"
+          ? undefined
+          : {
+              recipient: selectedAddress!.recipient,
+              phone: selectedAddress!.phone,
+              secondPhone: selectedAddress!.secondPhone,
+              street: selectedAddress!.street,
+              city: selectedAddress!.city,
+              state: selectedAddress!.state,
+              lga: selectedAddress!.lga || selectedAddress!.city,
+              fullAddress: formatAddress(selectedAddress!),
+              notes: selectedAddress!.notes,
+              coordinates: addressCoordinates(selectedAddress!),
+            };
+
+      const payload = {
+        deliveryMethod: apiDeliveryMethod,
+        deliveryUrgency: method === "express" ? "urgent" : "standard",
+        paymentMethod: "in_app",
+        saleChannel: "marketplace",
+        deliveryAddress,
+        groups: groups.map((g) => ({
+          farmerId: g.farmerId,
+          items: g.items.map((i) => ({
+            productId: i.productId,
+            quantity: i.quantity,
+          })),
+        })),
+        items: items.map((i) => ({
+          productId: i.productId,
+          quantity: i.quantity,
+        })),
+      };
+
+      let parentOrderId: string | undefined;
+      let paymentUrl: string | undefined;
+
+      try {
+        const { data } = await api.post<BulkResponse>("/orders/bulk", payload);
+        parentOrderId =
+          data.parentOrderId ?? data.parentOrder?._id ?? data.parentOrder?.id;
+        paymentUrl =
+          data.authorizationUrl ?? data.authorization_url ?? data.paymentUrl;
+      } catch {
+        // Fallback: server doesn't expose /orders/bulk yet — submit per item
+        // so existing single-order flow keeps working until backend ships.
+        const orderIds: string[] = [];
+        for (const item of items) {
+          const { data: order } = await api.post("/orders", {
+            productId: item.productId,
+            quantity: item.quantity,
+            deliveryAddress,
+            deliveryMethod: apiDeliveryMethod,
+            deliveryUrgency: method === "express" ? "urgent" : "standard",
+            paymentMethod: "in_app",
+            saleChannel: "marketplace",
+          });
+          const oid =
+            (order as { _id?: string; id?: string })._id ??
+            (order as { id?: string }).id;
+          if (oid) orderIds.push(oid);
+        }
+        const { data: pay } = await api.post("/payments/initialize", {
+          orderIds,
+          orderId: orderIds[0],
         });
-        const oid =
-          (order as { _id?: string; id?: string })._id ??
-          (order as { id?: string }).id;
-        if (oid) orderIds.push(oid);
+        paymentUrl =
+          (pay as { authorization_url?: string }).authorization_url ??
+          (pay as { authorizationUrl?: string }).authorizationUrl ??
+          (pay as { url?: string }).url;
       }
-      // Initialize payment for the batch (first order; backend can group).
-      const { data: payment } = await api.post("/payments/initialize", {
-        orderIds,
-        orderId: orderIds[0],
-      });
-      const url =
-        (
-          payment as {
-            authorization_url?: string;
-            authorizationUrl?: string;
-            url?: string;
-          }
-        ).authorization_url ??
-        (payment as { authorizationUrl?: string }).authorizationUrl ??
-        (payment as { url?: string }).url;
+
+      // If we have a parent order but no payment URL yet, ask backend to init.
+      if (parentOrderId && !paymentUrl) {
+        try {
+          const { data: pay } = await api.post("/payments/initialize", {
+            parentOrderId,
+          });
+          paymentUrl =
+            (pay as { authorization_url?: string }).authorization_url ??
+            (pay as { authorizationUrl?: string }).authorizationUrl ??
+            (pay as { url?: string }).url;
+        } catch {
+          /* ignore — fall through */
+        }
+      }
+
       clear();
-      if (url) window.location.href = url;
-      else {
+      if (paymentUrl) {
+        window.location.href = paymentUrl;
+      } else {
         toast.success("Order placed");
-        navigate("/marketplace");
+        navigate("/marketplace/orders");
       }
     } catch (err) {
       console.error("Error placing order", err);
@@ -163,7 +218,9 @@ const Checkout = () => {
         Checkout
       </h1>
       <p className="text-sm text-muted-foreground">
-        Confirm your delivery details and pay securely.
+        Your cart is organised into {groups.length}{" "}
+        {groups.length === 1 ? "batch" : "batches"} — one per farmer. Delivery
+        fees & taxes are confirmed by PhyhanAgro after you submit.
       </p>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-[1fr_380px]">
@@ -178,6 +235,9 @@ const Checkout = () => {
 
           <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
             <h3 className="font-display text-lg font-bold">Delivery method</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Applied to every batch in this order.
+            </p>
             <div className="mt-3 space-y-2">
               {METHODS.map((m) => {
                 const active = method === m.id;
@@ -208,9 +268,6 @@ const Checkout = () => {
                       <p className="text-sm font-semibold">{m.label}</p>
                       <p className="text-xs text-muted-foreground">{m.desc}</p>
                     </div>
-                    <span className="text-sm font-bold text-primary">
-                      {m.fee === 0 ? "Free" : formatNaira(m.fee)}
-                    </span>
                   </button>
                 );
               })}
@@ -218,34 +275,68 @@ const Checkout = () => {
           </section>
 
           <section className="rounded-2xl border border-border bg-card p-5 shadow-card">
-            <h3 className="font-display text-lg font-bold">Order items</h3>
-            <ul className="mt-3 divide-y divide-border">
-              {items.map((i) => (
-                <li key={i.productId} className="flex items-center gap-3 py-3">
-                  <div className="h-12 w-12 overflow-hidden rounded-lg bg-secondary">
-                    {i.image ? (
-                      <img
-                        src={i.image}
-                        alt=""
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <Package className="m-3 h-6 w-6 text-muted-foreground" />
-                    )}
+            <h3 className="font-display text-lg font-bold">Batch preview</h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Each farmer becomes its own fulfillment batch.
+            </p>
+            <div className="mt-3 space-y-3">
+              {groups.map((g, idx) => (
+                <div
+                  key={g.farmerId}
+                  className="rounded-xl border border-border bg-background p-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
+                        <Users className="h-4 w-4" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-semibold">
+                          Batch {idx + 1} · {g.farmerName ?? "Farmer"}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {g.items.length}{" "}
+                          {g.items.length === 1 ? "item" : "items"}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="rounded-full">
+                      {formatNaira(g.subtotal)}
+                    </Badge>
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold">{i.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      Qty {i.quantity}
-                      {i.unit ? ` · ${i.unit}` : ""}
-                    </p>
-                  </div>
-                  <p className="text-sm font-bold">
-                    {formatNaira(i.price * i.quantity)}
-                  </p>
-                </li>
+                  <ul className="mt-3 divide-y divide-border/60">
+                    {g.items.map((i) => (
+                      <li
+                        key={i.productId}
+                        className="flex items-center gap-3 py-2"
+                      >
+                        <div className="h-10 w-10 overflow-hidden rounded-lg bg-secondary">
+                          {i.image ? (
+                            <img
+                              src={i.image}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <Package className="m-2.5 h-5 w-5 text-muted-foreground" />
+                          )}
+                        </div>
+                        <div className="flex-1 text-sm">
+                          <p className="font-medium">{i.title}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Qty {i.quantity}
+                            {i.unit ? ` · ${i.unit}` : ""}
+                          </p>
+                        </div>
+                        <p className="text-sm font-semibold">
+                          {formatNaira(i.price * i.quantity)}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           </section>
         </div>
 
@@ -253,13 +344,20 @@ const Checkout = () => {
           <div className="rounded-2xl border border-border bg-card p-6 shadow-card">
             <h3 className="font-display text-lg font-bold">Summary</h3>
             <dl className="mt-4 space-y-2 text-sm">
-              <Row label="Subtotal" value={formatNaira(subtotal)} />
+              <Row label="Items subtotal" value={formatNaira(subtotal)} />
+              <Row label="Batches" value={String(groups.length)} />
               <Row
                 label="Delivery"
-                value={method === "pickup" ? "Free" : formatNaira(selectedFee)}
+                value="Calculated by PhyhanAgro"
+                muted
               />
+              <Row label="Service & tax" value="Calculated by PhyhanAgro" muted />
               <div className="my-3 border-t border-border" />
-              <Row label="Total" value={formatNaira(total)} bold />
+              <Row
+                label="Total"
+                value={`From ${formatNaira(subtotal)}`}
+                bold
+              />
             </dl>
             <Button
               onClick={placeOrder}
@@ -269,7 +367,7 @@ const Checkout = () => {
               {placing ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              {placing ? "Processing..." : `Pay ${formatNaira(total)}`}
+              {placing ? "Processing..." : "Confirm & pay"}
             </Button>
             <p className="mt-3 flex items-center justify-center gap-1 text-xs text-muted-foreground">
               <ShieldCheck className="h-3 w-3 text-primary" /> Secure escrow
@@ -286,10 +384,12 @@ const Row = ({
   label,
   value,
   bold,
+  muted,
 }: {
   label: string;
   value: string;
   bold?: boolean;
+  muted?: boolean;
 }) => (
   <div
     className={cn(
@@ -298,7 +398,9 @@ const Row = ({
     )}
   >
     <dt className={cn(!bold && "text-muted-foreground")}>{label}</dt>
-    <dd>{value}</dd>
+    <dd className={cn(muted && !bold && "text-xs text-muted-foreground")}>
+      {value}
+    </dd>
   </div>
 );
 
