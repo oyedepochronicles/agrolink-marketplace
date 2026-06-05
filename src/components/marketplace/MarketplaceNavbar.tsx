@@ -37,6 +37,7 @@ const useNavItems = () => {
     { to: "/marketplace", label: t("nav.home") },
     { to: "/marketplace/search", label: t("nav.browse") },
     { to: "/marketplace/orders", label: t("nav.orders") },
+    { to: "/announcements", label: t("nav.announcements", "Announcements") },
     { to: "/marketplace/messages", label: t("nav.messages") },
     { to: "/marketplace/profile", label: t("nav.profile") },
   ];
