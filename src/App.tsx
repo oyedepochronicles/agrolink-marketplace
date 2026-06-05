@@ -9,6 +9,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 import Index from "./pages/Index.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import Announcements from "./pages/Announcements.tsx";
 
 import Affiliate from "./pages/auth/Affiliate";
 import ForgotPassword from "./pages/auth/ForgotPassword";
@@ -134,6 +135,9 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+
+            {/* Global announcements feed (primary broadcast channel) */}
+            <Route path="/announcements" element={<Announcements />} />
 
             {/* Dashboard */}
             <Route

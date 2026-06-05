@@ -17,6 +17,8 @@ export interface User {
   role: Role;
   verificationStatus?: VerificationStatus;
   isVerified?: boolean;
+  emailVerified?: boolean;
+  emailVerifiedAt?: string;
   isSuspended?: boolean;
   isDeactivated?: boolean;
   accountState?: "active" | "suspended" | "deactivated";
