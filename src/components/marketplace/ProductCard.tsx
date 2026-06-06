@@ -37,8 +37,12 @@ export const ProductCard = ({ product, className }: Props) => {
             {product.category}
           </span>
         )}
+        <div className="absolute right-3 top-3">
+          <SLABadge product={product} />
+        </div>
       </div>
       <div className="flex flex-1 flex-col gap-2 p-4">
+
         <h3 className="line-clamp-1 font-semibold text-foreground">{product.title}</h3>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <MapPin className="h-3.5 w-3.5" />
