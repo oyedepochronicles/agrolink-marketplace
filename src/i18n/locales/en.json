@@ -105,6 +105,11 @@
     "payouts": "Payouts",
     "analytics": "Analytics",
     "support": "Support",
+    "batches": "Batches",
+    "pickupCenter": "Pickup center",
+    "sla": "SLA monitor",
+    "config": "System config",
+    "announcements": "Announcements",
     "verificationPending": "Verification pending"
   },
   "table": {
