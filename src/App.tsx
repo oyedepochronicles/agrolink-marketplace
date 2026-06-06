@@ -100,6 +100,14 @@ const App = () => (
                 }
               />
               <Route
+                path="orders/:id"
+                element={
+                  <ProtectedRoute>
+                    <ParentOrderDetails />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="checkout"
                 element={
                   <ProtectedRoute>
