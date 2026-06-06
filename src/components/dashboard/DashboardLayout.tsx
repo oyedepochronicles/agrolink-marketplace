@@ -12,16 +12,20 @@ import type { Role } from "@/types";
 import {
   Banknote,
   BarChart3,
+  Bell,
   Box,
   ClipboardList,
   HelpCircle,
   LayoutDashboard,
   LineChart,
   LogOut,
+  MapPin,
   MessageSquare,
   PackageCheck,
+  Settings,
   ShieldCheck,
   ShoppingCart,
+  Timer,
   Truck,
   UserIcon,
   Users,
@@ -46,48 +50,20 @@ interface NavEntry {
 
 const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
   farmer: [
-    {
-      to: "/dashboard/farmer",
-      labelKey: "dashboard.overview",
-      icon: <LayoutDashboard className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/farmer/products",
-      labelKey: "dashboard.products",
-      icon: <Box className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/farmer/orders",
-      labelKey: "dashboard.orders",
-      icon: <ShoppingCart className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/farmer/messages",
-      labelKey: "dashboard.messages",
-      icon: <MessageSquare className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/farmer/wallet",
-      labelKey: "dashboard.wallet",
-      icon: <Wallet className="h-4 w-4" />,
-    },
+    { to: "/dashboard/farmer", labelKey: "dashboard.overview", icon: <LayoutDashboard className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/products", labelKey: "dashboard.products", icon: <Box className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/batches", labelKey: "dashboard.batches", icon: <PackageCheck className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/orders", labelKey: "dashboard.orders", icon: <ShoppingCart className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/pickup", labelKey: "dashboard.pickupCenter", icon: <MapPin className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/sla", labelKey: "dashboard.sla", icon: <Timer className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
+    { to: "/dashboard/farmer/wallet", labelKey: "dashboard.wallet", icon: <Wallet className="h-4 w-4" /> },
   ],
   rider: [
-    {
-      to: "/dashboard/rider",
-      labelKey: "dashboard.deliveries",
-      icon: <Truck className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/rider/messages",
-      labelKey: "dashboard.messages",
-      icon: <MessageSquare className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/rider/earnings",
-      labelKey: "dashboard.earnings",
-      icon: <Wallet className="h-4 w-4" />,
-    },
+    { to: "/dashboard/rider", labelKey: "dashboard.deliveries", icon: <Truck className="h-4 w-4" /> },
+    { to: "/dashboard/rider/batches", labelKey: "dashboard.batches", icon: <PackageCheck className="h-4 w-4" /> },
+    { to: "/dashboard/rider/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
+    { to: "/dashboard/rider/earnings", labelKey: "dashboard.earnings", icon: <Wallet className="h-4 w-4" /> },
   ],
   admin: [
     {
@@ -131,6 +107,11 @@ const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
       icon: <MessageSquare className="h-4 w-4" />,
     },
     {
+      to: "/dashboard/admin/announcements",
+      labelKey: "dashboard.announcements",
+      icon: <Bell className="h-4 w-4" />,
+    },
+    {
       to: "/dashboard/admin/support",
       labelKey: "dashboard.support",
       icon: <HelpCircle className="h-4 w-4" />,
@@ -141,6 +122,11 @@ const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
       to: "/dashboard/admin",
       labelKey: "dashboard.overview",
       icon: <BarChart3 className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/config",
+      labelKey: "dashboard.config",
+      icon: <Settings className="h-4 w-4" />,
     },
     {
       to: "/dashboard/admin/orders",
@@ -171,6 +157,11 @@ const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
       to: "/dashboard/admin/analytics",
       labelKey: "dashboard.analytics",
       icon: <LineChart className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/admin/announcements",
+      labelKey: "dashboard.announcements",
+      icon: <Bell className="h-4 w-4" />,
     },
     {
       to: "/dashboard/admin/messages",

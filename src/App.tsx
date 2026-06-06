@@ -42,7 +42,14 @@ import AdminVerifications from "./pages/dashboard/AdminVerifications";
 import FarmerOrders from "./pages/dashboard/FarmerOrders";
 import FarmerOverview from "./pages/dashboard/FarmerOverview";
 import FarmerProducts from "./pages/dashboard/FarmerProducts";
+import FarmerBatches from "./pages/dashboard/FarmerBatches";
+import FarmerPickupCenter from "./pages/dashboard/FarmerPickupCenter";
+import FarmerSLA from "./pages/dashboard/FarmerSLA";
 import RiderDeliveries from "./pages/dashboard/RiderDeliveries";
+import RiderBatches from "./pages/dashboard/RiderBatches";
+import AdminConfig from "./pages/dashboard/AdminConfig";
+import AdminAnnouncements from "./pages/dashboard/AdminAnnouncements";
+import ParentOrderDetails from "./pages/marketplace/ParentOrderDetails";
 import Wallet from "./pages/dashboard/Wallet";
 import Messages from "./pages/Messages";
 
@@ -89,6 +96,14 @@ const App = () => (
                 element={
                   <ProtectedRoute>
                     <Orders />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="orders/:id"
+                element={
+                  <ProtectedRoute>
+                    <ParentOrderDetails />
                   </ProtectedRoute>
                 }
               />
@@ -194,6 +209,30 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="farmer/batches"
+                element={
+                  <ProtectedRoute roles={["farmer"]}>
+                    <FarmerBatches />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="farmer/pickup"
+                element={
+                  <ProtectedRoute roles={["farmer"]}>
+                    <FarmerPickupCenter />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="farmer/sla"
+                element={
+                  <ProtectedRoute roles={["farmer"]}>
+                    <FarmerSLA />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Rider */}
               <Route
@@ -201,6 +240,14 @@ const App = () => (
                 element={
                   <ProtectedRoute roles={["rider"]}>
                     <RiderDeliveries />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="rider/batches"
+                element={
+                  <ProtectedRoute roles={["rider"]}>
+                    <RiderBatches />
                   </ProtectedRoute>
                 }
               />
@@ -291,6 +338,22 @@ const App = () => (
                 element={
                   <ProtectedRoute roles={["admin", "super_admin"]}>
                     <AdminSupport />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="admin/config"
+                element={
+                  <ProtectedRoute roles={["super_admin"]}>
+                    <AdminConfig />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="admin/announcements"
+                element={
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
+                    <AdminAnnouncements />
                   </ProtectedRoute>
                 }
               />
