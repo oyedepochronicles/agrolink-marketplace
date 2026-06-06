@@ -341,6 +341,22 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="admin/config"
+                element={
+                  <ProtectedRoute roles={["super_admin"]}>
+                    <AdminConfig />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="admin/announcements"
+                element={
+                  <ProtectedRoute roles={["admin", "super_admin"]}>
+                    <AdminAnnouncements />
+                  </ProtectedRoute>
+                }
+              />
             </Route>
 
             {/* Catch-all */}
