@@ -209,6 +209,30 @@ const App = () => (
                   </ProtectedRoute>
                 }
               />
+              <Route
+                path="farmer/batches"
+                element={
+                  <ProtectedRoute roles={["farmer"]}>
+                    <FarmerBatches />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="farmer/pickup"
+                element={
+                  <ProtectedRoute roles={["farmer"]}>
+                    <FarmerPickupCenter />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="farmer/sla"
+                element={
+                  <ProtectedRoute roles={["farmer"]}>
+                    <FarmerSLA />
+                  </ProtectedRoute>
+                }
+              />
 
               {/* Rider */}
               <Route
@@ -216,6 +240,14 @@ const App = () => (
                 element={
                   <ProtectedRoute roles={["rider"]}>
                     <RiderDeliveries />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="rider/batches"
+                element={
+                  <ProtectedRoute roles={["rider"]}>
+                    <RiderBatches />
                   </ProtectedRoute>
                 }
               />
