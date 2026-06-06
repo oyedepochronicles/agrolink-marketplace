@@ -42,7 +42,14 @@ import AdminVerifications from "./pages/dashboard/AdminVerifications";
 import FarmerOrders from "./pages/dashboard/FarmerOrders";
 import FarmerOverview from "./pages/dashboard/FarmerOverview";
 import FarmerProducts from "./pages/dashboard/FarmerProducts";
+import FarmerBatches from "./pages/dashboard/FarmerBatches";
+import FarmerPickupCenter from "./pages/dashboard/FarmerPickupCenter";
+import FarmerSLA from "./pages/dashboard/FarmerSLA";
 import RiderDeliveries from "./pages/dashboard/RiderDeliveries";
+import RiderBatches from "./pages/dashboard/RiderBatches";
+import AdminConfig from "./pages/dashboard/AdminConfig";
+import AdminAnnouncements from "./pages/dashboard/AdminAnnouncements";
+import ParentOrderDetails from "./pages/marketplace/ParentOrderDetails";
 import Wallet from "./pages/dashboard/Wallet";
 import Messages from "./pages/Messages";
 
