@@ -3,6 +3,7 @@ import { CalendarDays, MapPin, Package } from "lucide-react";
 import type { Product } from "@/types";
 import { formatNaira } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { SLABadge } from "@/components/marketplace/SLABadge";
 
 interface Props { product: Product; className?: string }
 
