@@ -22,6 +22,12 @@ export interface ProductInput {
   title: string;
   description?: string;
   price: number;
+  discount?: {
+    type?: "fixed" | "percentage" | "none";
+    value?: number;
+    startsAt?: string;
+    endsAt?: string;
+  };
   unit?: string;
   category?: string;
   state?: string;

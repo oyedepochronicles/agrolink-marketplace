@@ -132,6 +132,12 @@ export interface Product {
   name: string;
   description?: string;
   price: number;
+  discount?: {
+    type?: "fixed" | "percentage" | "none";
+    value?: number;
+    startsAt?: string;
+    endsAt?: string;
+  };
   unit?: string;
   quantity?: number;
   category?: string;
@@ -195,6 +201,23 @@ export interface Order {
   quantity: number;
   amount?: number;
   deliveryFee?: number;
+  serviceFee?: number;
+  tax?: number;
+  discount?: number;
+  walletDeduction?: number;
+  grandTotal?: number;
+  originalAmount?: number;
+  refundAmount?: number;
+  refundReason?: string;
+  refundReference?: string;
+  refundStatus?: "none" | "refunded";
+  refundedAt?: string;
+  trackingEvents?: {
+    status: string;
+    message: string;
+    actorRole?: string;
+    createdAt?: string;
+  }[];
   total?: number;
   totalAmount?: number;
   deliveryMethod?: "delivery" | "pickup";
@@ -250,6 +273,8 @@ export interface Conversation {
   participants: User[];
   product?: Pick<Product, "_id" | "title" | "price" | "unit" | "images">;
   lastMessage?: Message;
+  lastMessageAt?: string;
+  lastMessageText?: string;
   unreadCount?: number;
   updatedAt: string;
 }
@@ -262,6 +287,9 @@ export interface Message {
   attachmentUrl?: string;
   attachmentName?: string;
   attachmentType?: "image" | "audio" | "file";
+  status?: "sent" | "delivered" | "read";
+  deliveredAt?: string;
+  readAt?: string;
   product?: Pick<Product, "_id" | "title" | "price" | "unit" | "images">;
   createdAt: string;
 }

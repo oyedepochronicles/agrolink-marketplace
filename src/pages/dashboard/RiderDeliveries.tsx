@@ -99,7 +99,7 @@ const directionsUrl = (destination: LatLng, origin?: LatLng | null) => {
 
 const staticMapUrl = (order: Order, rider?: LatLng | null) => {
   const token = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN as string | undefined;
-  console.log(order);
+
   const pickup = pickupPoint(order);
   const delivery = deliveryPoint(order);
   if (!token || !pickup || !delivery) return "";
@@ -152,7 +152,7 @@ const RiderDeliveries = () => {
   useRiderLiveLocation(true);
   const available = useAvailableDeliveries();
   const mine = useRiderDeliveries();
-  console.log(mine);
+
   const accept = useAcceptDelivery();
   const update = useUpdateDeliveryStatus();
   const orderConversation = useOrderConversation();
@@ -383,7 +383,7 @@ const DeliveryCard = ({
           </p>
           <OrderStatusBadge status={deliveryStatusForBadge(order)} />
         </div>
-        <div className="flex w-full gap-2 sm:w-auto">
+        <div className="flex w-full gap-2 sm:w-auto flex-wrap">
           <Button size="sm" variant="outline" onClick={onDetails}>
             Details
           </Button>

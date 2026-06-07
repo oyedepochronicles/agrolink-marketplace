@@ -1,14 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { api, clearToken, getToken, setToken } from "@/lib/api";
 import { disconnectSocket, getSocket } from "@/lib/socket";
+import type { NigerianLocationValue } from "@/lib/nigerianLocations";
 import type { Role, User } from "@/types";
 
 interface LoginInput { email: string; password: string }
-interface RegisterBuyerInput { name: string; email: string; phone?: string; password: string }
+interface RegisterBuyerInput { name: string; email: string; phone?: string; password: string; location?: NigerianLocationValue }
 interface AffiliateInput {
   name: string; email: string; phone: string; password: string;
   role: Extract<Role, "farmer" | "rider">;
-  state?: string; address?: string; farmName?: string; farmAddress?: string; farmLandmark?: string;
+  location?: NigerianLocationValue; state?: string; address?: string; farmName?: string; farmAddress?: string; farmLandmark?: string;
 }
 
 interface AuthContextValue {
@@ -70,19 +71,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const registerAffiliate = async (input: AffiliateInput) => {
-    const { state, address, farmName, farmAddress, farmLandmark, ...rest } = input;
+    const { location, state, address, farmName, farmAddress, farmLandmark, ...rest } = input;
+    const resolvedLocation =
+      location ||
+      (state
+        ? {
+            state,
+            lga: "",
+            fullAddress: address,
+          }
+        : undefined);
     const { data } = await api.post("/auth/affiliate", {
       ...rest,
       termsAccepted: true,
-      location: state
-        ? {
-            state,
-            lga: "Unknown",
-            fullAddress: address,
-          }
-        : undefined,
+      location: resolvedLocation,
       ...(input.role === "farmer"
-        ? { farmerProfile: { farmName: farmName || input.name, farmAddress: farmAddress || address, farmState: state, farmLga: "Unknown", farmLandmark, farmPhone: input.phone } }
+        ? { farmerProfile: { farmName: farmName || input.name, farmAddress: farmAddress || resolvedLocation?.fullAddress || address, farmState: resolvedLocation?.state || state, farmLga: resolvedLocation?.lga, farmLandmark: farmLandmark || resolvedLocation?.landmark, farmPhone: input.phone } }
         : {}),
       ...(input.role === "rider" ? { riderProfile: {} } : {}),
     });

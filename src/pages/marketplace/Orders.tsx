@@ -24,7 +24,12 @@ const orderProductName = (order: Order) => {
 const orderTotal = (order: Order) =>
   order.totalAmount ??
   order.total ??
-  (order.amount ?? 0) + (order.deliveryFee ?? 0);
+  order.grandTotal ??
+  (order.amount ?? 0) +
+    (order.deliveryFee ?? 0) +
+    (order.serviceFee ?? 0) +
+    (order.tax ?? 0) -
+    (order.walletDeduction ?? 0);
 
 const orderAddress = (order: Order) => {
   if (!order.deliveryAddress) return "Farm pickup";
@@ -207,6 +212,24 @@ function OrderCard(order) {
           <p className="mt-2 text-xs text-muted-foreground">
             {orderAddress(order)}
           </p>
+          {order.refundStatus === "refunded" && (
+            <p className="mt-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
+              Refunded {formatNaira(order.refundAmount || 0)} to wallet
+              {order.refundReason ? `: ${order.refundReason}` : "."}
+            </p>
+          )}
+          {order.trackingEvents?.length ? (
+            <div className="mt-3 space-y-1 text-xs">
+              {order.trackingEvents.slice(-3).map((event, index) => (
+                <p key={`${event.status}-${index}`} className="text-muted-foreground">
+                  <span className="font-medium text-foreground">
+                    {event.status.replace(/_/g, " ")}
+                  </span>
+                  : {event.message}
+                </p>
+              ))}
+            </div>
+          ) : null}
         </div>
         <div className="text-right">
           <p className="font-display text-lg font-extrabold">

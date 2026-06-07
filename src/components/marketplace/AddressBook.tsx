@@ -1,4 +1,5 @@
 import { LocationPicker } from "@/components/LocationPicker";
+import { LocationSelector } from "@/components/LocationSelector";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,6 +16,7 @@ import {
   useAddresses,
   type Address,
 } from "@/hooks/useAddresses";
+import { locationError } from "@/lib/nigerianLocations";
 import { cn } from "@/lib/utils";
 import {
   CheckCircle2,
@@ -92,11 +94,19 @@ export const AddressBook = ({ selectedId, onSelect, selectable }: Props) => {
     if (
       !form.recipient.trim() ||
       !form.phone.trim() ||
-      !form.street.trim() ||
-      !form.city.trim() ||
-      !form.state.trim()
+      !form.street.trim()
     ) {
       toast.error("Please fill all required fields");
+      return;
+    }
+    const validation = locationError({
+      state: form.state,
+      lga: form.lga || "",
+      city: form.city,
+      fullAddress: form.street,
+    });
+    if (validation) {
+      toast.error(validation);
       return;
     }
 
@@ -275,38 +285,27 @@ export const AddressBook = ({ selectedId, onSelect, selectable }: Props) => {
                 placeholder="Optional"
               />
             </Field>
-            <Field label="Street *" className="sm:col-span-2">
-              <Input
-                value={form.street}
-                onChange={(event) =>
-                  setForm({ ...form, street: event.target.value })
-                }
-              />
-            </Field>
-            <Field label="City *">
-              <Input
-                value={form.city}
-                onChange={(event) =>
-                  setForm({ ...form, city: event.target.value })
-                }
-              />
-            </Field>
-            <Field label="LGA">
-              <Input
-                value={form.lga ?? ""}
-                onChange={(event) =>
-                  setForm({ ...form, lga: event.target.value })
-                }
-              />
-            </Field>
-            <Field label="State *">
-              <Input
-                value={form.state}
-                onChange={(event) =>
-                  setForm({ ...form, state: event.target.value })
-                }
-              />
-            </Field>
+            <LocationSelector
+              label="Delivery location"
+              addressLabel="Street address"
+              className="sm:col-span-2"
+              showLandmark={false}
+              value={{
+                state: form.state,
+                lga: form.lga || "",
+                city: form.city,
+                fullAddress: form.street,
+              }}
+              onChange={(location) =>
+                setForm({
+                  ...form,
+                  state: location.state,
+                  lga: location.lga,
+                  city: location.city || "",
+                  street: location.fullAddress || "",
+                })
+              }
+            />
             <Field label="Delivery notes" className="sm:col-span-2">
               <Textarea
                 rows={2}

@@ -1,9 +1,9 @@
-import { FileText } from "lucide-react";
-import { Link } from "react-router-dom";
-import { cn } from "@/lib/utils";
 import { assetUrl } from "@/lib/api";
 import { formatNaira } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import type { Message } from "@/types";
+import { Check, CheckCheck, FileText } from "lucide-react";
+import { Link } from "react-router-dom";
 
 interface Props {
   message: Message;
@@ -12,8 +12,13 @@ interface Props {
 
 const formatTime = (iso: string) => {
   try {
-    return new Date(iso).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-  } catch { return ""; }
+    return new Date(iso).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "";
+  }
 };
 
 export const MessageBubble = ({ message, mine }: Props) => {
@@ -22,6 +27,13 @@ export const MessageBubble = ({ message, mine }: Props) => {
   const isFile = message.attachmentType === "file" && message.attachmentUrl;
   const product = message.product;
   const attachmentHref = assetUrl(message.attachmentUrl);
+  const StatusIcon = message.status === "sent" ? Check : CheckCheck;
+  const statusText =
+    message.status === "read"
+      ? "Read"
+      : message.status === "delivered"
+        ? "Delivered"
+        : "Sent";
 
   return (
     <div className={cn("flex w-full", mine ? "justify-end" : "justify-start")}>
@@ -38,7 +50,9 @@ export const MessageBubble = ({ message, mine }: Props) => {
             to={`/marketplace/product/${product._id}`}
             className={cn(
               "flex items-center gap-2 rounded-xl p-2 no-underline transition-base",
-              mine ? "bg-primary-foreground/10 hover:bg-primary-foreground/15" : "bg-background hover:bg-background/70",
+              mine
+                ? "bg-primary-foreground/10 hover:bg-primary-foreground/15"
+                : "bg-background hover:bg-background/70",
             )}
           >
             <img
@@ -47,11 +61,22 @@ export const MessageBubble = ({ message, mine }: Props) => {
               className="h-12 w-12 shrink-0 rounded-lg object-cover"
             />
             <div className="min-w-0">
-              <p className={cn("truncate text-xs font-semibold", mine ? "text-primary-foreground" : "text-foreground")}>
+              <p
+                className={cn(
+                  "truncate text-xs font-semibold",
+                  mine ? "text-primary-foreground" : "text-foreground",
+                )}
+              >
                 {product.title}
               </p>
-              <p className={cn("text-[11px]", mine ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                {formatNaira(product.price)}{product.unit ? ` / ${product.unit}` : ""}
+              <p
+                className={cn(
+                  "text-[11px]",
+                  mine ? "text-primary-foreground/80" : "text-muted-foreground",
+                )}
+              >
+                {formatNaira(product.price)}
+                {product.unit ? ` / ${product.unit}` : ""}
               </p>
             </div>
           </Link>
@@ -59,11 +84,19 @@ export const MessageBubble = ({ message, mine }: Props) => {
 
         {isImage && (
           <a href={attachmentHref} target="_blank" rel="noreferrer">
-            <img src={attachmentHref} alt="attachment" className="max-h-60 rounded-lg object-cover" />
+            <img
+              src={attachmentHref}
+              alt="attachment"
+              className="max-h-60 rounded-lg object-cover"
+            />
           </a>
         )}
         {isAudio && (
-          <audio src={attachmentHref} controls className="h-10 w-64 max-w-full" />
+          <audio
+            src={attachmentHref}
+            controls
+            className="h-10 w-64 max-w-full"
+          />
         )}
         {isFile && (
           <a
@@ -76,12 +109,34 @@ export const MessageBubble = ({ message, mine }: Props) => {
             )}
           >
             <FileText className="h-4 w-4 shrink-0" />
-            <span className="truncate text-xs font-medium">{message.attachmentName ?? "Attachment"}</span>
+            <span className="truncate text-xs font-medium">
+              {message.attachmentName ?? "Attachment"}
+            </span>
           </a>
         )}
-        {message.body && <p className="whitespace-pre-wrap break-words leading-relaxed">{message.body}</p>}
-        <p className={cn("text-[10px] font-medium", mine ? "text-primary-foreground/70" : "text-muted-foreground")}>
+        {message.body && (
+          <p className="whitespace-pre-wrap break-words leading-relaxed">
+            {message.body}
+          </p>
+        )}
+        <p
+          className={cn(
+            "flex items-center justify-end gap-1 text-[10px] font-medium",
+            mine ? "text-primary-foreground/70" : "text-muted-foreground",
+          )}
+        >
           {formatTime(message.createdAt)}
+          {mine && (
+            <span
+              className="inline-flex items-center gap-0.5"
+              title={statusText}
+            >
+              <StatusIcon
+                className={`h-3 w-3 ${statusText === "Read" ? "text-cyan-400" : "text-muted-foreground"}`}
+              />
+              <span>{statusText} </span>
+            </span>
+          )}
         </p>
       </div>
     </div>

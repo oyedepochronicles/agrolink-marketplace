@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import type { Notification } from "@/types";
 import { formatDistanceToNow } from "date-fns";
 import { Bell, CheckCheck } from "lucide-react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 interface Props {
@@ -29,6 +30,7 @@ export const NotificationsBell = ({ variant = "default" }: Props) => {
   const navigate = useNavigate();
   const markRead = useMarkNotificationRead();
   const markAll = useMarkAllNotificationsRead();
+  const [open, setOpen] = useState(false);
 
   const unread = items.filter((n) => !n.read).length;
 
@@ -75,6 +77,7 @@ export const NotificationsBell = ({ variant = "default" }: Props) => {
   const handleClick = (n: Notification) => {
     if (!n.read) markRead.mutate(n._id);
     const url = resolveUrl(n);
+    setOpen(false);
     if (url) navigate(url);
   };
 
@@ -85,9 +88,12 @@ export const NotificationsBell = ({ variant = "default" }: Props) => {
       ? ""
       : formatDistanceToNow(d, { addSuffix: true });
   };
-
+  const handleMarkAll = () => {
+    markAll.mutate();
+    setOpen(false);
+  };
   return (
-    <DropdownMenu>
+    <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
@@ -119,7 +125,7 @@ export const NotificationsBell = ({ variant = "default" }: Props) => {
               variant="ghost"
               size="sm"
               className="h-8 rounded-full text-xs"
-              onClick={() => markAll.mutate()}
+              onClick={handleMarkAll}
             >
               <CheckCheck className="mr-1 h-3.5 w-3.5" /> Mark all
             </Button>

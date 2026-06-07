@@ -1,11 +1,13 @@
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { LocationSelector } from "@/components/LocationSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiErrorMessage } from "@/lib/api";
+import { locationError, type NigerianLocationValue } from "@/lib/nigerianLocations";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -31,6 +33,13 @@ const Register = () => {
     state?: { from?: { pathname?: string; search?: string } };
   };
   const [submitting, setSubmitting] = useState(false);
+  const [locationValue, setLocationValue] = useState<NigerianLocationValue>({
+    state: "",
+    lga: "",
+    city: "",
+    fullAddress: "",
+    landmark: "",
+  });
   const {
     register,
     handleSubmit,
@@ -40,11 +49,17 @@ const Register = () => {
   });
 
   const onSubmit = async (values: FormValues) => {
+    const validation = locationError(locationValue);
+    if (validation) {
+      toast.error(validation);
+      return;
+    }
     setSubmitting(true);
     try {
       const user = await registerBuyer({
         ...(values as Required<FormValues>),
         phone: values.phone || undefined,
+        location: locationValue,
       });
       toast.success(`Welcome, ${user.name.split(" ")[0]}!`);
       const from = location.state?.from
@@ -129,6 +144,12 @@ const Register = () => {
             </p>
           )}
         </div>
+        <LocationSelector
+          label="Your delivery location"
+          addressLabel="Home, shop, or delivery address"
+          value={locationValue}
+          onChange={setLocationValue}
+        />
         <Button
           type="submit"
           disabled={submitting}

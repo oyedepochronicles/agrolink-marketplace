@@ -22,11 +22,18 @@ const otherParticipant = (c: Conversation, meId?: string): User | undefined =>
 
 const previewText = (c: Conversation): string => {
   const m = c.lastMessage;
-  if (!m) return "Start the conversation";
+  if (!m) return c.lastMessageText || "Start the conversation";
   if (m.body) return m.body;
   if (m.attachmentType === "audio") return "🎤 Voice note";
   if (m.attachmentType === "image") return "📷 Photo";
   return "Attachment";
+};
+
+const activityTime = (value?: string) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 };
 
 export const ConversationList = ({
@@ -114,6 +121,9 @@ export const ConversationList = ({
                       <p className="truncate text-sm font-semibold">
                         {other?.name ?? "Unknown"}
                       </p>
+                      <span className="shrink-0 text-[10px] text-muted-foreground">
+                        {activityTime(c.lastMessageAt || c.updatedAt)}
+                      </span>
                       {!!c.unreadCount && (
                         <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-primary-foreground">
                           {c.unreadCount}

@@ -104,11 +104,36 @@ export const useMessageSocket = (conversationId?: string) => {
       );
       qc.invalidateQueries({ queryKey: ["conversations"] });
     };
+    const onStatus = (payload: {
+      conversationId?: string;
+      messageIds?: string[];
+      status?: Message["status"];
+      deliveredAt?: string;
+      readAt?: string;
+    }) => {
+      const cid = payload.conversationId;
+      if (!cid || !payload.messageIds?.length || !payload.status) return;
+      qc.setQueryData<Message[]>(["messages", cid], (prev) =>
+        prev?.map((message) =>
+          payload.messageIds!.includes(message._id)
+            ? {
+                ...message,
+                status: payload.status,
+                deliveredAt: payload.deliveredAt ?? message.deliveredAt,
+                readAt: payload.readAt ?? message.readAt,
+              }
+            : message,
+        ),
+      );
+      qc.invalidateQueries({ queryKey: ["conversations"] });
+    };
 
     socket.on("message:new", onNew);
+    socket.on("message:status", onStatus);
     return () => {
       socket.emit("conversation:leave", { conversationId });
       socket.off("message:new", onNew);
+      socket.off("message:status", onStatus);
     };
   }, [conversationId, qc]);
 };

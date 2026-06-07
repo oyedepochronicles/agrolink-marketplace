@@ -1,4 +1,5 @@
 import { LocationPicker } from "@/components/LocationPicker";
+import { LocationSelector } from "@/components/LocationSelector";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -25,6 +26,7 @@ import {
   useUploadImage,
 } from "@/hooks/useFarmerProducts";
 import { apiErrorMessage } from "@/lib/api";
+import { locationError } from "@/lib/nigerianLocations";
 import type { Product } from "@/types";
 import { Loader2, MapPin, Plus, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -38,24 +40,6 @@ const CATEGORIES = [
   "Livestock",
   "Dairy",
   "Spices",
-  "Other",
-];
-const STATES = [
-  "Lagos",
-  "Abuja",
-  "Kano",
-  "Kaduna",
-  "Rivers",
-  "Oyo",
-  "Ogun",
-  "Anambra",
-  "Enugu",
-  "Plateau",
-  "Benue",
-  "Cross River",
-  "Edo",
-  "Delta",
-  "Imo",
   "Other",
 ];
 
@@ -121,6 +105,7 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
     title: "",
     description: "",
     price: 0,
+    discount: { type: "none", value: 0 },
     unit: "kg",
     category: "Grains",
     state: "Lagos",
@@ -146,6 +131,7 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
               title: product.title || product.name || "",
               description: product.description ?? "",
               price: product.price,
+              discount: product.discount ?? { type: "none", value: 0 },
               unit: product.unit ?? "kg",
               category: product.category ?? "Grains",
               state: product.location?.state ?? product.state ?? "Lagos",
@@ -173,6 +159,7 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
               title: "",
               description: "",
               price: 0,
+              discount: { type: "none", value: 0 },
               unit: "kg",
               category: "Grains",
               state: "Lagos",
@@ -218,8 +205,9 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
       toast.error("Title and a valid price are required.");
       return;
     }
-    if (!form.location?.lga?.trim() || !form.location?.fullAddress?.trim()) {
-      toast.error("Pickup LGA and pickup address are required.");
+    const locationValidation = locationError(form.location || {});
+    if (locationValidation) {
+      toast.error(locationValidation);
       return;
     }
     if (!form.location?.coordinates) {
@@ -349,6 +337,56 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
             </div>
           </div>
 
+          <div className="grid gap-4 sm:grid-cols-[1fr_160px]">
+            <div className="space-y-1.5">
+              <Label>Discount type</Label>
+              <Select
+                value={form.discount?.type || "none"}
+                onValueChange={(type: "none" | "fixed" | "percentage") =>
+                  setForm({
+                    ...form,
+                    discount: {
+                      ...(form.discount || {}),
+                      type,
+                      value: type === "none" ? 0 : form.discount?.value || 0,
+                    },
+                  })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No discount</SelectItem>
+                  <SelectItem value="fixed">Fixed amount</SelectItem>
+                  <SelectItem value="percentage">Percentage</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="discountValue">
+                {form.discount?.type === "percentage" ? "Discount (%)" : "Discount (NGN)"}
+              </Label>
+              <Input
+                id="discountValue"
+                type="number"
+                min={0}
+                max={form.discount?.type === "percentage" ? 100 : undefined}
+                disabled={!form.discount?.type || form.discount.type === "none"}
+                value={form.discount?.value ?? 0}
+                onChange={(e) =>
+                  setForm({
+                    ...form,
+                    discount: {
+                      ...(form.discount || { type: "fixed" }),
+                      value: Number(e.target.value),
+                    },
+                  })
+                }
+              />
+            </div>
+          </div>
+
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5">
               <Label>Category</Label>
@@ -363,30 +401,6 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
                   {CATEGORIES.map((c) => (
                     <SelectItem key={c} value={c}>
                       {c}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label>State</Label>
-              <Select
-                value={form.location?.state || form.state}
-                onValueChange={(v) =>
-                  setForm({
-                    ...form,
-                    state: v,
-                    location: { ...(form.location || { lga: "" }), state: v },
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STATES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {s}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -425,83 +439,27 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
                 </Button>
               </div>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="pickupLga">LGA</Label>
-                <Input
-                  id="pickupLga"
-                  value={form.location?.lga ?? ""}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      location: {
-                        ...(form.location || { state: form.state || "Lagos" }),
-                        lga: e.target.value,
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="pickupCity">City/Town</Label>
-                <Input
-                  id="pickupCity"
-                  value={form.location?.city ?? ""}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      location: {
-                        ...(form.location || {
-                          state: form.state || "Lagos",
-                          lga: form.location?.lga ?? "",
-                        }),
-                        city: e.target.value,
-                      },
-                    })
-                  }
-                />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="pickupLandmark">Landmark</Label>
-                <Input
-                  id="pickupLandmark"
-                  value={form.location?.landmark ?? ""}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      location: {
-                        ...(form.location || {
-                          state: form.state || "Lagos",
-                          lga: "",
-                        }),
-                        landmark: e.target.value,
-                      },
-                    })
-                  }
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="pickupAddress">Full pickup address</Label>
-              <Textarea
-                id="pickupAddress"
-                rows={2}
-                value={form.location?.fullAddress ?? ""}
-                onChange={(e) =>
-                  setForm({
-                    ...form,
-                    location: {
-                      ...(form.location || {
-                        state: form.state || "Lagos",
-                        lga: "",
-                      }),
-                      fullAddress: e.target.value,
-                    },
-                  })
-                }
-                placeholder="Exact farm, warehouse, or collection address"
-              />
-            </div>
+            <LocationSelector
+              label="Pickup administrative location"
+              addressLabel="Full pickup address"
+              value={{
+                state: form.location?.state || form.state || "",
+                lga: form.location?.lga || "",
+                city: form.location?.city || "",
+                landmark: form.location?.landmark || "",
+                fullAddress: form.location?.fullAddress || "",
+              }}
+              onChange={(location) =>
+                setForm({
+                  ...form,
+                  state: location.state,
+                  location: {
+                    ...(form.location || { coordinates: undefined }),
+                    ...location,
+                  },
+                })
+              }
+            />
             <LocationPicker
               label="Exact pickup point *"
               addressQuery={pickupAddressQuery(form.location)}

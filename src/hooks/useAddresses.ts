@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, getToken } from "@/lib/api";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
 
 export interface Address {
   id: string;
@@ -38,7 +38,10 @@ const write = (list: Address[]) => {
   window.dispatchEvent(new CustomEvent("phyhan:addresses"));
 };
 
-const uid = () => (typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : `addr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
+const uid = () =>
+  typeof crypto !== "undefined" && "randomUUID" in crypto
+    ? crypto.randomUUID()
+    : `addr_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
 const normalize = (address: Address): Address => ({
   ...address,
@@ -54,7 +57,9 @@ export const useAddresses = () => {
     queryKey: ["delivery-addresses"],
     enabled: isAuthed,
     queryFn: async () => {
-      const { data } = await api.get<{ items?: Address[] }>("/users/me/addresses");
+      const { data } = await api.get<{ items?: Address[] }>(
+        "/users/me/addresses",
+      );
       return (data.items ?? []).map(normalize);
     },
   });
@@ -67,9 +72,16 @@ export const useAddresses = () => {
   }, [remote.data]);
 
   const saveRemote = useMutation({
-    mutationFn: async (input: { mode: "create" | "update" | "delete"; id?: string; data?: Partial<Address> }) => {
-      if (input.mode === "create") return (await api.post("/users/me/addresses", input.data)).data;
-      if (input.mode === "update") return (await api.put(`/users/me/addresses/${input.id}`, input.data)).data;
+    mutationFn: async (input: {
+      mode: "create" | "update" | "delete";
+      id?: string;
+      data?: Partial<Address>;
+    }) => {
+      if (input.mode === "create")
+        return (await api.post("/users/me/addresses", input.data)).data;
+      if (input.mode === "update")
+        return (await api.put(`/users/me/addresses/${input.id}`, input.data))
+          .data;
       return (await api.delete(`/users/me/addresses/${input.id}`)).data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["delivery-addresses"] }),
@@ -85,34 +97,55 @@ export const useAddresses = () => {
     };
   }, []);
 
-  const create = useCallback((input: Omit<Address, "id">) => {
-    const list = read();
-    const isFirst = list.length === 0;
-    const next: Address = { ...input, id: uid(), isDefault: input.isDefault ?? isFirst };
-    const updated = next.isDefault ? [next, ...list.map((a) => ({ ...a, isDefault: false }))] : [...list, next];
-    write(updated);
-    if (isAuthed) saveRemote.mutate({ mode: "create", data: next });
-    return next;
-  }, [isAuthed, saveRemote]);
+  const create = useCallback(
+    (input: Omit<Address, "id">) => {
+      const list = read();
+      const isFirst = list.length === 0;
+      const next: Address = {
+        ...input,
+        id: uid(),
+        isDefault: input.isDefault ?? isFirst,
+      };
+      const updated = next.isDefault
+        ? [next, ...list.map((a) => ({ ...a, isDefault: false }))]
+        : [...list, next];
+      write(updated);
+      if (isAuthed) saveRemote.mutate({ mode: "create", data: next });
+      return next;
+    },
+    [isAuthed, saveRemote],
+  );
 
-  const update = useCallback((id: string, patch: Partial<Omit<Address, "id">>) => {
-    let list = read().map((a) => (a.id === id ? { ...a, ...patch } : a));
-    if (patch.isDefault) list = list.map((a) => ({ ...a, isDefault: a.id === id }));
-    write(list);
-    if (isAuthed) saveRemote.mutate({ mode: "update", id, data: patch });
-  }, [isAuthed, saveRemote]);
+  const update = useCallback(
+    (id: string, patch: Partial<Omit<Address, "id">>) => {
+      let list = read().map((a) => (a.id === id ? { ...a, ...patch } : a));
+      if (patch.isDefault)
+        list = list.map((a) => ({ ...a, isDefault: a.id === id }));
+      write(list);
+      if (isAuthed) saveRemote.mutate({ mode: "update", id, data: patch });
+    },
+    [isAuthed, saveRemote],
+  );
 
-  const remove = useCallback((id: string) => {
-    const list = read().filter((a) => a.id !== id);
-    if (list.length && !list.some((a) => a.isDefault)) list[0].isDefault = true;
-    write(list);
-    if (isAuthed) saveRemote.mutate({ mode: "delete", id });
-  }, [isAuthed, saveRemote]);
+  const remove = useCallback(
+    (id: string) => {
+      const list = read().filter((a) => a.id !== id);
+      if (list.length && !list.some((a) => a.isDefault))
+        list[0].isDefault = true;
+      write(list);
+      if (isAuthed) saveRemote.mutate({ mode: "delete", id });
+    },
+    [isAuthed, saveRemote],
+  );
 
-  const setDefault = useCallback((id: string) => {
-    write(read().map((a) => ({ ...a, isDefault: a.id === id })));
-    if (isAuthed) saveRemote.mutate({ mode: "update", id, data: { isDefault: true } });
-  }, [isAuthed, saveRemote]);
+  const setDefault = useCallback(
+    (id: string) => {
+      write(read().map((a) => ({ ...a, isDefault: a.id === id })));
+      if (isAuthed)
+        saveRemote.mutate({ mode: "update", id, data: { isDefault: true } });
+    },
+    [isAuthed, saveRemote],
+  );
 
   const defaultAddress = addresses.find((a) => a.isDefault) ?? addresses[0];
 
@@ -120,14 +153,16 @@ export const useAddresses = () => {
 };
 
 export const formatAddress = (a: Address) =>
-  `${a.street}, ${a.city}, ${a.state}`;
+  [a.street, a.city, a.lga, a.state].filter(Boolean).join(", ");
 
 export const addressCoordinates = (a?: Address) => {
   const coordinates = a?.coordinates ?? a?.geo?.coordinates;
   if (!Array.isArray(coordinates) || coordinates.length !== 2) return undefined;
   const [lng, lat] = coordinates.map(Number);
-  return Number.isFinite(lat) && Number.isFinite(lng)
-    ? ([lng, lat] as [number, number])
-    : undefined;
+  const isFinite =
+    Number.isFinite(lat) && Number.isFinite(lng)
+      ? ([lng, lat] as [number, number])
+      : undefined;
+  console.log("Parsed coordinates:", isFinite);
+  return isFinite;
 };
-

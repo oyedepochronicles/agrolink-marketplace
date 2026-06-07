@@ -345,6 +345,12 @@ function FarmerOrdersCard(o) {
           Delivery: {formatOrderAddress(o.deliveryAddress)}
         </p>
       )}
+      {o.refundStatus === "refunded" && (
+        <div className="mt-3 rounded-lg border border-destructive/20 bg-destructive/10 p-3 text-xs text-destructive">
+          Refunded {formatNaira(o.refundAmount || 0)} to buyer wallet
+          {o.refundReason ? `: ${o.refundReason}` : "."}
+        </div>
+      )}
     </Card>
   );
 }
