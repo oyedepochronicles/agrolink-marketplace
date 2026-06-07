@@ -1,12 +1,9 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import {
-  useEmailVerificationStatus,
-  useResendEmailVerification,
-} from "@/hooks/useEmailVerification";
+import { useEmailVerificationStatus } from "@/hooks/useEmailVerification";
 import { MailCheck, X } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 /**
  * Non-blocking soft email-verification reminder.
@@ -15,7 +12,6 @@ import { toast } from "sonner";
 export const EmailVerificationBanner = () => {
   const { user } = useAuth();
   const { data } = useEmailVerificationStatus();
-  const resend = useResendEmailVerification();
   const [dismissed, setDismissed] = useState(
     () => sessionStorage.getItem("phyhan.email-banner.dismissed") === "1",
   );
@@ -46,19 +42,8 @@ export const EmailVerificationBanner = () => {
           notifications and seller upgrades.
         </p>
       </div>
-      <Button
-        size="sm"
-        variant="outline"
-        className="rounded-full"
-        disabled={resend.isPending}
-        onClick={() =>
-          resend.mutate(undefined, {
-            onSuccess: () => toast.success("Verification email sent"),
-            onError: () => toast.error("Couldn't send verification email"),
-          })
-        }
-      >
-        {resend.isPending ? "Sending…" : "Resend"}
+      <Button asChild size="sm" variant="outline" className="rounded-full">
+        <Link to="/verify-email">Verify</Link>
       </Button>
       <button
         type="button"
