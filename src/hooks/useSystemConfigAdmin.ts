@@ -8,10 +8,11 @@ export const useAdminConfigItems = () =>
     queryKey: ["admin", "system-config"],
     queryFn: async (): Promise<ConfigItem[]> => {
       try {
-        const { data } = await api.get<{ items?: ConfigItem[] } | ConfigItem[]>(
-          "/admin/configuration",
+        const { data } = await api.get<{ data?: ConfigItem[] } | ConfigItem[]>(
+          "/admin/config",
         );
-        return Array.isArray(data) ? data : (data.items ?? []);
+        console.log("Fetched admin config items: ", data);
+        return Array.isArray(data) ? data : (data.data ?? []);
       } catch {
         return [];
       }
@@ -22,7 +23,7 @@ export const useBulkUpdateConfig = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (updates: Array<{ key: string; value: unknown }>) => {
-      const { data } = await api.post("/admin/configuration/bulk-update", {
+      const { data } = await api.post("/admin/config/bulk-update", {
         updates,
       });
       return data;
@@ -38,7 +39,7 @@ export const useResetConfigKey = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (key: string) => {
-      const { data } = await api.post(`/admin/configuration/${key}/reset`);
+      const { data } = await api.post(`/admin/config/${key}/reset`);
       return data;
     },
     onSuccess: () => {

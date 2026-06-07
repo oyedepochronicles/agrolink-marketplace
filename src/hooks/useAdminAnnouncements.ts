@@ -1,5 +1,5 @@
 import { api } from "@/lib/api";
-import type { Announcement, AnnouncementStatus } from "@/types/announcement";
+import type { Announcement } from "@/types/announcement";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 const KEY = ["admin", "announcements"];
@@ -10,10 +10,12 @@ export const useAdminAnnouncements = () =>
     queryFn: async (): Promise<Announcement[]> => {
       try {
         const { data } = await api.get<
-          { items?: Announcement[] } | Announcement[]
-        >("/admin/announcements");
-        return Array.isArray(data) ? data : (data.items ?? []);
-      } catch {
+          { data: Announcement[] } | Announcement[]
+        >("/announcements/admin/all");
+        console.log("Fetched admin announcements: ", data);
+        return Array.isArray(data) ? data : (data.data ?? []);
+      } catch (e) {
+        console.log("Failed to fetch admin announcements: ", e);
         return [];
       }
     },
@@ -24,7 +26,7 @@ export const useCreateAnnouncement = () => {
   return useMutation({
     mutationFn: async (input: Partial<Announcement>) => {
       const { data } = await api.post<Announcement>(
-        "/admin/announcements",
+        "/announcements/admin/create",
         input,
       );
       return data;
@@ -36,16 +38,29 @@ export const useCreateAnnouncement = () => {
 export const useUpdateAnnouncementStatus = () => {
   const qc = useQueryClient();
   return useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      const { data } = await api.patch<Announcement>(
+        `/announcements/admin/toggle/${id}`,
+        { isActive },
+      );
+      return data;
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
+  });
+};
+export const useUpdateAnnouncement = () => {
+  const qc = useQueryClient();
+  return useMutation({
     mutationFn: async ({
       id,
-      status,
+      input,
     }: {
       id: string;
-      status: AnnouncementStatus;
+      input: Partial<Announcement>;
     }) => {
-      const { data } = await api.patch<Announcement>(
-        `/admin/announcements/${id}`,
-        { status },
+      const { data } = await api.put<Announcement>(
+        `/announcements/admin/update/${id}`,
+        input,
       );
       return data;
     },
@@ -57,7 +72,7 @@ export const useDeleteAnnouncement = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`/admin/announcements/${id}`);
+      await api.delete(`/announcements/admin/delete/${id}`);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: KEY }),
   });

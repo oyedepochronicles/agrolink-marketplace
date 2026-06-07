@@ -1,20 +1,13 @@
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   useAnnouncements,
   useDismissAnnouncement,
 } from "@/hooks/useAnnouncements";
-import type { AnnouncementType } from "@/types/announcement";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import type { AnnouncementType } from "@/types/announcement";
 import { formatDistanceToNow } from "date-fns";
-import {
-  AlertTriangle,
-  Info,
-  Megaphone,
-  Pin,
-  Sparkles,
-  X,
-} from "lucide-react";
+import { AlertTriangle, Info, Megaphone, Pin, Sparkles, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 const TYPE_STYLES: Record<
@@ -47,10 +40,12 @@ const Announcements = () => {
   const items = useMemo(() => {
     const visible = data.filter((a) => !a.isDismissed);
     const filtered =
-      filter === "all" ? visible : visible.filter((a) => a.type === filter);
+      filter === "all"
+        ? visible
+        : visible.filter((a) => a.type === filter.toUpperCase());
     return [...filtered].sort((a, b) => {
-      if ((b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) !== 0)
-        return (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
+      if ((b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) !== 0)
+        return (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0);
       return (
         new Date(b.publishedAt ?? b.createdAt).getTime() -
         new Date(a.publishedAt ?? a.createdAt).getTime()
@@ -97,14 +92,15 @@ const Announcements = () => {
           </div>
         ) : (
           items.map((a) => {
-            const { icon: Icon, tone } = TYPE_STYLES[a.type] ?? TYPE_STYLES.info;
+            const { icon: Icon, tone } =
+              TYPE_STYLES[a.type] ?? TYPE_STYLES.info;
             const time = new Date(a.publishedAt ?? a.createdAt);
             return (
               <article
                 key={a._id}
                 className={cn(
                   "rounded-2xl border border-border bg-card p-5 shadow-card",
-                  a.pinned && "border-primary/40",
+                  a.isPinned && "border-primary/40",
                 )}
               >
                 <div className="flex items-start gap-3">
@@ -121,7 +117,7 @@ const Announcements = () => {
                       <h3 className="font-display text-base font-bold">
                         {a.title}
                       </h3>
-                      {a.pinned && (
+                      {a.isPinned && (
                         <Badge variant="outline" className="gap-1 rounded-full">
                           <Pin className="h-3 w-3" /> Pinned
                         </Badge>
@@ -134,7 +130,7 @@ const Announcements = () => {
                       </Badge>
                     </div>
                     <p className="mt-2 whitespace-pre-line text-sm text-foreground/80">
-                      {a.content}
+                      {a.message}
                     </p>
                     <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                       <span>

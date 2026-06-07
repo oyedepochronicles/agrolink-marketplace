@@ -1,5 +1,5 @@
 // Batch-based fulfillment types.
-import type { Order, User, GeoPoint } from "./index";
+import type { GeoPoint, Order, User } from "./index";
 
 export type BatchStatus =
   | "open"
@@ -10,7 +10,11 @@ export type BatchStatus =
   | "waiting_harvest"
   | "picked_up";
 
-export type BatchType = "scheduled" | "consolidated" | "farmer_group" | "immediate";
+export type BatchType =
+  | "scheduled"
+  | "consolidated"
+  | "farmer_group"
+  | "immediate";
 
 export type SLAState =
   | "READY_NOW"
@@ -84,7 +88,13 @@ export interface ParentOrder {
   _id: string;
   buyerId?: string;
   buyer?: Pick<User, "_id" | "name" | "email" | "profileImage">;
-  status: "draft" | "ready" | "in_progress" | "delivered" | "cancelled" | "paid";
+  status:
+    | "draft"
+    | "ready"
+    | "in_progress"
+    | "delivered"
+    | "cancelled"
+    | "paid";
   batches: Batch[];
   childOrderIds?: string[];
   summary: ParentOrderSummary;
@@ -93,6 +103,19 @@ export interface ParentOrder {
   createdAt: string;
   updatedAt?: string;
 }
+// export interface ParentOrder {
+//   _id: string;
+//   buyerId?: string;
+//   buyer?: Pick<User, "_id" | "name" | "email" | "profileImage">;
+//   status: "draft" | "ready" | "in_progress" | "delivered" | "cancelled" | "paid";
+//   batches: Batch[];
+//   childOrderIds?: string[];
+//   summary: ParentOrderSummary;
+//   paymentReference?: string;
+//   paymentStatus?: "unpaid" | "paid";
+//   createdAt: string;
+//   updatedAt?: string;
+// }
 
 export interface GroupedCart {
   farmerId: string;

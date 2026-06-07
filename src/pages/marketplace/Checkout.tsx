@@ -28,7 +28,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
-type Method = "rider" | "pickup" | "express";
+type Method = "standard" | "pickup" | "express";
 type ApiDeliveryMethod = "delivery" | "pickup";
 type PaymentChoice = "wallet" | "wallet_partial" | "external";
 
@@ -41,7 +41,7 @@ interface MethodCopy {
 
 const METHODS: MethodCopy[] = [
   {
-    id: "rider",
+    id: "standard",
     label: "Standard rider delivery",
     desc: "Assigned to a verified rider · 1–3 days",
     icon: Bike,
@@ -84,7 +84,7 @@ const Checkout = () => {
   const [addressId, setAddressId] = useState<string | undefined>(
     defaultAddress?.id,
   );
-  const [method, setMethod] = useState<Method>("rider");
+  const [method, setMethod] = useState<Method>("standard");
   const [paymentChoice, setPaymentChoice] = useState<PaymentChoice>("external");
   const [topUpAmount, setTopUpAmount] = useState(0);
   const [placing, setPlacing] = useState(false);
@@ -157,6 +157,7 @@ const Checkout = () => {
         deliveryAddress: quoteAddress,
         deliveryUrgency: method,
       });
+      console.log("Checkout quote: ", data);
       return data.summary;
     },
   });
@@ -225,9 +226,7 @@ const Checkout = () => {
               notes: selectedAddress!.notes,
               coordinates: addressCoordinates(selectedAddress!),
             };
-      const { data: checkout } = await api.post<{
-        orders?: Array<{ _id?: string; id?: string }>;
-      }>("/orders/bulk", {
+      const { data: checkout } = await api.post<BulkResponse>("/orders/bulk", {
         items: items.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
@@ -238,13 +237,14 @@ const Checkout = () => {
         paymentMethod: "in_app",
         saleChannel: "marketplace",
       });
-      const orderIds =
-        checkout.orders
-          ?.map((order) => order._id ?? order.id)
-          .filter((id): id is string => Boolean(id)) ?? [];
 
-      if (!orderIds.length) {
-        throw new Error("No order IDs returned from checkout");
+      const parentOrderId =
+        checkout.parentOrderId ??
+        checkout.parentOrder?._id ??
+        checkout.parentOrder?.id;
+
+      if (!parentOrderId) {
+        throw new Error("No parent order ID returned from checkout");
       }
 
       if (paymentChoice === "wallet") {
@@ -252,29 +252,28 @@ const Checkout = () => {
           toast.error("Wallet balance is not enough for full payment");
           return;
         }
-        await api.post("/wallet/pay", { orderIds });
+        await api.post("/wallet/pay", { parentOrderId });
         clear();
         toast.success("Order paid with wallet");
-        navigate("/marketplace/orders");
+        navigate(`/marketplace/orders/${parentOrderId}`);
         return;
       }
 
       if (paymentChoice === "wallet_partial" && walletApplied > 0) {
         await api.post("/wallet/apply", {
-          orderIds,
+          parentOrderId,
           amount: walletApplied,
         });
         if (externalDue <= 0) {
           clear();
           toast.success("Order paid with wallet");
-          navigate("/marketplace/orders");
+          navigate(`/marketplace/orders/${parentOrderId}`);
           return;
         }
       }
 
       const { data: payment } = await api.post("/payments/initialize", {
-        orderIds,
-        orderId: orderIds[0],
+        parentOrderId,
       });
       const url =
         (
@@ -291,7 +290,7 @@ const Checkout = () => {
         window.location.href = url;
       } else {
         toast.success("Order placed");
-        navigate("/marketplace/orders");
+        navigate(`/marketplace/orders/${parentOrderId}`);
       }
     } catch (err) {
       console.error("Error placing order", err);

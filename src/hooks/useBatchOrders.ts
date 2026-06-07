@@ -15,12 +15,8 @@ export const useBuyerParentOrders = () =>
   useQuery({
     queryKey: ["parent-orders", "buyer"],
     queryFn: async (): Promise<ParentOrder[]> => {
-      try {
-        const { data } = await api.get<Listish<ParentOrder>>("/parent-orders/my");
-        return unwrap(data);
-      } catch {
-        return [];
-      }
+      const { data } = await api.get<Listish<ParentOrder>>("/parent-orders/my");
+      return unwrap(data);
     },
   });
 
@@ -29,12 +25,8 @@ export const useParentOrder = (id?: string) =>
     enabled: !!id,
     queryKey: ["parent-orders", id],
     queryFn: async (): Promise<ParentOrder | null> => {
-      try {
-        const { data } = await api.get<ParentOrder>(`/parent-orders/${id}`);
-        return data;
-      } catch {
-        return null;
-      }
+      const { data } = await api.get<ParentOrder>(`/parent-orders/${id}`);
+      return data;
     },
   });
 

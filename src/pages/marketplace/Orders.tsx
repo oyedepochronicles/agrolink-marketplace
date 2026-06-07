@@ -3,65 +3,55 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  useBuyerOrders,
-  useCancelOrder,
-  useOrderConversation,
-} from "@/hooks/useOrders";
+import { useBuyerParentOrders } from "@/hooks/useBatchOrders";
 import { api, apiErrorMessage } from "@/lib/api";
-import { formatDate, formatNaira, formatOrderAddress } from "@/lib/format";
-import type { Order } from "@/types";
+import { formatDate, formatNaira } from "@/lib/format";
+import type { ParentOrder } from "@/types/batch";
 import { useQueryClient } from "@tanstack/react-query";
-import { Loader2, MessageCircle, PackageCheck, X } from "lucide-react";
+import { Loader2, PackageCheck, Truck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
 
-const orderProductName = (order: Order) => {
-  return order.productId?.name || "Order item";
+const batchLabel = (order: ParentOrder) => {
+  const count = order.batches?.length ?? 0;
+  return `${count} batch${count === 1 ? "" : "es"}`;
 };
 
-const orderTotal = (order: Order) =>
-  order.totalAmount ??
-  order.total ??
-  order.grandTotal ??
-  (order.amount ?? 0) +
-    (order.deliveryFee ?? 0) +
-    (order.serviceFee ?? 0) +
-    (order.tax ?? 0) -
-    (order.walletDeduction ?? 0);
-
-const orderAddress = (order: Order) => {
-  if (!order.deliveryAddress) return "Farm pickup";
-  return formatOrderAddress(order.deliveryAddress);
-};
 const Orders = () => {
-  const { data: orders = [], isLoading } = useBuyerOrders();
+  const { data: orders = [], isLoading } = useBuyerParentOrders();
   const [searchParams] = useSearchParams();
   const navTab = searchParams.get("tab") || "paid";
   const [tab, setTab] = useState(navTab.toLowerCase());
-
   const [params, setParams] = useSearchParams();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const reference =
       params.get("payment_reference") ||
       params.get("reference") ||
       params.get("trxref");
-    const orderId = params.get("order_id") || params.get("orderId");
-    if (!reference && !orderId) return;
+    const parentOrderId =
+      params.get("parent_order_id") ||
+      params.get("parentOrderId") ||
+      params.get("order_id") ||
+      params.get("orderId");
+    if (!reference && !parentOrderId) return;
 
     let cancelled = false;
     const verify = async () => {
       try {
         await api.post("/payments/verify", {
           reference: reference || undefined,
-          orderId: orderId || undefined,
+          parentOrderId: parentOrderId || undefined,
         });
-        await queryClient.invalidateQueries({ queryKey: ["buyer-orders"] });
+        await queryClient.invalidateQueries({ queryKey: ["parent-orders"] });
         if (!cancelled) {
           toast.success("Payment confirmed");
+          if (parentOrderId) {
+            navigate(`/marketplace/orders/${parentOrderId}`);
+          }
           setParams(
             (next) => {
               next.delete("payment_reference");
@@ -69,6 +59,8 @@ const Orders = () => {
               next.delete("trxref");
               next.delete("order_id");
               next.delete("orderId");
+              next.delete("parent_order_id");
+              next.delete("parentOrderId");
               return next;
             },
             { replace: true },
@@ -82,7 +74,7 @@ const Orders = () => {
     return () => {
       cancelled = true;
     };
-  }, [params, queryClient, setParams]);
+  }, [params, queryClient, setParams, navigate]);
 
   return (
     <div className="container max-w-4xl py-8">
@@ -90,207 +82,125 @@ const Orders = () => {
         Orders
       </h1>
       <p className="text-sm text-muted-foreground">
-        Track purchases, payment status, and delivery updates.
+        Unified checkout — each order may split into multiple delivery batches.
       </p>
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="paid">Paid</TabsTrigger>
           <TabsTrigger value="unpaid">Unpaid</TabsTrigger>
-          <TabsTrigger value="history">Order History</TabsTrigger>
+          <TabsTrigger value="history">All orders</TabsTrigger>
         </TabsList>
         <TabsContent value="paid" className="mt-4">
-          {isLoading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : orders.filter((r) => r.paymentStatus === "paid").length === 0 ? (
-            <div className="mt-6">
-              <EmptyState
-                icon={<PackageCheck className="h-6 w-6" />}
-                title="No paid orders yet"
-                description="Your checkout history and order updates will appear here."
-              />
-            </div>
-          ) : (
-            <div className="mt-6 space-y-3">
-              {orders
-                .filter((r) => r.paymentStatus === "paid")
-
-                .map((order) => (
-                  <OrderCard key={order._id} {...order} />
-                ))}
-            </div>
-          )}
+          <OrderList
+            isLoading={isLoading}
+            orders={orders.filter((o) => o.paymentStatus === "paid")}
+            emptyTitle="No paid orders yet"
+          />
         </TabsContent>
         <TabsContent value="unpaid" className="mt-4">
-          {isLoading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : orders.filter((r) => r.paymentStatus === "unpaid").length ===
-            0 ? (
-            <div className="mt-6">
-              <EmptyState
-                icon={<PackageCheck className="h-6 w-6" />}
-                title="No unpay orders"
-                description="Your checkout history and order updates will appear here."
-              />
-            </div>
-          ) : (
-            <div className="mt-6 space-y-3">
-              {orders
-                .filter((r) => r.paymentStatus === "unpaid")
-
-                .map((order) => (
-                  <OrderCard key={order._id} {...order} />
-                ))}
-            </div>
-          )}
+          <OrderList
+            isLoading={isLoading}
+            orders={orders.filter((o) => o.paymentStatus !== "paid")}
+            emptyTitle="No unpaid orders"
+          />
         </TabsContent>
         <TabsContent value="history" className="mt-4">
-          {isLoading ? (
-            <div className="flex justify-center py-16">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : orders.length === 0 ? (
-            <div className="mt-6">
-              <EmptyState
-                icon={<PackageCheck className="h-6 w-6" />}
-                title="No orders yet"
-                description="Your checkout history and order updates will appear here."
-              />
-            </div>
-          ) : (
-            <div className="mt-6 space-y-3">
-              {orders.map((order) => (
-                <OrderCard key={order._id} {...order} />
-              ))}
-            </div>
-          )}
+          <OrderList
+            isLoading={isLoading}
+            orders={orders}
+            emptyTitle="No orders yet"
+          />
         </TabsContent>
       </Tabs>
     </div>
   );
 };
-function OrderCard(order) {
-  const cancel = useCancelOrder();
-  const orderConversation = useOrderConversation();
+
+const OrderList = ({
+  isLoading,
+  orders,
+  emptyTitle,
+}: {
+  isLoading: boolean;
+  orders: ParentOrder[];
+  emptyTitle: string;
+}) => {
   const navigate = useNavigate();
-  const openConversation = async (order: Order, recipientId?: string) => {
-    try {
-      const conversation = await orderConversation.mutateAsync({
-        orderId: order._id,
-        recipientId,
-      });
-      const cid = conversation._id ?? conversation.id;
-      navigate(`/marketplace/messages${cid ? `?conversation=${cid}` : ""}`);
-    } catch (e) {
-      toast.error(apiErrorMessage(e));
-    }
-  };
 
-  const cancelOrder = async (order: Order) => {
-    try {
-      await cancel.mutateAsync(order._id);
-      toast.success("Order cancelled");
-    } catch (e) {
-      toast.error(apiErrorMessage(e));
-    }
-  };
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <div className="mt-6">
+        <EmptyState
+          icon={<PackageCheck className="h-6 w-6" />}
+          title={emptyTitle}
+          description="Your checkout history and batch tracking will appear here."
+        />
+      </div>
+    );
+  }
+
   return (
-    <Card key={order._id} className="rounded-2xl p-4 shadow-card">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold">{orderProductName(order)}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Qty {order.quantity} · {formatDate(order.createdAt)}
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Order ID: {`#${(order._id ?? "").slice(-6).toUpperCase()}`}
-          </p>
-
-          <p className="mt-2 text-xs text-muted-foreground">
-            {orderAddress(order)}
-          </p>
-          {order.refundStatus === "refunded" && (
-            <p className="mt-2 rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
-              Refunded {formatNaira(order.refundAmount || 0)} to wallet
-              {order.refundReason ? `: ${order.refundReason}` : "."}
+    <div className="mt-6 space-y-3">
+      {orders.map((order) => (
+        <Card
+          key={order._id}
+          className="cursor-pointer rounded-2xl p-4 shadow-card transition-base hover:border-primary/40"
+          onClick={() => navigate(`/marketplace/orders/${order._id}`)}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold">
+                Order #{order._id.slice(-8).toUpperCase()}
+              </p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {formatDate(order.createdAt)} · {batchLabel(order)}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1">
+                {order.batches?.slice(0, 3).map((b) => (
+                  <Badge key={b._id} variant="outline" className="text-xs capitalize">
+                    {b.name || b.type}: {b.status.replace("_", " ")}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+            <div className="text-right">
+              <p className="font-display text-lg font-extrabold">
+                {formatNaira(order.summary.grandTotal)}
+              </p>
+              <div className="mt-1 flex justify-end gap-1">
+                <Badge variant="outline" className="capitalize">
+                  {order.status.replace("_", " ")}
+                </Badge>
+                {order.paymentStatus && (
+                  <Badge
+                    variant={
+                      order.paymentStatus === "paid" ? "default" : "secondary"
+                    }
+                    className="capitalize"
+                  >
+                    {order.paymentStatus}
+                  </Badge>
+                )}
+              </div>
+            </div>
+          </div>
+          {order.batches?.some((b) => b.status === "in_transit") && (
+            <p className="mt-3 inline-flex items-center gap-1 text-xs text-primary">
+              <Truck className="h-3 w-3" /> Delivery in progress
             </p>
           )}
-          {order.trackingEvents?.length ? (
-            <div className="mt-3 space-y-1 text-xs">
-              {order.trackingEvents.slice(-3).map((event, index) => (
-                <p key={`${event.status}-${index}`} className="text-muted-foreground">
-                  <span className="font-medium text-foreground">
-                    {event.status.replace(/_/g, " ")}
-                  </span>
-                  : {event.message}
-                </p>
-              ))}
-            </div>
-          ) : null}
-        </div>
-        <div className="text-right">
-          <p className="font-display text-lg font-extrabold">
-            {formatNaira(orderTotal(order))}
-          </p>
-          <div className="mt-1 flex justify-end gap-1">
-            <Badge variant="outline" className="capitalize">
-              {order.status}
-            </Badge>
-            {order.paymentStatus && (
-              <Badge
-                variant={
-                  order.paymentStatus === "paid" ? "default" : "secondary"
-                }
-                className="capitalize"
-              >
-                {order.paymentStatus}
-              </Badge>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => openConversation(order, order.farmerId?._id)}
-          disabled={orderConversation.isPending}
-          className="gap-1"
-        >
-          <MessageCircle className="h-4 w-4" /> Message farmer
-        </Button>
-        {order.riderId && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => openConversation(order, order.riderId?._id)}
-            disabled={orderConversation.isPending}
-            className="gap-1"
-          >
-            <MessageCircle className="h-4 w-4" /> Message rider
-          </Button>
-        )}
-        {order.status !== "cancelled" &&
-          order.status !== "completed" &&
-          !["picked_up", "in_transit", "delivered"].includes(
-            order.deliveryStatus || "pending",
-          ) && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => cancelOrder(order)}
-              disabled={cancel.isPending}
-              className="gap-1 text-destructive hover:bg-destructive/10 hover:text-destructive"
-            >
-              <X className="h-4 w-4" /> Cancel
-            </Button>
-          )}
-      </div>
-    </Card>
+        </Card>
+      ))}
+    </div>
   );
-}
+};
 
 export default Orders;

@@ -2,7 +2,14 @@ import { api } from "@/lib/api";
 import type { Announcement } from "@/types/announcement";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-const KEY = ["announcements", "mine"];
+const KEY = [
+  "announcements",
+  "mine",
+  "info",
+  "updates",
+  "warnings",
+  "promotions",
+];
 
 export const useAnnouncements = () =>
   useQuery({
@@ -11,9 +18,9 @@ export const useAnnouncements = () =>
     queryFn: async (): Promise<Announcement[]> => {
       try {
         const { data } = await api.get<
-          { items?: Announcement[] } | Announcement[]
-        >("/announcements/my");
-        return Array.isArray(data) ? data : (data.items ?? []);
+          { data?: Announcement[] } | Announcement[]
+        >("/announcements/");
+        return Array.isArray(data) ? data : (data.data ?? []);
       } catch {
         return [];
       }
