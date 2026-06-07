@@ -103,7 +103,7 @@ const Checkout = () => {
     );
   }
 
-  const selectedFee = METHODS.find((m) => m.id === method)!.fee;
+  const selectedFee = 0;
   const selectedAddress = addresses.find((a) => a.id === addressId);
   const apiDeliveryMethod: ApiDeliveryMethod =
     method === "pickup" ? "pickup" : "delivery";

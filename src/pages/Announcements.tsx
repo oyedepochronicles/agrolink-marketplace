@@ -11,25 +11,25 @@ import { AlertTriangle, Info, Megaphone, Pin, Sparkles, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 const TYPE_STYLES: Record<
-  AnnouncementType,
+  AnnouncementType | "CRITICAL",
   { icon: typeof Info; tone: string }
 > = {
-  info: { icon: Info, tone: "text-primary bg-primary/10" },
-  warning: { icon: AlertTriangle, tone: "text-warning bg-warning/10" },
-  critical: {
+  INFO: { icon: Info, tone: "text-primary bg-primary/10" },
+  WARNING: { icon: AlertTriangle, tone: "text-warning bg-warning/10" },
+  CRITICAL: {
     icon: AlertTriangle,
     tone: "text-destructive bg-destructive/10",
   },
-  promotion: { icon: Sparkles, tone: "text-accent bg-accent/10" },
-  update: { icon: Megaphone, tone: "text-primary bg-primary/10" },
+  PROMOTION: { icon: Sparkles, tone: "text-accent bg-accent/10" },
+  UPDATE: { icon: Megaphone, tone: "text-primary bg-primary/10" },
 };
 
 const FILTERS: { id: AnnouncementType | "all"; label: string }[] = [
   { id: "all", label: "All" },
-  { id: "info", label: "Info" },
-  { id: "update", label: "Updates" },
-  { id: "warning", label: "Warnings" },
-  { id: "promotion", label: "Promotions" },
+  { id: "INFO", label: "Info" },
+  { id: "UPDATE", label: "Updates" },
+  { id: "WARNING", label: "Warnings" },
+  { id: "PROMOTION", label: "Promotions" },
 ];
 
 const Announcements = () => {
@@ -40,9 +40,7 @@ const Announcements = () => {
   const items = useMemo(() => {
     const visible = data.filter((a) => !a.isDismissed);
     const filtered =
-      filter === "all"
-        ? visible
-        : visible.filter((a) => a.type === filter.toUpperCase());
+      filter === "all" ? visible : visible.filter((a) => a.type === filter);
     return [...filtered].sort((a, b) => {
       if ((b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0) !== 0)
         return (b.isPinned ? 1 : 0) - (a.isPinned ? 1 : 0);
@@ -93,7 +91,7 @@ const Announcements = () => {
         ) : (
           items.map((a) => {
             const { icon: Icon, tone } =
-              TYPE_STYLES[a.type] ?? TYPE_STYLES.info;
+              TYPE_STYLES[a.type] ?? TYPE_STYLES.INFO;
             const time = new Date(a.publishedAt ?? a.createdAt);
             return (
               <article
