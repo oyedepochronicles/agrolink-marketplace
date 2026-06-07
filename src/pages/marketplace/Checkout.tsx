@@ -89,20 +89,6 @@ const Checkout = () => {
   const [topUpAmount, setTopUpAmount] = useState(0);
   const [placing, setPlacing] = useState(false);
 
-  if (items.length === 0) {
-    return (
-      <div className="container py-16 text-center">
-        <p className="text-lg font-semibold">Your cart is empty</p>
-        <Button
-          className="mt-4 rounded-full"
-          onClick={() => navigate("/marketplace")}
-        >
-          Browse products
-        </Button>
-      </div>
-    );
-  }
-
   const selectedFee = 0;
   const selectedAddress = addresses.find((a) => a.id === addressId);
   const apiDeliveryMethod: ApiDeliveryMethod =
@@ -181,6 +167,20 @@ const Checkout = () => {
   const externalDue = Math.max(0, summary.grandTotal - walletApplied);
   const walletCanCover = walletBalance >= summary.grandTotal;
   const suggestedTopUp = Math.max(0, summary.grandTotal - walletBalance);
+
+  if (items.length === 0) {
+    return (
+      <div className="container py-16 text-center">
+        <p className="text-lg font-semibold">Your cart is empty</p>
+        <Button
+          className="mt-4 rounded-full"
+          onClick={() => navigate("/marketplace")}
+        >
+          Browse products
+        </Button>
+      </div>
+    );
+  }
 
   const initializeWalletTopUp = async () => {
     const amount = Number(topUpAmount || suggestedTopUp);

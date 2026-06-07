@@ -64,7 +64,9 @@ export const useUpdateProduct = (id: string) => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: Partial<ProductInput>) => {
+      console.log("Updating product: ", input);
       const { data } = await api.put<Product>(`/products/${id}`, input);
+
       return data;
     },
     onSuccess: () => {
