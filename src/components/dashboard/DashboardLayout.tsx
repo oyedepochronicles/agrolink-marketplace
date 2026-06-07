@@ -5,6 +5,13 @@ import { NotificationsBell } from "@/components/NotificationsBell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -20,6 +27,7 @@ import {
   LineChart,
   LogOut,
   MapPin,
+  Menu,
   MessageSquare,
   PackageCheck,
   Settings,
@@ -31,6 +39,7 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import {
@@ -180,40 +189,43 @@ export const DashboardLayout = () => {
   const { user, logout } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
   if (!user || user.role === "buyer") return null;
   const dashboardRole = user.role === "super_admin" ? "admin" : user.role;
   const items = NAV_BY_ROLE[user.role];
 
+  const renderNavList = (onNavigate?: () => void) => (
+    <nav className="flex-1 space-y-1 overflow-y-auto px-3">
+      {items.map((item) => (
+        <NavLink
+          key={item.to}
+          to={item.to}
+          end
+          onClick={onNavigate}
+          className={({ isActive }) =>
+            cn(
+              "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base",
+              isActive
+                ? "bg-sidebar-accent text-white"
+                : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-white",
+            )
+          }
+        >
+          {item.icon}
+          {t(item.labelKey)}
+        </NavLink>
+      ))}
+    </nav>
+  );
+
   return (
     <div className="flex min-h-screen bg-secondary/30">
-      {/* Sidebar */}
+      {/* Desktop Sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex">
         <div className="px-6 py-6">
-          <Brand
-            variant="light"
-            to={`/dashboard/${dashboardRole}`}
-          />
+          <Brand variant="light" to={`/dashboard/${dashboardRole}`} />
         </div>
-        <nav className="flex-1 space-y-1 px-3">
-          {items.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-base",
-                  isActive
-                    ? "bg-sidebar-accent text-white"
-                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-white",
-                )
-              }
-            >
-              {item.icon}
-              {t(item.labelKey)}
-            </NavLink>
-          ))}
-        </nav>
+        {renderNavList()}
         <div className="space-y-2 p-3">
           <Button
             variant="outline"
@@ -229,7 +241,38 @@ export const DashboardLayout = () => {
       {/* Content */}
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-border bg-background/80 px-4 backdrop-blur md:px-8">
-          <div className="flex items-center gap-3 md:hidden">
+          <div className="flex items-center gap-2 md:hidden">
+            <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" aria-label="Open menu">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent
+                side="left"
+                className="flex w-72 flex-col bg-sidebar p-0 text-sidebar-foreground"
+              >
+                <SheetHeader className="px-6 py-5 text-left">
+                  <SheetTitle className="text-sidebar-foreground">
+                    <Brand variant="light" to={`/dashboard/${dashboardRole}`} />
+                  </SheetTitle>
+                </SheetHeader>
+                {renderNavList(() => setMobileOpen(false))}
+                <div className="space-y-2 p-3">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start rounded-xl border-white/15 bg-white/5 text-sidebar-foreground hover:bg-white/10 hover:text-white"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      navigate("/marketplace");
+                    }}
+                  >
+                    <ClipboardList className="mr-2 h-4 w-4" />{" "}
+                    {t("nav.goToMarketplace")}
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
             <Brand to={`/dashboard/${dashboardRole}`} />
           </div>
           <div className="hidden md:block">
@@ -246,7 +289,7 @@ export const DashboardLayout = () => {
               </Badge>
             )}
           </div>
-          <div className="ml-auto flex items-center gap-3">
+          <div className="ml-auto flex items-center gap-2 md:gap-3">
             <LanguageSwitcher />
             <NotificationsBell variant="light" />
             <DropdownMenu>
@@ -278,13 +321,11 @@ export const DashboardLayout = () => {
                 >
                   <UserIcon className="mr-2 h-4 w-4" /> {t("nav.profile")}
                 </DropdownMenuItem>
-
+                <DropdownMenuItem onClick={() => navigate("/verify-email")}>
+                  <ShieldCheck className="mr-2 h-4 w-4" /> Verify email
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    navigate("/marketplace");
-                  }}
-                >
+                <DropdownMenuItem onClick={() => navigate("/marketplace")}>
                   <ClipboardList className="mr-2 h-4 w-4" />{" "}
                   {t("nav.goToMarketplace")}
                 </DropdownMenuItem>
@@ -304,27 +345,7 @@ export const DashboardLayout = () => {
           </div>
         </header>
 
-        {/* Mobile bottom nav */}
-        <nav className="fixed bottom-0 left-0 right-0 z-40 flex border-t border-border bg-background md:hidden">
-          {items.slice(0, 5).map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end
-              className={({ isActive }) =>
-                cn(
-                  "flex flex-1 flex-col items-center gap-1 py-2.5 text-[10px] font-medium",
-                  isActive ? "text-primary" : "text-muted-foreground",
-                )
-              }
-            >
-              {item.icon}
-              {t(item.labelKey)}
-            </NavLink>
-          ))}
-        </nav>
-
-        <main className="flex-1 px-4 pb-24 pt-6 md:px-8 md:pb-10">
+        <main className="flex-1 px-4 pb-10 pt-6 md:px-8">
           <div className="mb-4">
             <EmailVerificationBanner />
           </div>

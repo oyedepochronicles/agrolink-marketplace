@@ -18,6 +18,7 @@ import Register from "./pages/auth/Register";
 import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyOTP from "./pages/auth/VerifyOTP";
 import VerifyPending from "./pages/auth/VerifyPending";
+import VerifyEmail from "./pages/auth/VerifyEmail";
 
 import { MarketplaceLayout } from "@/components/marketplace/MarketplaceLayout";
 import Cart from "./pages/marketplace/Cart";
@@ -76,6 +77,7 @@ const App = () => (
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/verify-otp" element={<VerifyOTP />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/verify-email" element={<VerifyEmail />} />
             <Route
               path="/verify-pending"
               element={
