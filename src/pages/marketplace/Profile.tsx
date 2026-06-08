@@ -127,25 +127,33 @@ const Profile = () => {
           </div>
         </div>
 
-        <div className="space-y-1 p-8">
+        <div className="space-y-1 p-6 md:p-8">
           <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-            <Lock className="h-3 w-3" /> Account details are locked. Contact
-            support to make changes.
+            <Lock className="h-3 w-3" /> Email and phone changes require OTP verification.
           </div>
+          <Row
+            icon={<UserIconLucide />}
+            label="Name"
+            value={user.name}
+            field="name"
+            requiresOtp={false}
+          />
           <Row
             icon={<Mail className="h-4 w-4" />}
             label="Email"
             value={user.email}
+            field="email"
             verified={user.isEmailVerified}
+            requiresOtp
           />
-          {user.phone && (
-            <Row
-              icon={<Phone className="h-4 w-4" />}
-              label="Phone"
-              value={user.phone}
-              verified={user.phoneVerified}
-            />
-          )}
+          <Row
+            icon={<Phone className="h-4 w-4" />}
+            label="Phone"
+            value={user.phone ?? "—"}
+            field="phone"
+            verified={user.phoneVerified}
+            requiresOtp
+          />
           {user.state && (
             <Row
               icon={<ShieldCheck className="h-4 w-4" />}
@@ -153,6 +161,7 @@ const Profile = () => {
               value={user.state}
             />
           )}
+
 
           <div className="flex flex-wrap items-center justify-end gap-2 pt-6">
             <ChangePasswordDialog
@@ -202,53 +211,81 @@ const Profile = () => {
   );
 };
 
+const UserIconLucide = () => (
+  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+    <circle cx="12" cy="7" r="4" />
+  </svg>
+);
+
 const Row = ({
   icon,
   label,
   value,
   verified,
+  field,
+  requiresOtp,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   verified?: boolean;
+  field?: "name" | "email" | "phone";
+  requiresOtp?: boolean;
 }) => {
   const statusText = verified
     ? `${label} is verified`
     : `${label} is not verified`;
 
   return (
-    <div className="flex items-center justify-between border-b border-border py-3 last:border-0">
-      <div className="flex items-center gap-3 text-sm text-muted-foreground">
-        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-primary">
+    <div className="flex items-center justify-between gap-3 border-b border-border py-3 last:border-0">
+      <div className="flex min-w-0 items-center gap-3 text-sm text-muted-foreground">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-secondary text-primary">
           {icon}
         </span>
-        {label}
+        <span className="shrink-0">{label}</span>
       </div>
 
-      <span className="flex items-center gap-2">
-        <p className="text-sm font-semibold">{value}</p>
+      <div className="flex min-w-0 items-center gap-2">
+        <p className="truncate text-sm font-semibold">{value}</p>
 
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="cursor-pointer">
-                {verified ? (
-                  <Verified className="h-4 w-4 text-green-600" />
-                ) : (
-                  <AlertCircle className="h-4 w-4 text-red-500" />
-                )}
-              </span>
-            </TooltipTrigger>
+        {typeof verified === "boolean" && (
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="cursor-pointer">
+                  {verified ? (
+                    <Verified className="h-4 w-4 text-green-600" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-red-500" />
+                  )}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{statusText}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        )}
 
-            <TooltipContent>
-              <p>{statusText}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </span>
+        {field && (
+          <EditProfileFieldDialog
+            field={field}
+            trigger={
+              <button
+                type="button"
+                aria-label={`Edit ${label}`}
+                className="rounded-full p-1.5 text-muted-foreground hover:bg-secondary hover:text-primary"
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </button>
+            }
+          />
+        )}
+      </div>
     </div>
   );
 };
 
 export default Profile;
+
