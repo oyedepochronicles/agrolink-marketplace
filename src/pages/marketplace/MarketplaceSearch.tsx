@@ -11,9 +11,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/sonner";
 import { useCurrentLocation } from "@/hooks/useLocation";
-import { useProducts } from "@/hooks/useProducts";
+import { useProductsPaged } from "@/hooks/useProducts";
 import { NIGERIAN_STATES } from "@/lib/nigerianLocations";
-import { Search as SearchIcon, SlidersHorizontal } from "lucide-react";
+import { Pager } from "@/pages/marketplace/MarketplaceHome";
+import { Loader2, Search as SearchIcon, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
