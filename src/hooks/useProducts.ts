@@ -34,7 +34,9 @@ export interface PagedProducts {
   totalPages: number;
 }
 
-const unwrapProducts = (data: ProductListResponse | Product[]): PagedProducts => {
+const unwrapProducts = (
+  data: ProductListResponse | Product[],
+): PagedProducts => {
   if (Array.isArray(data)) {
     return {
       items: data,
@@ -47,7 +49,8 @@ const unwrapProducts = (data: ProductListResponse | Product[]): PagedProducts =>
   const items = data.items ?? data.data ?? data.products ?? [];
   const pageSize = data.pageSize ?? data.limit ?? items.length ?? 12;
   const total = data.total ?? items.length;
-  const totalPages = data.pages ?? (pageSize > 0 ? Math.max(1, Math.ceil(total / pageSize)) : 1);
+  const totalPages =
+    data.pages ?? (pageSize > 0 ? Math.max(1, Math.ceil(total / pageSize)) : 1);
   return {
     items,
     total,
@@ -61,9 +64,12 @@ export const useProducts = (filters: ProductFilters = {}) =>
   useQuery({
     queryKey: ["products", filters],
     queryFn: async (): Promise<Product[]> => {
-      const { data } = await api.get<ProductListResponse | Product[]>("/products", {
-        params: filters,
-      });
+      const { data } = await api.get<ProductListResponse | Product[]>(
+        "/products",
+        {
+          params: filters,
+        },
+      );
       return unwrapProducts(data).items;
     },
   });
@@ -72,9 +78,12 @@ export const useProductsPaged = (filters: ProductFilters = {}) =>
   useQuery({
     queryKey: ["products", "paged", filters],
     queryFn: async (): Promise<PagedProducts> => {
-      const { data } = await api.get<ProductListResponse | Product[]>("/products", {
-        params: filters,
-      });
+      const { data } = await api.get<ProductListResponse | Product[]>(
+        "/products",
+        {
+          params: filters,
+        },
+      );
       return unwrapProducts(data);
     },
     placeholderData: (prev) => prev,
@@ -88,15 +97,16 @@ export const useProductsNearBy = () => {
     !error &&
     typeof location.lat === "number" &&
     typeof location.lng === "number";
-
+  const coords = hasLocation ? { lat: location.lat, lng: location.lng } : null;
   const query = useQuery({
-    queryKey: ["products", "nearby", location.lat, location.lng],
+    queryKey: ["products", "nearby", coords?.lat, coords?.lng],
     enabled: hasLocation,
     queryFn: async (): Promise<Product[]> => {
       const { data } = await api.get<ProductListResponse | Product[]>(
         "/products/nearby",
-        { params: { lat: location.lat, lng: location.lng, radius: 10 } },
+        { params: { lat: coords!.lat, lng: coords!.lng, radius: 10 } },
       );
+      console.log("Nearby products data:", data);
       return unwrapProducts(data).items;
     },
   });

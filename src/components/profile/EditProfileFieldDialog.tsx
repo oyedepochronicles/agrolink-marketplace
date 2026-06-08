@@ -17,7 +17,13 @@ import {
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { api, apiErrorMessage } from "@/lib/api";
-import { Loader2, Mail, Phone, ShieldCheck, User as UserIcon } from "lucide-react";
+import {
+  Loader2,
+  Mail,
+  Phone,
+  ShieldCheck,
+  User as UserIcon,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -75,7 +81,7 @@ export const EditProfileFieldDialog = ({ field, trigger }: Props) => {
   const saveNonSensitive = async () => {
     setBusy(true);
     try {
-      await api.patch("/users/me", { [field]: value });
+      await api.put("/users/me", { [field]: value });
       await refresh();
       toast.success(`${label} updated`);
       setOpen(false);
@@ -90,21 +96,18 @@ export const EditProfileFieldDialog = ({ field, trigger }: Props) => {
     if (!validate()) return;
     setBusy(true);
     try {
+      let endpoint = "";
+      if (field === "email") endpoint = "/auth/request-verification";
+      else if (field === "phone") endpoint = "/auth/request-phone-otp";
       // Tries standard endpoint; backend should send OTP to the new email/phone.
-      await api.post("/users/me/request-change-otp", { field, value });
+      console.log("Requesting OTP with value:", { value, field });
+      await api.post(endpoint, { field, value });
       setRequested(true);
       setStep("otp");
+
       toast.success(`OTP sent to your new ${field}`);
     } catch (e) {
-      // Fallback to common alt endpoint
-      try {
-        await api.post("/auth/send-otp", { type: field, value });
-        setRequested(true);
-        setStep("otp");
-        toast.success(`OTP sent to your new ${field}`);
-      } catch {
-        toast.error(apiErrorMessage(e));
-      }
+      toast.error(apiErrorMessage(e));
     } finally {
       setBusy(false);
     }
@@ -117,7 +120,10 @@ export const EditProfileFieldDialog = ({ field, trigger }: Props) => {
     }
     setBusy(true);
     try {
-      await api.post("/users/me/confirm-change", { field, value, otp });
+      let endpoint = "";
+      if (field === "email") endpoint = "/auth/verify-email";
+      else if (field === "phone") endpoint = "/auth/verify-phone-otp";
+      await api.post(endpoint, { otp });
       await refresh();
       toast.success(`${label} updated`);
       setOpen(false);
@@ -135,7 +141,10 @@ export const EditProfileFieldDialog = ({ field, trigger }: Props) => {
       setBusy(false);
     }
   };
-
+  const isUnchanged = value === (user?.[field] ?? "");
+  const isLocked =
+    (field === "email" && user.isEmailVerified && isUnchanged) ||
+    (field === "phone" && user.phoneVerified && isUnchanged);
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <div onClick={() => setOpen(true)} className="inline-flex">
@@ -144,7 +153,8 @@ export const EditProfileFieldDialog = ({ field, trigger }: Props) => {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Icon className="h-5 w-5 text-primary" /> Update {label.toLowerCase()}
+            <Icon className="h-5 w-5 text-primary" /> Update{" "}
+            {label.toLowerCase()}
           </DialogTitle>
           <DialogDescription>
             {isSensitive
@@ -158,7 +168,9 @@ export const EditProfileFieldDialog = ({ field, trigger }: Props) => {
             <Label htmlFor="edit-value">New {label.toLowerCase()}</Label>
             <Input
               id="edit-value"
-              type={field === "email" ? "email" : field === "phone" ? "tel" : "text"}
+              type={
+                field === "email" ? "email" : field === "phone" ? "tel" : "text"
+              }
               autoComplete={field}
               value={value}
               onChange={(e) => setValue(e.target.value)}
@@ -184,8 +196,7 @@ export const EditProfileFieldDialog = ({ field, trigger }: Props) => {
               </InputOTPGroup>
             </InputOTP>
             <p className="text-xs text-muted-foreground">
-              We sent a code to <span className="font-semibold">{value}</span>.
-              {" "}
+              We sent a code to <span className="font-semibold">{value}</span>.{" "}
               <button
                 type="button"
                 onClick={requestOtp}
@@ -199,13 +210,17 @@ export const EditProfileFieldDialog = ({ field, trigger }: Props) => {
         )}
 
         <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={busy}>
+          <Button
+            variant="outline"
+            onClick={() => setOpen(false)}
+            disabled={busy}
+          >
             Cancel
           </Button>
           {step === "input" ? (
             <Button
               onClick={isSensitive ? requestOtp : saveNonSensitive}
-              disabled={busy || !value.trim() || value === (user?.[field] as string)}
+              disabled={busy || !value.trim() || isLocked}
               className="rounded-full bg-gradient-primary"
             >
               {busy && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
