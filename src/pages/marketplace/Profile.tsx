@@ -23,6 +23,7 @@ import {
   Lock,
   LogOut,
   Mail,
+  Pencil,
   Phone,
   ShieldAlert,
   ShieldCheck,
