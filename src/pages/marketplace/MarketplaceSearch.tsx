@@ -39,27 +39,34 @@ const MarketplaceSearch = () => {
   const [maxPrice, setMaxPrice] = useState(params.get("maxPrice") ?? "");
   const [location, setLocation] = useState("anywhere");
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
-  const { location: currentLocation, loading, error } = useCurrentLocation();
+  const [page, setPage] = useState(Number(params.get("page") ?? "1") || 1);
+  const PAGE_SIZE = 12;
+  const { location: currentLocation, loading: locating, error } = useCurrentLocation();
 
   useEffect(() => {
-    if (location === "nearby") {
-      if (!loading && !error && currentLocation) {
-        setGeo({
-          lat: currentLocation.lat,
-          lng: currentLocation.lng,
-        });
-      } else if (error) {
-        toast.error(
-          "Couldn't access your location. Please allow location access or try again.",
-        );
-        setGeo(null);
-        setLocation("anywhere");
-      }
-    } else {
+    if (location !== "nearby") {
+      setGeo(null);
+      return;
+    }
+    if (locating) return;
+    if (error) {
+      toast.error("Couldn't access your location. Please allow location access or try again.");
       setGeo(null);
       setLocation("anywhere");
+      return;
     }
-  }, [location, loading, error, currentLocation]);
+    if (
+      typeof currentLocation.lat === "number" &&
+      typeof currentLocation.lng === "number"
+    ) {
+      setGeo({ lat: currentLocation.lat, lng: currentLocation.lng });
+    }
+  }, [location, locating, error, currentLocation.lat, currentLocation.lng]);
+
+  // Reset to first page on filter change
+  useEffect(() => {
+    setPage(1);
+  }, [q, category, state, minPrice, maxPrice, geo?.lat, geo?.lng]);
 
   useEffect(() => {
     const p = new URLSearchParams();
@@ -68,10 +75,11 @@ const MarketplaceSearch = () => {
     if (state !== "all") p.set("state", state);
     if (minPrice) p.set("minPrice", minPrice);
     if (maxPrice) p.set("maxPrice", maxPrice);
-    if (geo?.lat) p.set("lat", geo?.lat.toString());
-    if (geo?.lng) p.set("lng", geo?.lng.toString());
+    if (geo?.lat) p.set("lat", geo.lat.toString());
+    if (geo?.lng) p.set("lng", geo.lng.toString());
+    if (page > 1) p.set("page", String(page));
     setParams(p, { replace: true });
-  }, [q, category, state, minPrice, maxPrice, setParams, geo]);
+  }, [q, category, state, minPrice, maxPrice, setParams, geo, page]);
 
   const filters = useMemo(
     () => ({
@@ -82,22 +90,27 @@ const MarketplaceSearch = () => {
       maxPrice: maxPrice ? Number(maxPrice) : undefined,
       nearLat: geo?.lat,
       nearLng: geo?.lng,
+      page,
+      limit: PAGE_SIZE,
     }),
-    [q, category, state, minPrice, maxPrice, geo],
+    [q, category, state, minPrice, maxPrice, geo, page],
   );
 
-  const { data: products, isLoading, isError } = useProducts(filters);
+  const { data: paged, isLoading, isError, isFetching } = useProductsPaged(filters);
+  const products = paged?.items ?? [];
+  const totalPages = paged?.totalPages ?? 1;
 
   const filtered = useMemo(() => {
     if (!products || !q) return products ?? [];
     const needle = q.toLowerCase();
     return products.filter(
       (p) =>
-        p.title.toLowerCase().includes(needle) ||
+        (p.title ?? p.name ?? "").toLowerCase().includes(needle) ||
         p.description?.toLowerCase().includes(needle) ||
         p.category?.toLowerCase().includes(needle),
     );
   }, [products, q]);
+
 
   return (
     <div className="container py-8">
