@@ -10,65 +10,105 @@ interface ProductFilters {
   minPrice?: number;
   maxPrice?: number;
   page?: number;
+  limit?: number;
+  nearLat?: number;
+  nearLng?: number;
 }
 
-interface ProductNearByFilters extends ProductFilters {
-  lat: number;
-  lng: number;
-  radius?: number; // in kilometers
-  limit?: number;
-}
 interface ProductListResponse {
   items?: Product[];
   data?: Product[];
   products?: Product[];
   total?: number;
+  page?: number;
+  pages?: number;
+  pageSize?: number;
+  limit?: number;
 }
+
+export interface PagedProducts {
+  items: Product[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+const unwrapProducts = (data: ProductListResponse | Product[]): PagedProducts => {
+  if (Array.isArray(data)) {
+    return {
+      items: data,
+      total: data.length,
+      page: 1,
+      pageSize: data.length || 12,
+      totalPages: 1,
+    };
+  }
+  const items = data.items ?? data.data ?? data.products ?? [];
+  const pageSize = data.pageSize ?? data.limit ?? items.length ?? 12;
+  const total = data.total ?? items.length;
+  const totalPages = data.pages ?? (pageSize > 0 ? Math.max(1, Math.ceil(total / pageSize)) : 1);
+  return {
+    items,
+    total,
+    page: data.page ?? 1,
+    pageSize,
+    totalPages,
+  };
+};
 
 export const useProducts = (filters: ProductFilters = {}) =>
   useQuery({
     queryKey: ["products", filters],
     queryFn: async (): Promise<Product[]> => {
-      const { data } = await api.get<ProductListResponse | Product[]>(
-        "/products",
-        { params: filters },
-      );
-      if (Array.isArray(data)) return data;
-      return data.items ?? data.data ?? data.products ?? [];
+      const { data } = await api.get<ProductListResponse | Product[]>("/products", {
+        params: filters,
+      });
+      return unwrapProducts(data).items;
     },
   });
+
+export const useProductsPaged = (filters: ProductFilters = {}) =>
+  useQuery({
+    queryKey: ["products", "paged", filters],
+    queryFn: async (): Promise<PagedProducts> => {
+      const { data } = await api.get<ProductListResponse | Product[]>("/products", {
+        params: filters,
+      });
+      return unwrapProducts(data);
+    },
+    placeholderData: (prev) => prev,
+  });
+
 export const useProductsNearBy = () => {
-  const { location, loading, error } = useCurrentLocation();
+  const { location, loading: locating, error } = useCurrentLocation();
 
   const hasLocation =
-    !loading &&
+    !locating &&
     !error &&
     typeof location.lat === "number" &&
     typeof location.lng === "number";
 
-  const filters = hasLocation
-    ? {
-        lat: location.lat,
-        lng: location.lng,
-        radius: 10,
-      }
-    : null;
-
-  return useQuery({
+  const query = useQuery({
     queryKey: ["products", "nearby", location.lat, location.lng],
     enabled: hasLocation,
     queryFn: async (): Promise<Product[]> => {
       const { data } = await api.get<ProductListResponse | Product[]>(
         "/products/nearby",
-        {
-          params: filters!,
-        },
+        { params: { lat: location.lat, lng: location.lng, radius: 10 } },
       );
-
-      if (Array.isArray(data)) return data;
-      return data.items ?? data.data ?? data.products ?? [];
+      return unwrapProducts(data).items;
     },
   });
+
+  return {
+    ...query,
+    locating,
+    locationError: error,
+    hasLocation,
+    // Treat geo-loading as loading so UI shows skeleton instead of empty state.
+    isLoading: locating || query.isLoading,
+  };
 };
 
 export const useProduct = (id?: string) =>
