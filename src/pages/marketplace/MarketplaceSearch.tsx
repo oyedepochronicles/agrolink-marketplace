@@ -233,13 +233,31 @@ const MarketplaceSearch = () => {
       {!isLoading && filtered.length > 0 && (
         <>
           <p className="mb-4 text-sm text-muted-foreground">
-            {filtered.length} result{filtered.length === 1 ? "" : "s"}
+            {paged?.total ?? filtered.length} result{(paged?.total ?? filtered.length) === 1 ? "" : "s"}
+            {location === "nearby" && locating && (
+              <span className="ml-2 inline-flex items-center gap-1 text-xs">
+                <Loader2 className="h-3 w-3 animate-spin" /> finding nearby…
+              </span>
+            )}
           </p>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {filtered.map((p) => (
               <ProductCard key={p._id ?? p.id} product={p} />
             ))}
           </div>
+          {totalPages > 1 && (
+            <div className="mt-8">
+              <Pager
+                page={page}
+                totalPages={totalPages}
+                onChange={(p) => {
+                  setPage(p);
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }}
+                busy={isFetching}
+              />
+            </div>
+          )}
         </>
       )}
     </div>
