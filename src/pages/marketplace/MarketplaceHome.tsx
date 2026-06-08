@@ -3,9 +3,12 @@ import { ProductCard } from "@/components/marketplace/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageMeta } from "@/hooks/usePageMeta";
-import { useProducts, useProductsNearBy } from "@/hooks/useProducts";
+import { useProductsNearBy, useProductsPaged } from "@/hooks/useProducts";
 import {
   ArrowRight,
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
   MessageCircle,
   ShieldCheck,
   Sparkles,
@@ -25,25 +28,39 @@ const categories = [
   { label: "Spices", value: "Other" },
 ];
 
+const PAGE_SIZE = 12;
+
 const MarketplaceHome = () => {
   const [activeCat, setActiveCat] = useState("All");
+  const [page, setPage] = useState(1);
 
-  const {
-    data: products,
-    isLoading,
-    isError,
-  } = useProducts(activeCat === "All" ? {} : { category: activeCat });
+  const filters = useMemo(
+    () => ({
+      ...(activeCat === "All" ? {} : { category: activeCat }),
+      page,
+      limit: PAGE_SIZE,
+    }),
+    [activeCat, page],
+  );
+
+  const { data: paged, isLoading, isError, isFetching } = useProductsPaged(filters);
+
+  const products = paged?.items ?? [];
+  const totalPages = paged?.totalPages ?? 1;
+
+  const featured = useMemo(() => products.slice(0, 8), [products]);
+  const fresh = useMemo(() => products.slice(8), [products]);
 
   const {
     data: productNearBy,
     isLoading: isNearByLoading,
     isError: isNearByError,
+    locating,
+    locationError,
+    hasLocation,
   } = useProductsNearBy();
 
-  const featured = useMemo(() => products?.slice(0, 8) ?? [], [products]);
-  const fresh = useMemo(() => products?.slice(8, 20) ?? [], [products]);
-  const nearBy = useMemo(() => productNearBy ?? [], [productNearBy]);
-  console.log("Nearby products:", nearBy);
+  const nearBy = productNearBy ?? [];
 
   usePageMeta({
     title: "Fresh Farm Produce Marketplace | PhyhanAgro",
@@ -52,6 +69,11 @@ const MarketplaceHome = () => {
     path: "/marketplace",
     image: "/og-image.svg",
   });
+
+  const onChangeCat = (value: string) => {
+    setActiveCat(value);
+    setPage(1);
+  };
 
   return (
     <>
@@ -115,21 +137,9 @@ const MarketplaceHome = () => {
       {/* Trust strip */}
       <section className="border-y border-border bg-secondary/40">
         <div className="container grid gap-6 py-8 md:grid-cols-3">
-          <Trust
-            icon={<ShieldCheck className="h-5 w-5" />}
-            title="Verified farmers"
-            desc="Every seller is vetted by our team."
-          />
-          <Trust
-            icon={<Truck className="h-5 w-5" />}
-            title="Fast delivery"
-            desc="Trusted riders across all 36 states."
-          />
-          <Trust
-            icon={<MessageCircle className="h-5 w-5" />}
-            title="Real-time chat"
-            desc="Talk to sellers before you buy."
-          />
+          <Trust icon={<ShieldCheck className="h-5 w-5" />} title="Verified farmers" desc="Every seller is vetted by our team." />
+          <Trust icon={<Truck className="h-5 w-5" />} title="Fast delivery" desc="Trusted riders across all 36 states." />
+          <Trust icon={<MessageCircle className="h-5 w-5" />} title="Real-time chat" desc="Talk to sellers before you buy." />
         </div>
       </section>
 
@@ -137,17 +147,10 @@ const MarketplaceHome = () => {
       <section className="container py-12">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">
-              Shop by category
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Pick a category to explore fresh listings.
-            </p>
+            <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">Shop by category</h2>
+            <p className="text-sm text-muted-foreground">Pick a category to explore fresh listings.</p>
           </div>
-          <Link
-            to="/marketplace/search"
-            className="text-sm font-semibold text-primary hover:underline"
-          >
+          <Link to="/marketplace/search" className="text-sm font-semibold text-primary hover:underline">
             View all →
           </Link>
         </div>
@@ -155,7 +158,7 @@ const MarketplaceHome = () => {
           {categories.map((cat) => (
             <button
               key={cat.label}
-              onClick={() => setActiveCat(cat.value)}
+              onClick={() => onChangeCat(cat.value)}
               className={
                 "shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-base " +
                 (activeCat === cat.value
@@ -172,15 +175,12 @@ const MarketplaceHome = () => {
       {/* Featured grid */}
       <section className="container pb-12">
         <div className="mb-6 flex items-end justify-between">
-          <h2 className="font-display text-xl font-extrabold tracking-tight md:text-2xl">
-            Featured listings
-          </h2>
+          <h2 className="font-display text-xl font-extrabold tracking-tight md:text-2xl">Featured listings</h2>
         </div>
         {isLoading && <ProductGridSkeleton count={8} />}
         {isError && (
           <div className="rounded-2xl border border-border bg-secondary/40 p-8 text-center text-sm text-muted-foreground">
-            Couldn't load products. Make sure the API is running at{" "}
-            <code className="font-mono">localhost:5000</code>.
+            Couldn't load products. Make sure the API is running.
           </div>
         )}
         {!isLoading && !isError && featured.length === 0 && <EmptyState />}
@@ -195,10 +195,8 @@ const MarketplaceHome = () => {
 
       {/* Fresh today */}
       {fresh.length > 0 && (
-        <section className="container pb-20">
-          <h2 className="mb-6 font-display text-xl font-extrabold tracking-tight md:text-2xl">
-            Fresh today
-          </h2>
+        <section className="container pb-8">
+          <h2 className="mb-6 font-display text-xl font-extrabold tracking-tight md:text-2xl">Fresh today</h2>
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
             {fresh.map((p) => (
               <ProductCard key={p._id ?? p.id} product={p} />
@@ -207,31 +205,53 @@ const MarketplaceHome = () => {
         </section>
       )}
 
+      {/* Pagination */}
+      {!isLoading && totalPages > 1 && (
+        <section className="container pb-16">
+          <Pager
+            page={page}
+            totalPages={totalPages}
+            onChange={(p) => {
+              setPage(p);
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }}
+            busy={isFetching}
+          />
+        </section>
+      )}
+
       {/* NearBy products */}
       <section className="container pb-20">
-        <div className="mb-6 font-display text-xl font-extrabold tracking-tight md:text-2xl">
-          <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">
-            Nearby fresh finds
-          </h2>
+        <div className="mb-6 flex items-center gap-2">
+          <MapPin className="h-5 w-5 text-primary" />
+          <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">Nearby fresh finds</h2>
         </div>
-        {isNearByLoading && <ProductGridSkeleton count={8} />}
-        {isNearByError && (
-          <div className="rounded-2xl border border-border bg-secondary/40 p-8 text-center text-sm text-muted-foreground">
-            Couldn't load products. Make sure the API is running at{" "}
-            <code className="font-mono">localhost:5000</code>.
+        {locating && (
+          <div className="rounded-2xl border border-dashed border-border bg-secondary/30 p-6 text-center text-sm text-muted-foreground">
+            Detecting your location…
           </div>
         )}
-        {!isNearByLoading && !isNearByError && nearBy.length === 0 && (
-          <EmptyState />
+        {!locating && locationError && (
+          <div className="rounded-2xl border border-dashed border-border bg-secondary/30 p-6 text-center text-sm text-muted-foreground">
+            Enable location to discover farms near you.
+          </div>
         )}
-        {!isNearByLoading && nearBy?.length > 0 && (
+        {!locating && hasLocation && isNearByLoading && <ProductGridSkeleton count={8} />}
+        {!locating && hasLocation && isNearByError && (
+          <div className="rounded-2xl border border-border bg-secondary/40 p-8 text-center text-sm text-muted-foreground">
+            Couldn't load nearby products.
+          </div>
+        )}
+        {!locating && hasLocation && !isNearByLoading && !isNearByError && nearBy.length === 0 && <EmptyState />}
+        {!locating && hasLocation && nearBy.length > 0 && (
           <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-            {nearBy?.map((p) => (
+            {nearBy.map((p) => (
               <ProductCard key={p._id ?? p.id} product={p} />
             ))}
           </div>
         )}
       </section>
+
       {/* CTA */}
       <section className="container pb-20">
         <div className="overflow-hidden rounded-3xl bg-gradient-primary p-10 text-white shadow-elegant md:p-14">
@@ -243,16 +263,11 @@ const MarketplaceHome = () => {
                 Reach buyers across Nigeria.
               </h3>
               <p className="mt-3 max-w-md text-white/85">
-                List your harvest in minutes. We handle payments, chat, and
-                delivery logistics.
+                List your harvest in minutes. We handle payments, chat, and delivery logistics.
               </p>
             </div>
             <div className="md:justify-self-end">
-              <Button
-                asChild
-                size="lg"
-                className="rounded-full bg-white text-primary-deep hover:bg-white/90"
-              >
+              <Button asChild size="lg" className="rounded-full bg-white text-primary-deep hover:bg-white/90">
                 <Link to="/affiliate">
                   Apply as farmer <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
@@ -272,15 +287,7 @@ const Stat = ({ value, label }: { value: string; label: string }) => (
   </div>
 );
 
-const Trust = ({
-  icon,
-  title,
-  desc,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  desc: string;
-}) => (
+const Trust = ({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) => (
   <div className="flex items-start gap-3">
     <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
       {icon}
@@ -312,5 +319,76 @@ const EmptyState = () => (
     </p>
   </div>
 );
+
+export const Pager = ({
+  page,
+  totalPages,
+  onChange,
+  busy,
+}: {
+  page: number;
+  totalPages: number;
+  onChange: (page: number) => void;
+  busy?: boolean;
+}) => {
+  const pages = useMemo(() => {
+    const max = 5;
+    const start = Math.max(1, Math.min(page - 2, totalPages - max + 1));
+    const end = Math.min(totalPages, start + max - 1);
+    const arr: number[] = [];
+    for (let i = start; i <= end; i++) arr.push(i);
+    return arr;
+  }, [page, totalPages]);
+
+  return (
+    <div className="flex items-center justify-center gap-1.5">
+      <Button
+        variant="outline"
+        size="sm"
+        className="rounded-full"
+        disabled={page <= 1 || busy}
+        onClick={() => onChange(page - 1)}
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </Button>
+      {pages[0] > 1 && (
+        <>
+          <Button variant="ghost" size="sm" className="rounded-full" onClick={() => onChange(1)}>
+            1
+          </Button>
+          {pages[0] > 2 && <span className="px-1 text-muted-foreground">…</span>}
+        </>
+      )}
+      {pages.map((p) => (
+        <Button
+          key={p}
+          variant={p === page ? "default" : "ghost"}
+          size="sm"
+          className="min-w-9 rounded-full"
+          onClick={() => onChange(p)}
+        >
+          {p}
+        </Button>
+      ))}
+      {pages[pages.length - 1] < totalPages && (
+        <>
+          {pages[pages.length - 1] < totalPages - 1 && <span className="px-1 text-muted-foreground">…</span>}
+          <Button variant="ghost" size="sm" className="rounded-full" onClick={() => onChange(totalPages)}>
+            {totalPages}
+          </Button>
+        </>
+      )}
+      <Button
+        variant="outline"
+        size="sm"
+        className="rounded-full"
+        disabled={page >= totalPages || busy}
+        onClick={() => onChange(page + 1)}
+      >
+        <ChevronRight className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+};
 
 export default MarketplaceHome;
