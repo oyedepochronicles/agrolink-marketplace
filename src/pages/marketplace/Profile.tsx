@@ -1,4 +1,5 @@
 import { ChangePasswordDialog } from "@/components/profile/ChangePasswordDialog";
+import { EditProfileFieldDialog } from "@/components/profile/EditProfileFieldDialog";
 import { RoleUpgradeDialog } from "@/components/profile/RoleUpgradeDialog";
 import { VerificationRequestDialog } from "@/components/profile/VerificationRequestDialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
