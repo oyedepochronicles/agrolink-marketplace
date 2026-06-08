@@ -1,3 +1,4 @@
+import { AnnouncementBannerSwiper } from "@/components/AnnouncementBannerSwipper";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -127,6 +128,7 @@ const Announcements = () => {
                         {a.type}
                       </Badge>
                     </div>
+                    {a.banner && <AnnouncementBannerSwiper images={a.banner} />}
                     <p className="mt-2 whitespace-pre-line text-sm text-foreground/80">
                       {a.message}
                     </p>
@@ -137,7 +139,7 @@ const Announcements = () => {
                           : formatDistanceToNow(time, { addSuffix: true })}
                       </span>
                       <div className="flex items-center gap-2">
-                        {a.actionUrl && a.actionLabel && (
+                        {a.actionLink && a.actionLabel && (
                           <Button
                             size="sm"
                             variant="outline"
@@ -145,7 +147,7 @@ const Announcements = () => {
                             asChild
                           >
                             <a
-                              href={a.actionUrl}
+                              href={a.actionLink}
                               target="_blank"
                               rel="noreferrer"
                             >
@@ -153,6 +155,7 @@ const Announcements = () => {
                             </a>
                           </Button>
                         )}
+
                         {a.dismissible !== false && (
                           <button
                             type="button"

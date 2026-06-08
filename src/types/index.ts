@@ -17,7 +17,8 @@ export interface User {
   role: Role;
   verificationStatus?: VerificationStatus;
   isVerified?: boolean;
-  emailVerified?: boolean;
+  isEmailVerified?: boolean;
+  phoneVerified?: boolean;
   emailVerifiedAt?: string;
   isSuspended?: boolean;
   isDeactivated?: boolean;

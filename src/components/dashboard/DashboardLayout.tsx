@@ -59,20 +59,68 @@ interface NavEntry {
 
 const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
   farmer: [
-    { to: "/dashboard/farmer", labelKey: "dashboard.overview", icon: <LayoutDashboard className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/products", labelKey: "dashboard.products", icon: <Box className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/batches", labelKey: "dashboard.batches", icon: <PackageCheck className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/orders", labelKey: "dashboard.orders", icon: <ShoppingCart className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/pickup", labelKey: "dashboard.pickupCenter", icon: <MapPin className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/sla", labelKey: "dashboard.sla", icon: <Timer className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
-    { to: "/dashboard/farmer/wallet", labelKey: "dashboard.wallet", icon: <Wallet className="h-4 w-4" /> },
+    {
+      to: "/dashboard/farmer",
+      labelKey: "dashboard.overview",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/products",
+      labelKey: "dashboard.products",
+      icon: <Box className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/batches",
+      labelKey: "dashboard.batches",
+      icon: <PackageCheck className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/orders",
+      labelKey: "dashboard.orders",
+      icon: <ShoppingCart className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/pickup",
+      labelKey: "dashboard.pickupCenter",
+      icon: <MapPin className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/sla",
+      labelKey: "dashboard.sla",
+      icon: <Timer className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/messages",
+      labelKey: "dashboard.messages",
+      icon: <MessageSquare className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/wallet",
+      labelKey: "dashboard.wallet",
+      icon: <Wallet className="h-4 w-4" />,
+    },
   ],
   rider: [
-    { to: "/dashboard/rider", labelKey: "dashboard.deliveries", icon: <Truck className="h-4 w-4" /> },
-    { to: "/dashboard/rider/batches", labelKey: "dashboard.batches", icon: <PackageCheck className="h-4 w-4" /> },
-    { to: "/dashboard/rider/messages", labelKey: "dashboard.messages", icon: <MessageSquare className="h-4 w-4" /> },
-    { to: "/dashboard/rider/earnings", labelKey: "dashboard.earnings", icon: <Wallet className="h-4 w-4" /> },
+    {
+      to: "/dashboard/rider",
+      labelKey: "dashboard.deliveries",
+      icon: <Truck className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/rider/batches",
+      labelKey: "dashboard.batches",
+      icon: <PackageCheck className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/rider/messages",
+      labelKey: "dashboard.messages",
+      icon: <MessageSquare className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/rider/earnings",
+      labelKey: "dashboard.earnings",
+      icon: <Wallet className="h-4 w-4" />,
+    },
   ],
   admin: [
     {
@@ -321,9 +369,12 @@ export const DashboardLayout = () => {
                 >
                   <UserIcon className="mr-2 h-4 w-4" /> {t("nav.profile")}
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/verify-email")}>
-                  <ShieldCheck className="mr-2 h-4 w-4" /> Verify email
-                </DropdownMenuItem>
+                {!user.isEmailVerified && (
+                  <DropdownMenuItem onClick={() => navigate("/verify-email")}>
+                    <ShieldCheck className="mr-2 h-4 w-4" /> Verify email
+                  </DropdownMenuItem>
+                )}
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate("/marketplace")}>
                   <ClipboardList className="mr-2 h-4 w-4" />{" "}

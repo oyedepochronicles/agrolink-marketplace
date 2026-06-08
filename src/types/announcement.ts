@@ -18,7 +18,7 @@ export interface Announcement {
   isActive?: boolean;
   endDate?: string;
   banner?: string[];
-  actionUrl?: string;
+  actionLink?: string;
   actionLabel?: string;
   dismissible?: boolean;
   isPinned?: boolean;

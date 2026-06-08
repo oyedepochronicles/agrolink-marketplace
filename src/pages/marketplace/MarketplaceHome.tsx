@@ -3,7 +3,7 @@ import { ProductCard } from "@/components/marketplace/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageMeta } from "@/hooks/usePageMeta";
-import { useProducts } from "@/hooks/useProducts";
+import { useProducts, useProductsNearBy } from "@/hooks/useProducts";
 import {
   ArrowRight,
   MessageCircle,
@@ -27,14 +27,23 @@ const categories = [
 
 const MarketplaceHome = () => {
   const [activeCat, setActiveCat] = useState("All");
+
   const {
     data: products,
     isLoading,
     isError,
   } = useProducts(activeCat === "All" ? {} : { category: activeCat });
 
+  const {
+    data: productNearBy,
+    isLoading: isNearByLoading,
+    isError: isNearByError,
+  } = useProductsNearBy();
+
   const featured = useMemo(() => products?.slice(0, 8) ?? [], [products]);
   const fresh = useMemo(() => products?.slice(8, 20) ?? [], [products]);
+  const nearBy = useMemo(() => productNearBy ?? [], [productNearBy]);
+  console.log("Nearby products:", nearBy);
 
   usePageMeta({
     title: "Fresh Farm Produce Marketplace | PhyhanAgro",
@@ -198,6 +207,31 @@ const MarketplaceHome = () => {
         </section>
       )}
 
+      {/* NearBy products */}
+      <section className="container pb-20">
+        <div className="mb-6 font-display text-xl font-extrabold tracking-tight md:text-2xl">
+          <h2 className="font-display text-2xl font-extrabold tracking-tight md:text-3xl">
+            Nearby fresh finds
+          </h2>
+        </div>
+        {isNearByLoading && <ProductGridSkeleton count={8} />}
+        {isNearByError && (
+          <div className="rounded-2xl border border-border bg-secondary/40 p-8 text-center text-sm text-muted-foreground">
+            Couldn't load products. Make sure the API is running at{" "}
+            <code className="font-mono">localhost:5000</code>.
+          </div>
+        )}
+        {!isNearByLoading && !isNearByError && nearBy.length === 0 && (
+          <EmptyState />
+        )}
+        {!isNearByLoading && nearBy?.length > 0 && (
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+            {nearBy?.map((p) => (
+              <ProductCard key={p._id ?? p.id} product={p} />
+            ))}
+          </div>
+        )}
+      </section>
       {/* CTA */}
       <section className="container pb-20">
         <div className="overflow-hidden rounded-3xl bg-gradient-primary p-10 text-white shadow-elegant md:p-14">

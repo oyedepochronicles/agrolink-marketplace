@@ -31,7 +31,7 @@ export interface BatchSchedule {
 export interface FarmerGroup {
   farmerId: string;
   farmerName?: string;
-  farmer?: Pick<User, "_id" | "name" | "profileImage" | "state">;
+  farmer?: Pick<User, "_id" | "name" | "phone" | "profileImage" | "state">;
   pickupAddress?: {
     fullAddress?: string;
     state?: string;
@@ -40,6 +40,7 @@ export interface FarmerGroup {
   };
   items: Array<{
     productId: string;
+    orderId?: string;
     title: string;
     quantity: number;
     price: number;

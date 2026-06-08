@@ -10,7 +10,7 @@ export interface EmailVerificationStatus {
   nextRetryAt?: string;
 }
 
-const KEY = ["email-verification-status"];
+const KEY = ["verification-status"];
 
 export const useEmailVerificationStatus = () =>
   useQuery({
@@ -18,7 +18,7 @@ export const useEmailVerificationStatus = () =>
     queryFn: async (): Promise<EmailVerificationStatus | null> => {
       try {
         const { data } = await api.get<EmailVerificationStatus>(
-          "/auth/email-verification-status",
+          "/auth/verification-status",
         );
         return data;
       } catch {
@@ -31,7 +31,7 @@ export const useEmailVerificationStatus = () =>
 export const useRequestEmailVerification = () =>
   useMutation({
     mutationFn: async (email?: string) => {
-      const { data } = await api.post("/auth/request-email-verification", {
+      const { data } = await api.post("/auth/request-verification", {
         email,
       });
       return data;

@@ -4,11 +4,18 @@ import { VerificationRequestDialog } from "@/components/profile/VerificationRequ
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUpdateAvatar } from "@/hooks/useProfile";
 import { apiErrorMessage } from "@/lib/api";
 import { initials } from "@/lib/format";
 import {
+  AlertCircle,
   Camera,
   HelpCircle,
   Loader2,
@@ -18,6 +25,7 @@ import {
   Phone,
   ShieldAlert,
   ShieldCheck,
+  Verified,
 } from "lucide-react";
 import { useRef, useState } from "react";
 import { Link, Navigate } from "react-router-dom";
@@ -126,12 +134,14 @@ const Profile = () => {
             icon={<Mail className="h-4 w-4" />}
             label="Email"
             value={user.email}
+            verified={user.isEmailVerified}
           />
           {user.phone && (
             <Row
               icon={<Phone className="h-4 w-4" />}
               label="Phone"
               value={user.phone}
+              verified={user.phoneVerified}
             />
           )}
           {user.state && (
@@ -159,7 +169,8 @@ const Profile = () => {
               <RoleUpgradeDialog
                 trigger={
                   <Button className="rounded-full bg-gradient-primary shadow-glow">
-                    <ShieldCheck className="mr-2 h-4 w-4" /> Request role upgrade
+                    <ShieldCheck className="mr-2 h-4 w-4" /> Request role
+                    upgrade
                   </Button>
                 }
               />
@@ -193,20 +204,49 @@ const Row = ({
   icon,
   label,
   value,
+  verified,
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
-}) => (
-  <div className="flex items-center justify-between border-b border-border py-3 last:border-0">
-    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-primary">
-        {icon}
+  verified?: boolean;
+}) => {
+  const statusText = verified
+    ? `${label} is verified`
+    : `${label} is not verified`;
+
+  return (
+    <div className="flex items-center justify-between border-b border-border py-3 last:border-0">
+      <div className="flex items-center gap-3 text-sm text-muted-foreground">
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-secondary text-primary">
+          {icon}
+        </span>
+        {label}
+      </div>
+
+      <span className="flex items-center gap-2">
+        <p className="text-sm font-semibold">{value}</p>
+
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="cursor-pointer">
+                {verified ? (
+                  <Verified className="h-4 w-4 text-green-600" />
+                ) : (
+                  <AlertCircle className="h-4 w-4 text-red-500" />
+                )}
+              </span>
+            </TooltipTrigger>
+
+            <TooltipContent>
+              <p>{statusText}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </span>
-      {label}
     </div>
-    <p className="text-sm font-semibold">{value}</p>
-  </div>
-);
+  );
+};
 
 export default Profile;
