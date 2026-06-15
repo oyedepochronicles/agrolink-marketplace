@@ -30,6 +30,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { LanguageSwitcher } from "../LanguageSwitcher";
+import { SearchPalette } from "./SearchPalette";
 
 const useNavItems = () => {
   const { t } = useTranslation();
