@@ -26,9 +26,9 @@ import {
   User as UserIcon,
   X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { LanguageSwitcher } from "../LanguageSwitcher";
 
 const useNavItems = () => {
