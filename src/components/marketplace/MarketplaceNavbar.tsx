@@ -231,15 +231,14 @@ export const MarketplaceNavbar = ({
       {mobileOpen && (
         <div className="border-t border-border bg-background lg:hidden">
           <div className="container space-y-3 py-4">
-            <form onSubmit={submitSearch} className="relative md:hidden">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground " />
-              <Input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder={t("common.search") + "…"}
-                className="h-11 rounded-full bg-secondary pl-10"
-              />
-            </form>
+            <button
+              type="button"
+              onClick={openPalette}
+              className="relative flex h-11 w-full items-center gap-2 rounded-full bg-secondary px-4 text-left text-sm text-muted-foreground md:hidden"
+            >
+              <Search className="h-4 w-4" />
+              <span className="truncate">{t("common.search") + " or navigate…"}</span>
+            </button>
             <div className="flex flex-col gap-1">
               {navItems.map((item) => (
                 <NavLink
