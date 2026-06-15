@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 interface LatLng {
   lat: number | null;
@@ -10,36 +10,36 @@ export function useCurrentLocation() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const request = useCallback(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) {
       setError("Geolocation not supported");
       setLoading(false);
       return;
     }
-
-    let cancelled = false;
     setLoading(true);
+    setError(null);
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        if (cancelled) return;
         setLocation({
           lat: position.coords.latitude,
           lng: position.coords.longitude,
         });
+        setError(null);
         setLoading(false);
       },
       (err) => {
-        if (cancelled) return;
-        setError(err.message);
+        setError(err.message || "Unable to get your location");
         setLoading(false);
       },
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 5 * 60_000 },
+      { enableHighAccuracy: false, timeout: 10000, maximumAge: 5 * 60_000 },
     );
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
-  return { location, error, loading };
+  // Note: no `cancelled` guard — StrictMode double-invoke in dev would
+  // otherwise drop the first geolocation result and leave loading stuck.
+  useEffect(() => {
+    request();
+  }, [request]);
+
+  return { location, error, loading, refresh: request };
 }
