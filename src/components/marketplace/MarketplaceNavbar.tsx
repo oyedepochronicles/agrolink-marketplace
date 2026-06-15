@@ -52,14 +52,25 @@ export const MarketplaceNavbar = ({
   const { count } = useCart();
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const navItems = useNavItems();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [q, setQ] = useState("");
 
+  // Keep input synced with ?q= when on the search page
+  useEffect(() => {
+    if (routerLocation.pathname.startsWith("/marketplace/search")) {
+      const urlQ = new URLSearchParams(routerLocation.search).get("q") ?? "";
+      setQ(urlQ);
+    }
+  }, [routerLocation.pathname, routerLocation.search]);
+
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (onSearch) onSearch(q);
-    else navigate(`/marketplace/search?q=${encodeURIComponent(q)}`);
+    const term = q.trim();
+    if (onSearch) onSearch(term);
+    else navigate(`/marketplace/search${term ? `?q=${encodeURIComponent(term)}` : ""}`);
+    setMobileOpen(false);
   };
 
   return (
