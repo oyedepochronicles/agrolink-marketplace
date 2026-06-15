@@ -25,3 +25,5 @@ dist-ssr
 android
 .env
 .env*.env
+/assets
+icons

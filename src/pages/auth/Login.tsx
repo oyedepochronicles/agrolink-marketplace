@@ -1,4 +1,14 @@
 import { AuthLayout } from "@/components/auth/AuthLayout";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +35,7 @@ const Login = () => {
   const location = useLocation() as {
     state?: { from?: { pathname?: string; search?: string } };
   };
+  const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const {
     register,
@@ -40,18 +51,21 @@ const Login = () => {
       const user = await login(values as Required<FormValues>);
       toast.success(`Welcome back, ${user.name.split(" ")[0]}`);
       const from = location.state?.from
-        ? `${location.state.from.pathname ?? ""}${location.state.from.search ?? ""}`
+        ? `${location.state.from.pathname ?? ""}${
+            location.state.from.search ?? ""
+          }`
         : undefined;
       const dest =
         from ??
         (user.role === "buyer"
           ? "/marketplace"
           : user.role === "admin" || user.role === "super_admin"
-            ? "/dashboard/admin"
-            : `/dashboard/${user.role}`);
+          ? "/dashboard/admin"
+          : `/dashboard/${user.role}`);
       navigate(dest, { replace: true });
     } catch (err) {
-      toast.error(apiErrorMessage(err));
+      setError(apiErrorMessage(err));
+      // toast.error();
     } finally {
       setSubmitting(false);
     }
@@ -130,6 +144,38 @@ const Login = () => {
           )}
         </Button>
       </form>
+      <AlertDialog open={!!error}>
+        <AlertDialogContent className="sm:max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center text-red-600">
+              Login Failed
+            </AlertDialogTitle>
+
+            <AlertDialogDescription className="text-center">
+              {error ?? "Invalid email or password"}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel
+              onClick={() => {
+                setError(null);
+                navigate("/forgot-password");
+              }}
+              className="w-full"
+            >
+              Forgot Password
+            </AlertDialogCancel>
+
+            <AlertDialogAction
+              onClick={() => setError(null)}
+              className="w-full"
+            >
+              Try Again
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AuthLayout>
   );
 };

@@ -278,7 +278,7 @@ export const DashboardLayout = () => {
           <Button
             variant="outline"
             className="w-full justify-start rounded-xl border-white/15 bg-white/5 text-sidebar-foreground hover:bg-white/10 hover:text-white"
-            onClick={() => navigate("/marketplace")}
+            onClick={() => navigate("/marketplace", { replace: true })}
           >
             <ClipboardList className="mr-2 h-4 w-4" />{" "}
             {t("nav.goToMarketplace")}

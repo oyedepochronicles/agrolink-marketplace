@@ -1,9 +1,14 @@
 import axios, { AxiosError, type AxiosInstance } from "axios";
 
+let baseUrl;
+if (import.meta.env.MODE === "development") {
+  baseUrl = import.meta.env.VITE_API_URL || "http://localhost:5000";
+} else {
+  baseUrl =
+    import.meta.env.VITE_API_URL_PROD || "https://phyhanagro-new.onrender.com";
+}
 // Backend base URL — override with VITE_API_URL when deploying.
-export const API_BASE_URL =
-  (import.meta.env.VITE_API_URL as string | undefined) ??
-  "http://localhost:5000";
+export const API_BASE_URL = baseUrl;
 
 export const TOKEN_KEY = "phyhan.token";
 
