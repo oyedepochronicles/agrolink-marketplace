@@ -39,6 +39,13 @@ const MarketplaceSearch = () => {
   const [maxPrice, setMaxPrice] = useState(params.get("maxPrice") ?? "");
   const [location, setLocation] = useState("anywhere");
   const [geo, setGeo] = useState<{ lat: number; lng: number } | null>(null);
+
+  // Sync local search input when navbar/external navigation updates ?q=
+  const urlQ = params.get("q") ?? "";
+  useEffect(() => {
+    setQ((prev) => (prev === urlQ ? prev : urlQ));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlQ]);
   const [page, setPage] = useState(Number(params.get("page") ?? "1") || 1);
   const PAGE_SIZE = 12;
   const { location: currentLocation, loading: locating, error } = useCurrentLocation();
