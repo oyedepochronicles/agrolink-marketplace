@@ -56,22 +56,28 @@ export const MarketplaceNavbar = ({
   const routerLocation = useLocation();
   const navItems = useNavItems();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [q, setQ] = useState("");
+  const [paletteOpen, setPaletteOpen] = useState(false);
 
-  // Keep input synced with ?q= when on the search page
+  // Global keyboard shortcut: ⌘K / Ctrl+K opens the search palette
   useEffect(() => {
-    if (routerLocation.pathname.startsWith("/marketplace/search")) {
-      const urlQ = new URLSearchParams(routerLocation.search).get("q") ?? "";
-      setQ(urlQ);
-    }
-  }, [routerLocation.pathname, routerLocation.search]);
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
-  const submitSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    const term = q.trim();
-    if (onSearch) onSearch(term);
-    else navigate(`/marketplace/search${term ? `?q=${encodeURIComponent(term)}` : ""}`);
+  // Close the mobile drawer whenever the route changes
+  useEffect(() => {
     setMobileOpen(false);
+  }, [routerLocation.pathname]);
+
+  const openPalette = () => {
+    setMobileOpen(false);
+    setPaletteOpen(true);
   };
 
   return (
@@ -79,20 +85,18 @@ export const MarketplaceNavbar = ({
       <div className="container flex h-16 items-center gap-4">
         <Brand />
 
-        <form
-          onSubmit={submitSearch}
-          className="ml-4 hidden flex-1 max-w-xl md:flex"
+        <button
+          type="button"
+          onClick={openPalette}
+          className="ml-4 hidden h-10 max-w-xl flex-1 items-center gap-2 rounded-full border border-border bg-secondary px-4 text-sm text-muted-foreground transition-colors hover:bg-secondary/70 md:flex"
         >
-          <div className="relative w-full">
-            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder={t("common.search") + "…"}
-              className="h-10 rounded-full border-border bg-secondary pl-10 focus-visible:bg-background"
-            />
-          </div>
-        </form>
+          <Search className="h-4 w-4" />
+          <span className="truncate">{t("common.search") + " or navigate…"}</span>
+          <kbd className="ml-auto hidden rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium lg:inline">
+            ⌘K
+          </kbd>
+        </button>
+
 
         <nav className="ml-auto hidden items-center gap-1 lg:flex">
           {navItems.map((item) => (
