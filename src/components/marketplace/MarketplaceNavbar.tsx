@@ -282,6 +282,7 @@ export const MarketplaceNavbar = ({
           </div>
         </div>
       )}
+      <SearchPalette open={paletteOpen} onOpenChange={setPaletteOpen} />
     </header>
   );
 };
