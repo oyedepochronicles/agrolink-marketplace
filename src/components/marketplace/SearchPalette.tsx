@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/command";
 import { useAuth } from "@/contexts/AuthContext";
 import { useProducts } from "@/hooks/useProducts";
-import { formatPrice } from "@/lib/format";
+import { formatNaira } from "@/lib/format";
 import {
   Bell,
   HelpCircle,
