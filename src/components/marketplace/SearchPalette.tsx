@@ -127,7 +127,7 @@ export const SearchPalette = ({ open, onOpenChange }: SearchPaletteProps) => {
                     <span className="truncate">{title}</span>
                     {typeof p.price === "number" && (
                       <span className="ml-auto text-xs text-muted-foreground">
-                        {formatPrice(p.price)}
+                        {formatNaira(p.price)}
                       </span>
                     )}
                   </CommandItem>
