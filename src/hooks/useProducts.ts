@@ -101,12 +101,14 @@ export const useProductsNearBy = () => {
   const query = useQuery({
     queryKey: ["products", "nearby", coords?.lat, coords?.lng],
     enabled: hasLocation,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 4000),
+    staleTime: 60_000,
     queryFn: async (): Promise<Product[]> => {
       const { data } = await api.get<ProductListResponse | Product[]>(
         "/products/nearby",
         { params: { lat: coords!.lat, lng: coords!.lng, radius: 10 } },
       );
-      console.log("Nearby products data:", data);
       return unwrapProducts(data).items;
     },
   });
