@@ -7,7 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AnnouncementDetails from "./pages/AnnouncementDetails.tsx";
 import Announcements from "./pages/Announcements.tsx";
 import Index from "./pages/Index.tsx";
@@ -88,7 +88,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner position="top-right" richColors />
-        <HashRouter>
+        <BrowserRouter>
           <AuthProvider>
             <Routes>
               <Route path="/" element={<Index />} />
@@ -411,7 +411,7 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>
-        </HashRouter>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   );
