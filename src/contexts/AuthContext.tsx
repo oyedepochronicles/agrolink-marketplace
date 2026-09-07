@@ -1,5 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { api, clearToken, getToken, setToken } from "@/lib/api";
+import {
+  api,
+  clearMfaToken,
+  clearSession,
+  getMfaToken,
+  getToken,
+  setMfaToken,
+  setRefreshToken,
+  setToken,
+  SESSION_EXPIRED_EVENT,
+} from "@/lib/api";
 import { disconnectSocket, getSocket } from "@/lib/socket";
 import type { NigerianLocationValue } from "@/lib/nigerianLocations";
 import type { Role, User } from "@/types";
@@ -12,10 +22,18 @@ interface AffiliateInput {
   location?: NigerianLocationValue; state?: string; address?: string; farmName?: string; farmAddress?: string; farmLandmark?: string;
 }
 
+export type LoginResult =
+  | { status: "authenticated"; user: User }
+  | { status: "mfa_required" };
+
 interface AuthContextValue {
   user: User | null;
   loading: boolean;
-  login: (input: LoginInput) => Promise<User>;
+  /** True while a login is awaiting an MFA code. No session exists yet. */
+  mfaPending: boolean;
+  login: (input: LoginInput) => Promise<LoginResult>;
+  verifyMfaLogin: (code: string) => Promise<User>;
+  cancelMfa: () => void;
   registerBuyer: (input: RegisterBuyerInput) => Promise<User>;
   registerAffiliate: (input: AffiliateInput) => Promise<User>;
   logout: () => void;
@@ -24,11 +42,20 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
-const persistAuth = (token: string) => setToken(token);
+interface AuthPayload {
+  token?: string;
+  accessToken?: string;
+  refreshToken?: string;
+  user?: User;
+  mfaRequired?: boolean;
+  mfaToken?: string;
+  requiresMfa?: boolean;
+}
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(!!getToken());
+  const [mfaPending, setMfaPending] = useState<boolean>(!!getMfaToken());
 
   const refresh = useCallback(async () => {
     if (!getToken()) { setUser(null); setLoading(false); return; }
@@ -37,7 +64,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const u = (data as { user?: User }).user ?? (data as User);
       setUser(u);
     } catch {
-      clearToken();
+      clearSession();
       setUser(null);
     } finally {
       setLoading(false);
@@ -46,28 +73,66 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
+  // A hard session loss (refresh token rejected) clears client state immediately.
+  useEffect(() => {
+    const onExpired = () => {
+      setUser(null);
+      setMfaPending(false);
+      disconnectSocket();
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired);
+  }, []);
+
   // Manage socket connection alongside auth state
   useEffect(() => {
     if (user) getSocket();
     else disconnectSocket();
   }, [user]);
 
-  const handleAuthResponse = (payload: { token?: string; user?: User } | User): User => {
-    const token = (payload as { token?: string }).token;
-    const u = (payload as { user?: User }).user ?? (payload as User);
-    if (token) persistAuth(token);
+  const persistSession = (payload: AuthPayload): User => {
+    const token = payload.token ?? payload.accessToken;
+    if (token) setToken(token);
+    if (payload.refreshToken) setRefreshToken(payload.refreshToken);
+    clearMfaToken();
+    setMfaPending(false);
+    const u = (payload.user ?? (payload as unknown as User)) as User;
     setUser(u);
     return u;
   };
 
-  const login = async (input: LoginInput) => {
-    const { data } = await api.post("/auth/login", input);
-    return handleAuthResponse(data);
+  const login = async (input: LoginInput): Promise<LoginResult> => {
+    const { data } = await api.post<AuthPayload>("/auth/login", input);
+    if (data?.mfaRequired || data?.requiresMfa) {
+      // Store only the short-lived MFA challenge token — never a session token.
+      setMfaToken(data.mfaToken ?? data.token ?? data.accessToken ?? "");
+      setMfaPending(true);
+      return { status: "mfa_required" };
+    }
+    return { status: "authenticated", user: persistSession(data) };
+  };
+
+  const verifyMfaLogin = async (code: string): Promise<User> => {
+    const mfaToken = getMfaToken();
+    const { data } = await api.post<AuthPayload>(
+      "/auth/mfa/verify-login",
+      { code },
+      mfaToken ? { headers: { Authorization: `Bearer ${mfaToken}` } } : undefined,
+    );
+    const u = persistSession(data);
+    if (!data.user) await refresh();
+    return u;
+  };
+
+  const cancelMfa = () => {
+    clearSession();
+    setMfaPending(false);
+    setUser(null);
   };
 
   const registerBuyer = async (input: RegisterBuyerInput) => {
-    const { data } = await api.post("/auth/register", input);
-    return handleAuthResponse(data);
+    const { data } = await api.post<AuthPayload>("/auth/register", input);
+    return persistSession(data);
   };
 
   const registerAffiliate = async (input: AffiliateInput) => {
@@ -81,7 +146,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             fullAddress: address,
           }
         : undefined);
-    const { data } = await api.post("/auth/affiliate", {
+    const { data } = await api.post<AuthPayload>("/auth/affiliate", {
       ...rest,
       termsAccepted: true,
       location: resolvedLocation,
@@ -90,18 +155,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         : {}),
       ...(input.role === "rider" ? { riderProfile: {} } : {}),
     });
-    return handleAuthResponse(data);
+    return persistSession(data);
   };
 
   const logout = () => {
-    clearToken();
+    void api.post("/auth/logout").catch(() => undefined);
+    clearSession();
     disconnectSocket();
+    setMfaPending(false);
     setUser(null);
   };
 
   const value = useMemo<AuthContextValue>(() => ({
-    user, loading, login, registerBuyer, registerAffiliate, logout, refresh,
-  }), [user, loading, refresh]);
+    user, loading, mfaPending, login, verifyMfaLogin, cancelMfa, registerBuyer, registerAffiliate, logout, refresh,
+  }), [user, loading, mfaPending, refresh]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
@@ -111,4 +178,3 @@ export const useAuth = () => {
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 };
-
