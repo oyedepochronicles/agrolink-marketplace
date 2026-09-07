@@ -20,6 +20,10 @@ export interface User {
   isEmailVerified?: boolean;
   phoneVerified?: boolean;
   emailVerifiedAt?: string;
+  mfaEnabled?: boolean;
+  mfaEnrolledAt?: string;
+  lastLoginAt?: string;
+  inviteStatus?: "pending" | "accepted" | "expired";
   isSuspended?: boolean;
   isDeactivated?: boolean;
   accountState?: "active" | "suspended" | "deactivated";
