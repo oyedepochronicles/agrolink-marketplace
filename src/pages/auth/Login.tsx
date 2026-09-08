@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiErrorMessage } from "@/lib/api";
+import { portalPathFor } from "@/lib/authz";
+import type { User } from "@/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
@@ -30,13 +32,14 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, verifyMfaLogin, cancelMfa, mfaPending } = useAuth();
   const navigate = useNavigate();
   const location = useLocation() as {
     state?: { from?: { pathname?: string; search?: string } };
   };
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [code, setCode] = useState("");
   const {
     register,
     handleSubmit,
@@ -45,7 +48,7 @@ const Login = () => {
     resolver: zodResolver(schema),
   });
 
-  const goToPortal = (user: Awaited<ReturnType<typeof login>> extends never ? never : import("@/types").User) => {
+  const goToPortal = (user: User) => {
     const from = location.state?.from
       ? `${location.state.from.pathname ?? ""}${location.state.from.search ?? ""}`
       : undefined;
