@@ -1,13 +1,13 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { isVerified, requiresVerification } from "@/lib/authz";
 
 interface Props { children: JSX.Element }
 
 /**
- * Blocks farmers/riders from operating their dashboard until verified.
- * Sends them to /verify-pending where they can check status / submit docs.
- * Marketplace stays accessible.
+ * Blocks operational roles (farmer / rider / affiliate) from their dashboard
+ * until the backend reports an approved verification. Marketplace stays open.
  */
 export const VerifiedRoute = ({ children }: Props) => {
   const { user, loading } = useAuth();
@@ -21,13 +21,8 @@ export const VerifiedRoute = ({ children }: Props) => {
     );
   }
   if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
-
-  const requiresGate = user.role === "farmer" || user.role === "rider";
-  const isVerified = user.isVerified === true || user.verificationStatus === "approved";
-
-  if (requiresGate && !isVerified) {
+  if (requiresVerification(user) && !isVerified(user)) {
     return <Navigate to="/verify-pending" replace />;
   }
-
   return children;
 };

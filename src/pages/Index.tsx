@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { portalPathFor } from "@/lib/authz";
 import { Loader2 } from "lucide-react";
 import { Navigate } from "react-router-dom";
 
@@ -11,14 +12,7 @@ const Index = () => {
       </div>
     );
   }
-  if (!user) return <Navigate to="/marketplace" replace />;
-  if (user.role === "buyer") return <Navigate to="/marketplace" replace />;
-  return (
-    <Navigate
-      to={`/dashboard/${user.role === "super_admin" ? "admin" : user.role}`}
-      replace
-    />
-  );
+  return <Navigate to={user ? portalPathFor(user) : "/marketplace"} replace />;
 };
 
 export default Index;
