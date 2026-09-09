@@ -36,6 +36,15 @@ import SupportTicket from "./pages/marketplace/SupportTicket";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminRoute } from "@/components/admin/AdminRoute";
+import AcceptAdminInvite from "./pages/auth/AcceptAdminInvite";
+import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
+import AdminLogin from "./pages/admin/AdminLogin";
+import AdminSecurity from "./pages/admin/AdminSecurity";
+import AdminSecurityEvents from "./pages/admin/AdminSecurityEvents";
+import AdminTeam from "./pages/admin/AdminTeam";
+import Unauthorized from "./pages/Unauthorized";
 import { getLocation, takePhoto } from "./lib/permissions.ts";
 import AdminAnalytics from "./pages/dashboard/AdminAnalytics";
 import AdminAnnouncements from "./pages/dashboard/AdminAnnouncements";
@@ -101,6 +110,9 @@ const App = () => {
               <Route path="/verify-otp" element={<VerifyOTP />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/accept-admin-invite" element={<AcceptAdminInvite />} />
+              <Route path="/unauthorized" element={<Unauthorized />} />
+              <Route path="/404" element={<NotFound />} />
               <Route
                 path="/verify-pending"
                 element={
@@ -206,9 +218,7 @@ const App = () => {
               <Route
                 path="/dashboard"
                 element={
-                  <ProtectedRoute
-                    roles={["farmer", "rider", "admin", "super_admin"]}
-                  >
+                  <ProtectedRoute roles={["farmer", "rider"]}>
                     <VerifiedRoute>
                       <DashboardLayout />
                     </VerifiedRoute>
@@ -316,93 +326,46 @@ const App = () => {
                   }
                 />
 
-                {/* Admin */}
+                {/* Legacy admin paths — the admin console now lives at /admin */}
+                <Route path="admin/*" element={<Navigate to="/admin" replace />} />
+              </Route>
+
+              {/* Isolated admin console */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin"
+                element={
+                  <AdminRoute>
+                    <AdminLayout />
+                  </AdminRoute>
+                }
+              >
+                <Route index element={<AdminOverview />} />
+                <Route path="orders" element={<AdminOrders />} />
+                <Route path="products" element={<AdminProducts />} />
+                <Route path="verifications" element={<AdminVerifications />} />
+                <Route path="users" element={<AdminUsers />} />
+                <Route path="support" element={<AdminSupport />} />
+                <Route path="payouts" element={<AdminPayouts />} />
+                <Route path="analytics" element={<AdminAnalytics />} />
+                <Route path="announcements" element={<AdminAnnouncements />} />
+                <Route path="audit-logs" element={<AdminAuditLogs />} />
+                <Route path="security-events" element={<AdminSecurityEvents />} />
+                <Route path="security" element={<AdminSecurity />} />
                 <Route
-                  path="admin"
+                  path="team"
                   element={
-                    <ProtectedRoute roles={["admin", "super_admin"]}>
-                      <AdminOverview />
-                    </ProtectedRoute>
+                    <AdminRoute superAdminOnly>
+                      <AdminTeam />
+                    </AdminRoute>
                   }
                 />
                 <Route
-                  path="admin/verifications"
+                  path="config"
                   element={
-                    <ProtectedRoute roles={["admin", "super_admin"]}>
-                      <AdminVerifications />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/orders"
-                  element={
-                    <ProtectedRoute roles={["admin", "super_admin"]}>
-                      <AdminOrders />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/users"
-                  element={
-                    <ProtectedRoute roles={["admin", "super_admin"]}>
-                      <AdminUsers />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/products"
-                  element={
-                    <ProtectedRoute roles={["admin", "super_admin"]}>
-                      <AdminProducts />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/payouts"
-                  element={
-                    <ProtectedRoute roles={["admin", "super_admin"]}>
-                      <AdminPayouts />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/analytics"
-                  element={
-                    <ProtectedRoute roles={["admin", "super_admin"]}>
-                      <AdminAnalytics />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/messages"
-                  element={
-                    <ProtectedRoute roles={["admin", "super_admin"]}>
-                      <Messages />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/support"
-                  element={
-                    <ProtectedRoute roles={["admin", "super_admin"]}>
-                      <AdminSupport />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/config"
-                  element={
-                    <ProtectedRoute roles={["super_admin"]}>
+                    <AdminRoute superAdminOnly>
                       <AdminConfig />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="admin/announcements"
-                  element={
-                    <ProtectedRoute roles={["admin", "super_admin"]}>
-                      <AdminAnnouncements />
-                    </ProtectedRoute>
+                    </AdminRoute>
                   }
                 />
               </Route>
