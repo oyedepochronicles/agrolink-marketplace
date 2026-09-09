@@ -253,13 +253,14 @@ const FarmerProducts = () => {
     <div className="space-y-6">
       <PageHeader
         title="My products"
-        description="Manage your farm listings. Buyers will see available products in the marketplace."
+        description="New and edited listings are submitted for review. Only products approved by PhyhanAgro appear in the marketplace."
         action={
           <Button onClick={onNew}>
             <Plus className="h-4 w-4" /> New product
           </Button>
         }
       />
+
 
       {isLoading ? (
         <div className="flex justify-center py-16">
