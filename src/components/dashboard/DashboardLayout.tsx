@@ -57,7 +57,7 @@ interface NavEntry {
   icon: React.ReactNode;
 }
 
-const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
+const NAV_BY_ROLE: Record<Extract<Role, "farmer" | "rider">, NavEntry[]> = {
   farmer: [
     {
       to: "/dashboard/farmer",
@@ -90,8 +90,8 @@ const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
       icon: <Timer className="h-4 w-4" />,
     },
     {
-      to: "/dashboard/farmer/messages",
-      labelKey: "dashboard.messages",
+      to: "/marketplace/support",
+      labelKey: "dashboard.support",
       icon: <MessageSquare className="h-4 w-4" />,
     },
     {
@@ -112,123 +112,14 @@ const NAV_BY_ROLE: Record<Exclude<Role, "buyer">, NavEntry[]> = {
       icon: <PackageCheck className="h-4 w-4" />,
     },
     {
-      to: "/dashboard/rider/messages",
-      labelKey: "dashboard.messages",
+      to: "/marketplace/support",
+      labelKey: "dashboard.support",
       icon: <MessageSquare className="h-4 w-4" />,
     },
     {
       to: "/dashboard/rider/earnings",
       labelKey: "dashboard.earnings",
       icon: <Wallet className="h-4 w-4" />,
-    },
-  ],
-  admin: [
-    {
-      to: "/dashboard/admin",
-      labelKey: "dashboard.overview",
-      icon: <BarChart3 className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/orders",
-      labelKey: "dashboard.orders",
-      icon: <ShoppingCart className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/verifications",
-      labelKey: "dashboard.verifications",
-      icon: <ShieldCheck className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/users",
-      labelKey: "dashboard.users",
-      icon: <Users className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/products",
-      labelKey: "dashboard.products",
-      icon: <PackageCheck className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/payouts",
-      labelKey: "dashboard.payouts",
-      icon: <Banknote className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/analytics",
-      labelKey: "dashboard.analytics",
-      icon: <LineChart className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/messages",
-      labelKey: "dashboard.messages",
-      icon: <MessageSquare className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/announcements",
-      labelKey: "dashboard.announcements",
-      icon: <Bell className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/support",
-      labelKey: "dashboard.support",
-      icon: <HelpCircle className="h-4 w-4" />,
-    },
-  ],
-  super_admin: [
-    {
-      to: "/dashboard/admin",
-      labelKey: "dashboard.overview",
-      icon: <BarChart3 className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/config",
-      labelKey: "dashboard.config",
-      icon: <Settings className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/orders",
-      labelKey: "dashboard.orders",
-      icon: <ShoppingCart className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/verifications",
-      labelKey: "dashboard.verifications",
-      icon: <ShieldCheck className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/users",
-      labelKey: "dashboard.users",
-      icon: <Users className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/products",
-      labelKey: "dashboard.products",
-      icon: <PackageCheck className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/payouts",
-      labelKey: "dashboard.payouts",
-      icon: <Banknote className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/analytics",
-      labelKey: "dashboard.analytics",
-      icon: <LineChart className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/announcements",
-      labelKey: "dashboard.announcements",
-      icon: <Bell className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/messages",
-      labelKey: "dashboard.messages",
-      icon: <MessageSquare className="h-4 w-4" />,
-    },
-    {
-      to: "/dashboard/admin/support",
-      labelKey: "dashboard.support",
-      icon: <HelpCircle className="h-4 w-4" />,
     },
   ],
 };
@@ -238,8 +129,8 @@ export const DashboardLayout = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  if (!user || user.role === "buyer") return null;
-  const dashboardRole = user.role === "super_admin" ? "admin" : user.role;
+  if (!user || (user.role !== "farmer" && user.role !== "rider")) return null;
+  const dashboardRole = user.role;
   const items = NAV_BY_ROLE[user.role];
 
   const renderNavList = (onNavigate?: () => void) => (
@@ -325,7 +216,7 @@ export const DashboardLayout = () => {
           </div>
           <div className="hidden md:block">
             <h1 className="font-display text-lg font-extrabold capitalize tracking-tight">
-              {t(`roles.${user.role === "super_admin" ? "admin" : user.role}`)}{" "}
+              {t(`roles.${user.role}`)}{" "}
               {t("nav.dashboard").toLowerCase()}
             </h1>
             {user.verificationStatus === "pending" && (

@@ -57,7 +57,7 @@ export const SearchPalette = ({ open, onOpenChange }: SearchPaletteProps) => {
       { label: "Cart", to: "/marketplace/cart", icon: ShoppingCart },
       { label: "My orders", to: "/marketplace/orders", icon: Package },
       { label: "Announcements", to: "/announcements", icon: Bell },
-      { label: "Messages", to: "/marketplace/messages", icon: MessageSquare },
+      { label: "Support", to: "/marketplace/support", icon: MessageSquare },
       { label: "Support", to: "/marketplace/support", icon: HelpCircle },
     ];
     if (user) {
