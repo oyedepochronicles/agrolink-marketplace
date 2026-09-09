@@ -66,7 +66,6 @@ import RiderBatches from "./pages/dashboard/RiderBatches";
 import RiderDeliveries from "./pages/dashboard/RiderDeliveries";
 import Wallet from "./pages/dashboard/Wallet";
 import ParentOrderDetails from "./pages/marketplace/ParentOrderDetails";
-import Messages from "./pages/Messages";
 
 const isNativeApp = Capacitor.isNativePlatform();
 const queryClient = new QueryClient({
@@ -156,7 +155,7 @@ const App = () => {
                   path="messages"
                   element={
                     <ProtectedRoute>
-                      <Messages variant="marketplace" />
+                      <Navigate to="/marketplace/support" replace />
                     </ProtectedRoute>
                   }
                 />
@@ -255,7 +254,7 @@ const App = () => {
                   path="farmer/messages"
                   element={
                     <ProtectedRoute roles={["farmer"]}>
-                      <Messages />
+                      <Navigate to="/marketplace/support" replace />
                     </ProtectedRoute>
                   }
                 />
@@ -313,7 +312,7 @@ const App = () => {
                   path="rider/messages"
                   element={
                     <ProtectedRoute roles={["rider"]}>
-                      <Messages />
+                      <Navigate to="/marketplace/support" replace />
                     </ProtectedRoute>
                   }
                 />
