@@ -2,13 +2,25 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
-import { useDisableMfa, useEnableMfa, useSetupMfa, type MfaSetupResponse } from "@/hooks/useSecurity";
+import {
+  useDisableMfa,
+  useEnableMfa,
+  useSetupMfa,
+  type MfaSetupResponse,
+} from "@/hooks/useSecurity";
 import { apiErrorMessage } from "@/lib/api";
-import { KeyRound, Loader2, ShieldCheck } from "lucide-react";
+import { Check, Copy, KeyRound, Loader2, ShieldCheck } from "lucide-react";
+import QrCode from "qrcode";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -18,14 +30,28 @@ const AdminSecurity = () => {
   const enable = useEnableMfa();
   const disable = useDisableMfa();
   const [enrollment, setEnrollment] = useState<MfaSetupResponse | null>(null);
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [disableCode, setDisableCode] = useState("");
+  const [copied, setCopied] = useState(false);
 
+  const copySecret = () => {
+    if (enrollment?.secret) {
+      navigator.clipboard.writeText(enrollment.secret);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
   const enabled = user?.mfaEnabled === true;
 
   const startSetup = async () => {
     try {
-      setEnrollment(await setup.mutateAsync());
+      const setupResponse = await setup.mutateAsync();
+      if (setupResponse.otpauthUrl) {
+        const qrCodeDataUrl = await QrCode.toDataURL(setupResponse.otpauthUrl);
+        setQrCodeDataUrl(qrCodeDataUrl);
+      }
+      setEnrollment(setupResponse);
     } catch (err) {
       toast.error(apiErrorMessage(err));
     }
@@ -74,11 +100,17 @@ const AdminSecurity = () => {
           <div className="flex items-center justify-between gap-3">
             <div>
               <CardTitle className="text-base">Authenticator app</CardTitle>
-              <CardDescription>Time-based one-time codes (TOTP).</CardDescription>
+              <CardDescription>
+                Time-based one-time codes (TOTP).
+              </CardDescription>
             </div>
             <Badge
               variant="outline"
-              className={enabled ? "border-primary/30 bg-primary/10 text-primary" : "border-destructive/30 bg-destructive/10 text-destructive"}
+              className={
+                enabled
+                  ? "border-primary/30 bg-primary/10 text-primary"
+                  : "border-destructive/30 bg-destructive/10 text-destructive"
+              }
             >
               {enabled ? "Enabled" : "Not enabled"}
             </Badge>
@@ -86,25 +118,67 @@ const AdminSecurity = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           {!enabled && !enrollment && (
-            <Button onClick={startSetup} disabled={setup.isPending} className="rounded-full">
-              {setup.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <KeyRound className="mr-2 h-4 w-4" />}
+            <Button
+              onClick={startSetup}
+              disabled={setup.isPending}
+              className="rounded-full"
+            >
+              {setup.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <KeyRound className="mr-2 h-4 w-4" />
+              )}
               Start setup
             </Button>
           )}
 
           {enrollment && (
             <div className="space-y-4">
-              {(enrollment.qrCode || enrollment.qrCodeUrl) && (
+              <p className="text-sm text-muted-foreground">
+                {enrollment.message}
+              </p>
+
+              {enrollment.secret && (
                 <img
-                  src={enrollment.qrCode ?? enrollment.qrCodeUrl}
+                  src={qrCodeDataUrl}
                   alt="Scan this QR code with your authenticator app"
                   className="h-44 w-44 rounded-xl border bg-white p-2"
                 />
               )}
               {enrollment.secret && (
-                <div className="rounded-xl bg-muted p-3 text-sm">
-                  <p className="text-xs text-muted-foreground">Manual setup key</p>
-                  <p className="font-mono break-all">{enrollment.secret}</p>
+                <div
+                  className="rounded-xl bg-muted p-3 text-sm"
+                  onClick={copySecret}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs text-muted-foreground">
+                      Manual setup key
+                    </p>
+
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={copySecret}
+                      className="h-7 px-2"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="mr-1.5 h-3.5 w-3.5" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="mr-1.5 h-3.5 w-3.5" />
+                          Copy
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  <p className="mt-1 break-all font-mono">
+                    {enrollment.secret}
+                  </p>
                 </div>
               )}
               <div className="max-w-xs space-y-1.5">
@@ -118,8 +192,14 @@ const AdminSecurity = () => {
                   placeholder="123456"
                 />
               </div>
-              <Button onClick={confirm} disabled={code.length < 6 || enable.isPending} className="rounded-full">
-                {enable.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button
+                onClick={confirm}
+                disabled={code.length < 6 || enable.isPending}
+                className="rounded-full"
+              >
+                {enable.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Confirm and enable
               </Button>
             </div>
@@ -128,8 +208,9 @@ const AdminSecurity = () => {
           {enabled && (
             <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Enter a current code to turn off two-factor authentication. Admin accounts without MFA lose console
-                access until it is re-enabled.
+                Enter a current code to turn off two-factor authentication.
+                Admin accounts without MFA lose console access until it is
+                re-enabled.
               </p>
               <div className="max-w-xs space-y-1.5">
                 <Label htmlFor="mfa-disable">Authentication code</Label>
@@ -138,7 +219,9 @@ const AdminSecurity = () => {
                   inputMode="numeric"
                   maxLength={6}
                   value={disableCode}
-                  onChange={(e) => setDisableCode(e.target.value.replace(/\D/g, ""))}
+                  onChange={(e) =>
+                    setDisableCode(e.target.value.replace(/\D/g, ""))
+                  }
                   placeholder="123456"
                 />
               </div>
@@ -148,7 +231,9 @@ const AdminSecurity = () => {
                 disabled={disableCode.length < 6 || disable.isPending}
                 className="rounded-full"
               >
-                {disable.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {disable.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Disable MFA
               </Button>
             </div>
