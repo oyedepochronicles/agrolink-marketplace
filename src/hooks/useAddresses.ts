@@ -163,6 +163,6 @@ export const addressCoordinates = (a?: Address) => {
     Number.isFinite(lat) && Number.isFinite(lng)
       ? ([lng, lat] as [number, number])
       : undefined;
-  console.log("Parsed coordinates:", isFinite);
+
   return isFinite;
 };

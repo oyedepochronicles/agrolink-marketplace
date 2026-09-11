@@ -143,7 +143,6 @@ const Checkout = () => {
         deliveryAddress: quoteAddress,
         deliveryUrgency: method,
       });
-      console.log("Checkout quote: ", data);
       return data.summary;
     },
   });
@@ -162,8 +161,8 @@ const Checkout = () => {
     paymentChoice === "wallet"
       ? summary.grandTotal
       : paymentChoice === "wallet_partial"
-        ? Math.min(walletBalance, summary.grandTotal)
-        : 0;
+      ? Math.min(walletBalance, summary.grandTotal)
+      : 0;
   const externalDue = Math.max(0, summary.grandTotal - walletApplied);
   const walletCanCover = walletBalance >= summary.grandTotal;
   const suggestedTopUp = Math.max(0, summary.grandTotal - walletBalance);
@@ -293,7 +292,6 @@ const Checkout = () => {
         navigate(`/marketplace/orders/${parentOrderId}`);
       }
     } catch (err) {
-      console.error("Error placing order", err);
       toast.error(apiErrorMessage(err));
     } finally {
       setPlacing(false);
@@ -488,7 +486,9 @@ const Checkout = () => {
                 detail={
                   walletCanCover
                     ? "Use wallet balance for the full checkout."
-                    : `Top up ${formatNaira(suggestedTopUp)} to use wallet only.`
+                    : `Top up ${formatNaira(
+                        suggestedTopUp,
+                      )} to use wallet only.`
                 }
                 onClick={() => setPaymentChoice("wallet")}
               />
@@ -497,7 +497,9 @@ const Checkout = () => {
                 disabled={walletBalance <= 0}
                 icon={Wallet}
                 label="Use wallet partially"
-                detail={`${formatNaira(walletApplied)} from wallet, ${formatNaira(externalDue)} via Paystack.`}
+                detail={`${formatNaira(
+                  walletApplied,
+                )} from wallet, ${formatNaira(externalDue)} via Paystack.`}
                 onClick={() => setPaymentChoice("wallet_partial")}
               />
               <PaymentOption
@@ -541,8 +543,8 @@ const Checkout = () => {
               {placing
                 ? "Processing..."
                 : paymentChoice === "wallet"
-                  ? `Pay ${formatNaira(summary.grandTotal)} from wallet`
-                  : `Pay ${formatNaira(externalDue)} externally`}
+                ? `Pay ${formatNaira(summary.grandTotal)} from wallet`
+                : `Pay ${formatNaira(externalDue)} externally`}
             </Button>
             <p className="mt-3 flex items-center justify-center gap-1 text-xs text-muted-foreground">
               <ShieldCheck className="h-3 w-3 text-primary" /> Discounts apply

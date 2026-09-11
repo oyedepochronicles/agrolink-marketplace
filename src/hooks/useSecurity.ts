@@ -50,7 +50,6 @@ export const useSetupMfa = () =>
         MfaSetupResponse | { data: MfaSetupResponse }
       >("/auth/mfa/setup");
       const d = data as { data?: MfaSetupResponse };
-      console.log("MFA setup response:", d);
       return (d.data ?? data) as MfaSetupResponse;
     },
   });

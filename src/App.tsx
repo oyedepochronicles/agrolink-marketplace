@@ -27,6 +27,7 @@ import Cart from "./pages/marketplace/Cart";
 import Checkout from "./pages/marketplace/Checkout";
 import MarketplaceHome from "./pages/marketplace/MarketplaceHome";
 import MarketplaceSearch from "./pages/marketplace/MarketplaceSearch";
+import SalesLanding from "./pages/marketplace/SalesLanding";
 import Orders from "./pages/marketplace/Orders";
 import ProductDetails from "./pages/marketplace/ProductDetails";
 import Profile from "./pages/marketplace/Profile";
@@ -55,6 +56,7 @@ import AdminPayouts from "./pages/dashboard/AdminPayouts";
 import AdminProducts from "./pages/dashboard/AdminProducts";
 import AdminSupport from "./pages/dashboard/AdminSupport";
 import AdminUsers from "./pages/dashboard/AdminUsers";
+import AdminVerificationDetail from "./pages/dashboard/AdminVerificationDetail";
 import AdminVerifications from "./pages/dashboard/AdminVerifications";
 import FarmerBatches from "./pages/dashboard/FarmerBatches";
 import FarmerOrders from "./pages/dashboard/FarmerOrders";
@@ -64,6 +66,7 @@ import FarmerProducts from "./pages/dashboard/FarmerProducts";
 import FarmerSLA from "./pages/dashboard/FarmerSLA";
 import RiderBatches from "./pages/dashboard/RiderBatches";
 import RiderDeliveries from "./pages/dashboard/RiderDeliveries";
+import RiderOverview from "./pages/dashboard/RiderOverview";
 import Wallet from "./pages/dashboard/Wallet";
 import ParentOrderDetails from "./pages/marketplace/ParentOrderDetails";
 
@@ -120,6 +123,11 @@ const App = () => {
                   </ProtectedRoute>
                 }
               />
+
+              {/* Farmer marketing landing (shown before signup) */}
+              <Route path="/sales" element={<MarketplaceLayout />}>
+                <Route index element={<SalesLanding />} />
+              </Route>
 
               {/* Marketplace */}
               <Route path="/marketplace" element={<MarketplaceLayout />}>
@@ -296,6 +304,14 @@ const App = () => {
                   path="rider"
                   element={
                     <ProtectedRoute roles={["rider"]}>
+                      <RiderOverview />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="rider/deliveries"
+                  element={
+                    <ProtectedRoute roles={["rider"]}>
                       <RiderDeliveries />
                     </ProtectedRoute>
                   }
@@ -343,6 +359,10 @@ const App = () => {
                 <Route path="orders" element={<AdminOrders />} />
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="verifications" element={<AdminVerifications />} />
+                <Route
+                  path="verifications/:id"
+                  element={<AdminVerificationDetail />}
+                />
                 <Route path="users" element={<AdminUsers />} />
                 <Route path="support" element={<AdminSupport />} />
                 <Route path="payouts" element={<AdminPayouts />} />

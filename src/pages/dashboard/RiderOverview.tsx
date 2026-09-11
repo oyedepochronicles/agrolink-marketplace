@@ -1,8 +1,8 @@
-import { Link } from "react-router-dom";
-import { ArrowUpRight, CheckCircle2, Clock, Truck, Wallet } from "lucide-react";
+import { CheckCircle2, Clock, Truck, Wallet } from "lucide-react";
 import { Bar, BarChart, CartesianGrid, Line, LineChart, XAxis } from "recharts";
 import { Card } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { useDashboardAnalytics } from "@/hooks/useDashboardAnalytics";
 import { formatNaira } from "@/lib/format";
 
@@ -50,17 +50,14 @@ const RiderOverview = () => {
         </Card>
       </div>
 
-      <Card className="rounded-2xl p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-semibold">Delivery board</h3>
-            <p className="text-sm text-muted-foreground">Accept available jobs and update live delivery status.</p>
-          </div>
-          <Link to="/dashboard/rider/deliveries" className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline">
-            Open deliveries <ArrowUpRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </Card>
+      <RecentActivity
+        title="Recent deliveries"
+        description="Accept available jobs and update live delivery status."
+        rows={analytics?.recentDeliveries}
+        linkTo="/dashboard/rider/deliveries"
+        linkLabel="Open deliveries"
+        emptyLabel="No deliveries yet — accept a job from the Available tab to get started."
+      />
     </div>
   );
 };

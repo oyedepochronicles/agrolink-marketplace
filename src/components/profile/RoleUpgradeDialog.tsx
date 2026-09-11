@@ -124,7 +124,8 @@ export const RoleUpgradeDialog = ({ trigger }: Props) => {
     }
     setUploading(kind);
     try {
-      const url = await uploadFile(file, file.name);
+      // KYC documents go to private storage (never publicly served).
+      const url = await uploadFile(file, file.name, "identity");
       if (!url) throw new Error("Upload failed");
       if (kind === "doc") setDocUrl(url);
       else setSelfieUrl(url);

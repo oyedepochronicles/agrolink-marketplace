@@ -24,7 +24,7 @@ export const MarketplaceLayout = () => {
             { to: "/marketplace/cart", label: "Cart" },
           ]} />
           <FooterCol title="Sell with us" links={[
-            { to: "/affiliate", label: "Become a farmer" },
+            { to: "/sales", label: "Become a farmer" },
             { to: "/affiliate?role=rider", label: "Join as rider" },
             { to: "/login", label: "Sign in" },
           ]} />

@@ -11,8 +11,7 @@ export const useAdminConfigItems = () =>
         const { data } = await api.get<{ data?: ConfigItem[] } | ConfigItem[]>(
           "/admin/config",
         );
-        console.log("Fetched admin config items: ", data);
-        return Array.isArray(data) ? data : (data.data ?? []);
+        return Array.isArray(data) ? data : data.data ?? [];
       } catch {
         return [];
       }
@@ -22,9 +21,16 @@ export const useAdminConfigItems = () =>
 export const useBulkUpdateConfig = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (updates: Array<{ key: string; value: unknown }>) => {
-      const { data } = await api.post("/admin/config/bulk-update", {
-        updates,
+    mutationFn: async (
+      configs: Array<{
+        key: string;
+        value: unknown;
+        category: string;
+        description?: string;
+      }>,
+    ) => {
+      const { data } = await api.post("/admin/config/bulk/update", {
+        configs,
       });
       return data;
     },

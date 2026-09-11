@@ -17,15 +17,15 @@ import {
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
+// Categories mirror the server-side Product category enum
+// (server/src/models/Product.js): only these values are queryable.
 const categories = [
   { label: "All", value: "All" },
   { label: "Vegetables", value: "Vegetable" },
   { label: "Fruits", value: "Fruit" },
   { label: "Grains", value: "Grain" },
   { label: "Tubers", value: "Tuber" },
-  { label: "Livestock", value: "Other" },
-  { label: "Dairy", value: "Other" },
-  { label: "Spices", value: "Other" },
+  { label: "Other", value: "Other" },
 ];
 
 const PAGE_SIZE = 12;
@@ -47,6 +47,7 @@ const MarketplaceHome = () => {
 
   const products = paged?.items ?? [];
   const totalPages = paged?.totalPages ?? 1;
+  const totalListings = paged?.total ?? 0;
 
   const featured = useMemo(() => products.slice(0, 8), [products]);
   const fresh = useMemo(() => products.slice(8), [products]);
@@ -122,11 +123,14 @@ const MarketplaceHome = () => {
                 variant="outline"
                 className="rounded-full border-white/30 bg-white/10 text-white backdrop-blur hover:bg-white/20 hover:text-white"
               >
-                <Link to="/affiliate">Sell on PhyhanAgro</Link>
+                <Link to="/sales">Sell on PhyhanAgro</Link>
               </Button>
             </div>
             <div className="grid grid-cols-3 gap-4 pt-4">
-              <Stat value="500+" label="Verified farms" />
+              <Stat
+                value={totalListings > 0 ? totalListings.toLocaleString() : "—"}
+                label="Fresh listings"
+              />
               <Stat value="36" label="States covered" />
               <Stat value="24/7" label="Live chat" />
             </div>
@@ -268,7 +272,7 @@ const MarketplaceHome = () => {
             </div>
             <div className="md:justify-self-end">
               <Button asChild size="lg" className="rounded-full bg-white text-primary-deep hover:bg-white/90">
-                <Link to="/affiliate">
+                <Link to="/sales">
                   Apply as farmer <ArrowRight className="ml-1 h-4 w-4" />
                 </Link>
               </Button>

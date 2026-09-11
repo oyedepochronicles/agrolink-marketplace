@@ -47,7 +47,7 @@ const VerifyEmail = () => {
     if (!tokenFromLink || tokenState !== "idle") return;
     setTokenState("verifying");
     api
-      .post("/auth/verify-email-token", { token: tokenFromLink })
+      .get("/auth/verify-email", { params: { token: tokenFromLink } })
       .then(() => {
         setTokenState("success");
         toast.success("Email verified");

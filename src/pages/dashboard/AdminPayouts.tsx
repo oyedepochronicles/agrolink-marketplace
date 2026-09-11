@@ -21,8 +21,7 @@ import { toast } from "sonner";
 const AdminPayouts = () => {
   const { data: payouts = [], isLoading } = useAdminPayouts();
   const review = useReviewPayout();
-  console.log("payout", payouts);
-  console.log(review);
+
   const act = async (
     id: string,
     action: "approve" | "reject" | "mark_paid",

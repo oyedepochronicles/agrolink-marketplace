@@ -149,7 +149,7 @@ export const LocationPicker = ({
       toast.error("Enter the address details first");
       return;
     }
-    console.log(query);
+
     setFinding(true);
     try {
       const { data } = await api.get<{
@@ -157,7 +157,7 @@ export const LocationPicker = ({
       }>("/location/search", {
         params: { q: query, limit: 1 },
       });
-      console.log(data);
+
       const match = data.items?.find(
         (item) => Number.isFinite(item.lat) && Number.isFinite(item.lng),
       );

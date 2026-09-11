@@ -1,4 +1,5 @@
 import { PageHeader } from "@/components/dashboard/PageHeader";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { Card } from "@/components/ui/card";
 import {
   ChartContainer,
@@ -36,19 +37,19 @@ const AdminOverview = () => {
           icon={<ShieldCheck className="h-4 w-4" />}
           label="Pending verifications"
           value={String(pending.length || cards.pendingVerifications || "-")}
-          to="/dashboard/admin/verifications"
+          to="/admin/verifications"
         />
         <Stat
           icon={<Users className="h-4 w-4" />}
           label="Total users"
           value={String(cards.totalUsers ?? "-")}
-          to="/dashboard/admin/users"
+          to="/admin/users"
         />
         <Stat
           icon={<Package className="h-4 w-4" />}
           label="Listings"
           value={String(cards.totalProducts ?? "-")}
-          to="/dashboard/admin/products"
+          to="/admin/products"
         />
         <Stat
           icon={<BarChart3 className="h-4 w-4" />}
@@ -115,13 +116,22 @@ const AdminOverview = () => {
             </p>
           </div>
           <Link
-            to="/dashboard/admin/verifications"
+            to="/admin/verifications"
             className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
           >
             Open queue <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>
       </Card>
+
+      <RecentActivity
+        title="Recent orders"
+        description="Latest marketplace activity across all farms."
+        rows={analytics?.recentOrders}
+        linkTo="/admin/orders"
+        linkLabel="View orders"
+        emptyLabel="No orders yet."
+      />
     </div>
   );
 };

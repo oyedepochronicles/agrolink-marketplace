@@ -39,7 +39,8 @@ export const VerificationRequestDialog = ({ trigger }: Props) => {
     if (file.size > 10 * 1024 * 1024) { toast.error("Max file size is 10MB"); return; }
     setUploading(kind);
     try {
-      const url = await uploadFile(file, file.name);
+      // KYC documents go to private storage (never publicly served).
+      const url = await uploadFile(file, file.name, "identity");
       if (!url) throw new Error("Upload failed");
       if (kind === "doc") { setDocUrl(url); setDocName(file.name); }
       else setSelfieUrl(url);

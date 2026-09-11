@@ -1,10 +1,11 @@
 import { Camera } from "@capacitor/camera";
 import { Capacitor } from "@capacitor/core";
 import { Geolocation } from "@capacitor/geolocation";
+import { toast } from "sonner";
 
 export const getLocation = async () => {
   if (!Capacitor.isNativePlatform()) {
-    console.warn("Geolocation only works on native (Android/iOS)");
+    toast.warning("Geolocation only works on native (Android/iOS)");
     return null;
   }
 
@@ -17,7 +18,7 @@ export const getLocation = async () => {
 
 export const takePhoto = async () => {
   if (!Capacitor.isNativePlatform()) {
-    console.warn("Geolocation only works on native (Android/iOS)");
+    toast.warning("Geolocation only works on native (Android/iOS)");
     return null;
   }
   const permission = await Camera.requestPermissions();

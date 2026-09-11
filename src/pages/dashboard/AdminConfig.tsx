@@ -43,7 +43,14 @@ const AdminConfig = () => {
   const save = async () => {
     if (!dirty.length) return;
     try {
-      await bulk.mutateAsync(dirty.map((it) => ({ key: it.key, value: draft[it.key] })));
+      await bulk.mutateAsync(
+        dirty.map((it) => ({
+          key: it.key,
+          value: draft[it.key],
+          category: it.category,
+          description: it.description,
+        })),
+      );
       toast.success(`Updated ${dirty.length} setting${dirty.length === 1 ? "" : "s"}`);
     } catch (e) {
       toast.error(apiErrorMessage(e));

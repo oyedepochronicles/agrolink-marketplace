@@ -100,7 +100,7 @@ export const EditProfileFieldDialog = ({ field, trigger }: Props) => {
       if (field === "email") endpoint = "/auth/request-verification";
       else if (field === "phone") endpoint = "/auth/request-phone-otp";
       // Tries standard endpoint; backend should send OTP to the new email/phone.
-      console.log("Requesting OTP with value:", { value, field });
+
       await api.post(endpoint, { field, value });
       setRequested(true);
       setStep("otp");

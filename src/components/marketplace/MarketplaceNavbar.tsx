@@ -198,6 +198,13 @@ export const MarketplaceNavbar = ({
             <div className="hidden items-center gap-2 md:flex">
               <Button
                 variant="ghost"
+                onClick={() => navigate("/sales")}
+                className="rounded-full"
+              >
+                {t("nav.sell", "Sell")}
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={() => navigate("/login")}
                 className="rounded-full"
               >
@@ -262,21 +269,30 @@ export const MarketplaceNavbar = ({
               <LanguageSwitcher className="md:hidden" />
 
               {!user && (
-                <div className="mt-2 flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1 rounded-full"
-                    asChild
+                <>
+                  <NavLink
+                    to="/sales"
+                    onClick={() => setMobileOpen(false)}
+                    className="rounded-lg px-3 py-2 text-sm font-medium text-foreground/80"
                   >
-                    <Link to="/login">{t("nav.signIn")}</Link>
-                  </Button>
-                  <Button
-                    className="flex-1 rounded-full bg-gradient-primary"
-                    asChild
-                  >
-                    <Link to="/register">{t("nav.getStarted")}</Link>
-                  </Button>
-                </div>
+                    {t("nav.sell", "Sell on PhyhanAgro")}
+                  </NavLink>
+                  <div className="mt-2 flex gap-2">
+                    <Button
+                      variant="outline"
+                      className="flex-1 rounded-full"
+                      asChild
+                    >
+                      <Link to="/login">{t("nav.signIn")}</Link>
+                    </Button>
+                    <Button
+                      className="flex-1 rounded-full bg-gradient-primary"
+                      asChild
+                    >
+                      <Link to="/register">{t("nav.getStarted")}</Link>
+                    </Button>
+                  </div>
+                </>
               )}
             </div>
           </div>

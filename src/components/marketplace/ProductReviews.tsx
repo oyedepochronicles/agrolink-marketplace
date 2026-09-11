@@ -63,7 +63,7 @@ export const ProductReviews = ({ productId, farmerId }: Props) => {
       toast.error(apiErrorMessage(e));
     }
   };
-  console.log(reviews);
+
   const submitReply = async (reviewId: string) => {
     const text = replyBody.trim();
     if (!text) return;

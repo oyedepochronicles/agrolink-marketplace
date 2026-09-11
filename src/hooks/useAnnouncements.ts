@@ -40,7 +40,7 @@ export const useDismissAnnouncement = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
-      await api.patch(`/announcements/${id}/dismiss`, { dismissed: true });
+      await api.post(`/announcements/${id}/read`);
     },
     onSuccess: (_d, id) => {
       qc.setQueryData<Announcement[]>(KEY, (prev) =>

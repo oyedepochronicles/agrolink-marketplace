@@ -138,10 +138,19 @@ export const useMessageSocket = (conversationId?: string) => {
   }, [conversationId, qc]);
 };
 
-/** Upload a file (image/audio) and return its URL. */
+/**
+ * Upload a file (image/audio/document) and return its URL.
+ *
+ * Pass `scope="identity"` for KYC documents (NIN/CAC/driver's licence, selfies):
+ * the server (`?scope=identity`) routes these to private, non-served storage and
+ * returns a `/api/uploads/secure/:name` URL that is only reachable through the
+ * authenticated owner-or-admin secure endpoint. Everything else uploads to the
+ * default public scope (product images, avatars, chat attachments).
+ */
 export const uploadFile = async (
   file: File | Blob,
   filename = "voice-note.webm",
+  scope?: "identity",
 ): Promise<string> => {
   const fd = new FormData();
   const f =
@@ -149,7 +158,8 @@ export const uploadFile = async (
       ? file
       : new File([file], filename, { type: file.type });
   fd.append("file", f);
-  const { data } = await api.post("/uploads", fd, {
+  const endpoint = scope === "identity" ? "/uploads?scope=identity" : "/uploads";
+  const { data } = await api.post(endpoint, fd, {
     headers: { "Content-Type": "multipart/form-data" },
   });
   const d = data as {

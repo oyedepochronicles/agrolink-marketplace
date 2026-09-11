@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import type { Announcement } from "@/types/announcement";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const KEY = ["admin", "announcements"];
 
@@ -12,10 +13,10 @@ export const useAdminAnnouncements = () =>
         const { data } = await api.get<
           { data: Announcement[] } | Announcement[]
         >("/announcements/admin/all");
-        console.log("Fetched admin announcements: ", data);
-        return Array.isArray(data) ? data : (data.data ?? []);
+
+        return Array.isArray(data) ? data : data.data ?? [];
       } catch (e) {
-        console.log("Failed to fetch admin announcements: ", e);
+        toast.error(e.message || "Failed to fetch admin announcements");
         return [];
       }
     },

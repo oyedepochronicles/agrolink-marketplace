@@ -4,49 +4,25 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  useAdminVerification,
-  useAdminVerifications,
-  useReviewVerification,
-} from "@/hooks/useAdmin";
-import { apiErrorMessage, assetUrl } from "@/lib/api";
+import { useAdminVerifications, useReviewVerification } from "@/hooks/useAdmin";
+import { apiErrorMessage } from "@/lib/api";
 import { initials } from "@/lib/format";
 import { User } from "@/types";
-import {
-  ExternalLink,
-  FileText,
-  Loader2,
-  MapPin,
-  ShieldCheck,
-  ShieldX,
-} from "lucide-react";
-import { useState } from "react";
+import { FileText, Loader2, MapPin, ShieldCheck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const AdminVerifications = () => {
   const { data: pending = [], isLoading } = useAdminVerifications();
   const review = useReviewVerification();
-  const [selectedId, setSelectedId] = useState<string | undefined>();
-  const { data: selected, isLoading: loadingDetails } =
-    useAdminVerification(selectedId);
+  const navigate = useNavigate();
 
-  const act = async (u: User, action: "approve" | "reject") => {
-    const reason =
-      action === "reject"
-        ? window.prompt("Reason for rejection")?.trim()
-        : undefined;
-    if (action === "reject" && !reason) return;
+  // Quick-approve from the queue. Rejection requires a reason and is handled on
+  // the dedicated review page (/admin/verifications/:id).
+  const approve = async (u: User) => {
     try {
-      await review.mutateAsync({ id: u._id, action, reason });
-      toast.success(
-        action === "approve" ? "Account approved" : "Application rejected",
-      );
+      await review.mutateAsync({ id: u._id, action: "approve" });
+      toast.success("Account approved");
     } catch (e) {
       toast.error(apiErrorMessage(e));
     }
@@ -85,7 +61,7 @@ const AdminVerifications = () => {
                     <p className="font-semibold">{u.name}</p>
                     <Badge variant="outline" className="capitalize">
                       {u.requestedRole
-                        ? u.role + "=>" + u.requestedRole
+                        ? u.role + " → " + u.requestedRole
                         : u.role}
                     </Badge>
                   </div>
@@ -98,22 +74,13 @@ const AdminVerifications = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setSelectedId(u._id)}
+                    onClick={() => navigate(`/admin/verifications/${u._id}`)}
                   >
                     <FileText className="h-4 w-4" /> View details
                   </Button>
                   <Button
-                    variant="outline"
                     size="sm"
-                    className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                    onClick={() => act(u, "reject")}
-                    disabled={review.isPending}
-                  >
-                    <ShieldX className="h-4 w-4" /> Reject
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => act(u, "approve")}
+                    onClick={() => approve(u)}
                     disabled={review.isPending}
                   >
                     <ShieldCheck className="h-4 w-4" /> Approve
@@ -176,131 +143,6 @@ const AdminVerifications = () => {
           ))}
         </div>
       )}
-      <Dialog
-        open={!!selectedId}
-        onOpenChange={(open) => !open && setSelectedId(undefined)}
-      >
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Verification details</DialogTitle>
-          </DialogHeader>
-          {loadingDetails ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="h-5 w-5 animate-spin" />
-            </div>
-          ) : selected ? (
-            <div className="space-y-4 text-sm">
-              <div className="grid gap-3 md:grid-cols-2">
-                <Detail
-                  label="Applicant"
-                  value={`${selected.name} (${
-                    selected.requestedRole
-                      ? selected.role + "=>" + selected.requestedRole
-                      : selected.role
-                  })`}
-                />
-                <Detail
-                  label="Contact"
-                  value={[selected.email, selected.phone]
-                    .filter(Boolean)
-                    .join(" • ")}
-                />
-                <Detail label="Status" value={selected.verificationStatus} />
-                <Detail
-                  label="Submitted"
-                  value={
-                    selected.verificationSubmittedAt
-                      ? new Date(
-                          selected.verificationSubmittedAt,
-                        ).toLocaleString()
-                      : undefined
-                  }
-                />
-              </div>
-              {(selected.role === "farmer" ||
-                selected.requestedRole === "farmer") && (
-                <div className="grid gap-3 md:grid-cols-2">
-                  <Detail
-                    label="Farm name"
-                    value={selected.farmerProfile?.farmName}
-                  />
-                  <Detail
-                    label="Farm address"
-                    value={
-                      selected.farmerProfile?.farmAddress ||
-                      selected.location?.fullAddress
-                    }
-                  />
-                  <Detail
-                    label="Farm location"
-                    value={[
-                      selected.farmerProfile?.farmLga,
-                      selected.farmerProfile?.farmState,
-                    ]
-                      .filter(Boolean)
-                      .join(", ")}
-                  />
-                  <Detail
-                    label="ID information"
-                    value={[
-                      selected.farmerProfile?.idType,
-                      selected.farmerProfile?.idNumber,
-                    ]
-                      .filter(Boolean)
-                      .join(" • ")}
-                  />
-                </div>
-              )}
-              {(selected.role === "rider" ||
-                selected.requestedRole === "rider") && (
-                <div className="grid gap-3 md:grid-cols-2">
-                  <Detail
-                    label="Vehicle"
-                    value={[
-                      selected.riderProfile?.vehicleType,
-                      selected.riderProfile?.vehicleNumber,
-                    ]
-                      .filter(Boolean)
-                      .join(" • ")}
-                  />
-                  <Detail
-                    label="License"
-                    value={selected.riderProfile?.licenseNumber}
-                  />
-                  <Detail
-                    label="ID information"
-                    value={selected.riderProfile?.idType}
-                  />
-                  <Detail
-                    label="Location"
-                    value={
-                      selected.location?.fullAddress || selected.location?.state
-                    }
-                  />
-                </div>
-              )}
-              <div className="flex flex-wrap gap-2">
-                <DocumentLink
-                  label="ID document"
-                  url={
-                    selected.farmerProfile?.idDocumentUrl ||
-                    selected.riderProfile?.idDocumentUrl ||
-                    selected.buyerProfile?.idDocumentUrl
-                  }
-                />
-                <DocumentLink
-                  label="Farm photo"
-                  url={selected.farmerProfile?.farmPhotoUrl}
-                />
-                <DocumentLink
-                  label="Driver license"
-                  url={selected.riderProfile?.driverLicenseUrl}
-                />
-              </div>
-            </div>
-          ) : null}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };
@@ -322,14 +164,5 @@ const Detail = ({
     </div>
   </div>
 );
-
-const DocumentLink = ({ label, url }: { label: string; url?: string }) =>
-  url ? (
-    <Button variant="outline" size="sm" asChild>
-      <a href={assetUrl(url)} target="_blank" rel="noreferrer">
-        <ExternalLink className="h-4 w-4" /> {label}
-      </a>
-    </Button>
-  ) : null;
 
 export default AdminVerifications;

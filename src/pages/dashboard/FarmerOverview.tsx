@@ -5,6 +5,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDashboardAnalytics } from "@/hooks/useDashboardAnalytics";
 import { formatNaira } from "@/lib/format";
@@ -131,22 +132,14 @@ const FarmerOverview = () => {
         </div>
       </Card>
 
-      <Card className="rounded-2xl p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-semibold">Recent orders</h3>
-            <p className="text-sm text-muted-foreground">
-              Track and fulfil incoming orders.
-            </p>
-          </div>
-          <Link
-            to="/dashboard/farmer/orders"
-            className="inline-flex items-center gap-1 text-sm font-semibold text-primary hover:underline"
-          >
-            View orders <ArrowUpRight className="h-4 w-4" />
-          </Link>
-        </div>
-      </Card>
+      <RecentActivity
+        title="Recent orders"
+        description="Track and fulfil incoming orders."
+        rows={analytics?.recentOrders}
+        linkTo="/dashboard/farmer/orders"
+        linkLabel="View orders"
+        emptyLabel="No orders yet — they'll appear here as buyers purchase your produce."
+      />
     </div>
   );
 };

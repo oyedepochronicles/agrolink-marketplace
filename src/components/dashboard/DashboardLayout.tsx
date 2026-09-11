@@ -103,6 +103,11 @@ const NAV_BY_ROLE: Record<Extract<Role, "farmer" | "rider">, NavEntry[]> = {
   rider: [
     {
       to: "/dashboard/rider",
+      labelKey: "dashboard.overview",
+      icon: <LayoutDashboard className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/rider/deliveries",
       labelKey: "dashboard.deliveries",
       icon: <Truck className="h-4 w-4" />,
     },
