@@ -19,7 +19,9 @@ import {
   HelpCircle,
   LayoutDashboard,
   LogOut,
+  Megaphone,
   Menu,
+  Package2,
   Search,
   ShoppingBag,
   ShoppingCart,
@@ -39,10 +41,7 @@ const useNavItems = () => {
     { to: "/marketplace", label: t("nav.home") },
     { to: "/marketplace/search", label: t("nav.browse") },
     { to: "/marketplace/farmers", label: t("nav.farmers", "Farmers") },
-    { to: "/marketplace/orders", label: t("nav.orders") },
-    { to: "/announcements", label: t("nav.announcements", "Announcements") },
     { to: "/marketplace/support", label: t("nav.support", "Support") },
-    { to: "/marketplace/profile", label: t("nav.profile") },
   ];
 };
 
@@ -93,12 +92,13 @@ export const MarketplaceNavbar = ({
           className="ml-4 hidden h-10 max-w-xl flex-1 items-center gap-2 rounded-full border border-border bg-secondary px-4 text-sm text-muted-foreground transition-colors hover:bg-secondary/70 md:flex"
         >
           <Search className="h-4 w-4" />
-          <span className="truncate">{t("common.search") + " or navigate…"}</span>
+          <span className="truncate">
+            {t("common.search") + " or navigate…"}
+          </span>
           <kbd className="ml-auto hidden rounded border border-border bg-background px-1.5 py-0.5 text-[10px] font-medium lg:inline">
             ⌘K
           </kbd>
         </button>
-
 
         <nav className="ml-auto hidden items-center gap-1 lg:flex">
           {navItems.map((item) => (
@@ -177,8 +177,17 @@ export const MarketplaceNavbar = ({
                     {t("nav.backToDashboard")}
                   </DropdownMenuItem>
                 )}
+                <DropdownMenuItem
+                  onClick={() => navigate("/marketplace/orders")}
+                >
+                  <Package2 className="mr-2 h-4 w-4" /> {t("nav.orders")}
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/marketplace/cart")}>
                   <ShoppingBag className="mr-2 h-4 w-4" /> {t("nav.cart")}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/announcements")}>
+                  <Megaphone className="mr-2 h-4 w-4" />{" "}
+                  {t("nav.announcements", "Announcements")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onClick={() => navigate("/marketplace/support")}
@@ -270,9 +279,9 @@ export const MarketplaceNavbar = ({
               ))}
 
               <div className="flex items-center gap-2">
-              <LanguageSwitcher className="md:hidden" />
-              <ThemeToggle className="md:hidden" />
-            </div>
+                <LanguageSwitcher className="md:hidden" />
+                <ThemeToggle className="md:hidden" />
+              </div>
 
               {!user && (
                 <>
