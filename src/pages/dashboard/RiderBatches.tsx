@@ -4,11 +4,16 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useRiderBatches, useUpdateBatchStatus } from "@/hooks/useBatchOrders";
+import {
+  useAcceptBatch,
+  useAvailableBatches,
+  useRiderBatches,
+  useUpdateBatchStatus,
+} from "@/hooks/useBatchOrders";
 import { apiErrorMessage } from "@/lib/api";
 import { formatDate } from "@/lib/format";
 import type { Batch } from "@/types/batch";
-import { Loader2, MapPin, Navigation, Truck } from "lucide-react";
+import { Check, Loader2, MapPin, Navigation, Truck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -19,6 +24,8 @@ const NEXT_STATUS: Record<string, { next: string; label: string }> = {
 
 const RiderBatches = () => {
   const { data: batches = [], isLoading } = useRiderBatches();
+  const { data: available = [], isLoading: loadingAvailable } =
+    useAvailableBatches();
   const [tab, setTab] = useState("active");
   const active = batches.filter((b) => !["delivered", "cancelled"].includes(b.status));
   const history = batches.filter((b) => ["delivered", "cancelled"].includes(b.status));
@@ -33,6 +40,7 @@ const RiderBatches = () => {
       <Tabs value={tab} onValueChange={setTab}>
         <TabsList>
           <TabsTrigger value="active">Active</TabsTrigger>
+          <TabsTrigger value="available">Available</TabsTrigger>
           <TabsTrigger value="history">History</TabsTrigger>
         </TabsList>
         <TabsContent value="active" className="mt-4 space-y-3">
@@ -42,6 +50,21 @@ const RiderBatches = () => {
             <EmptyState icon={<Truck className="h-6 w-6" />} title="No active batches" />
           ) : (
             active.map((b) => <RiderBatchCard key={b._id} batch={b} />)
+          )}
+        </TabsContent>
+        <TabsContent value="available" className="mt-4 space-y-3">
+          {loadingAvailable ? (
+            <Spin />
+          ) : available.length === 0 ? (
+            <EmptyState
+              icon={<Truck className="h-6 w-6" />}
+              title="No batches to claim"
+              description="Unassigned, ready batches will appear here for you to accept."
+            />
+          ) : (
+            available.map((b) => (
+              <RiderBatchCard key={b._id} batch={b} claimable />
+            ))
           )}
         </TabsContent>
         <TabsContent value="history" className="mt-4 space-y-3">
@@ -64,8 +87,15 @@ const Spin = () => (
   </div>
 );
 
-const RiderBatchCard = ({ batch }: { batch: Batch }) => {
+const RiderBatchCard = ({
+  batch,
+  claimable,
+}: {
+  batch: Batch;
+  claimable?: boolean;
+}) => {
   const update = useUpdateBatchStatus();
+  const accept = useAcceptBatch();
   const action = NEXT_STATUS[batch.status];
   const stops = batch.routeStops ?? [];
 
@@ -74,6 +104,15 @@ const RiderBatchCard = ({ batch }: { batch: Batch }) => {
     try {
       await update.mutateAsync({ id: batch._id, status: action.next });
       toast.success(`Batch marked ${action.next.replace("_", " ")}`);
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    }
+  };
+
+  const claim = async () => {
+    try {
+      await accept.mutateAsync(batch._id);
+      toast.success("Batch accepted — added to your deliveries");
     } catch (e) {
       toast.error(apiErrorMessage(e));
     }
@@ -120,10 +159,16 @@ const RiderBatchCard = ({ batch }: { batch: Batch }) => {
       )}
 
       <div className="mt-4 flex flex-wrap gap-2">
-        {action && (
-          <Button size="sm" onClick={advance} disabled={update.isPending} className="gap-1">
-            <Navigation className="h-4 w-4" /> {action.label}
+        {claimable ? (
+          <Button size="sm" onClick={claim} disabled={accept.isPending} className="gap-1">
+            <Check className="h-4 w-4" /> Accept batch
           </Button>
+        ) : (
+          action && (
+            <Button size="sm" onClick={advance} disabled={update.isPending} className="gap-1">
+              <Navigation className="h-4 w-4" /> {action.label}
+            </Button>
+          )
         )}
       </div>
     </Card>

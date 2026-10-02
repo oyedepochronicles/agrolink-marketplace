@@ -6,6 +6,27 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
+    <!-- Color-mode flash prevention: apply the saved/system theme before first
+         paint so there is no light→dark flicker. storageKey must stay in sync
+         with the next-themes ThemeProvider ("phyhan.theme"). -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem("phyhan.theme");
+          var systemDark = window.matchMedia(
+            "(prefers-color-scheme: dark)"
+          ).matches;
+          var isDark =
+            stored === "dark" ||
+            ((!stored || stored === "system") && systemDark);
+          var root = document.documentElement;
+          root.classList.toggle("dark", isDark);
+          root.style.colorScheme = isDark ? "dark" : "light";
+        } catch (e) {
+          /* localStorage/matchMedia unavailable — fall back to light. */
+        }
+      })();
+    </script>
     <meta name="theme-color" content="#16a34a" />
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
     <link rel="manifest" href="/manifest.webmanifest" />

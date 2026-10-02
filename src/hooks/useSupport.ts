@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import type { FaqItem, SupportTicket, SupportTicketStatus } from "@/types";
+import type { FaqItem, SupportTicket, SupportTicketDepartment, SupportTicketPriority, SupportTicketStatus } from "@/types";
 
 interface TicketsResp { items?: SupportTicket[]; data?: SupportTicket[]; tickets?: SupportTicket[] }
 interface FaqResp { items?: FaqItem[]; data?: FaqItem[]; faqs?: FaqItem[] }
+interface StaffResp { items?: Array<{ _id: string; name: string; email: string; role: string }> }
 
 const unwrapTickets = (data: TicketsResp | SupportTicket[]): SupportTicket[] => {
   if (Array.isArray(data)) return data;
@@ -89,3 +90,33 @@ export const useUpdateTicketStatus = (id?: string) => {
     },
   });
 };
+
+export const useUpdateTicketWorkflow = (id?: string) => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: {
+      department?: SupportTicketDepartment;
+      priority?: SupportTicketPriority;
+      status?: SupportTicketStatus;
+      assignedTo?: string | null;
+      slaDueAt?: string | null;
+      escalationReason?: string;
+    }) => {
+      const { data } = await api.patch<SupportTicket>(`/admin/support/tickets/${id}/workflow`, input);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-support-tickets"] });
+      qc.invalidateQueries({ queryKey: ["support-ticket", id] });
+    },
+  });
+};
+
+export const useSupportAssignees = () =>
+  useQuery({
+    queryKey: ["support-case-assignees"],
+    queryFn: async () => {
+      const { data } = await api.get<StaffResp>("/admin/support/tickets/staff");
+      return data.items ?? [];
+    },
+  });

@@ -30,6 +30,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { LanguageSwitcher } from "../LanguageSwitcher";
+import { ThemeToggle } from "../ThemeToggle";
 import { SearchPalette } from "./SearchPalette";
 
 const useNavItems = () => {
@@ -37,6 +38,7 @@ const useNavItems = () => {
   return [
     { to: "/marketplace", label: t("nav.home") },
     { to: "/marketplace/search", label: t("nav.browse") },
+    { to: "/marketplace/farmers", label: t("nav.farmers", "Farmers") },
     { to: "/marketplace/orders", label: t("nav.orders") },
     { to: "/announcements", label: t("nav.announcements", "Announcements") },
     { to: "/marketplace/support", label: t("nav.support", "Support") },
@@ -118,6 +120,7 @@ export const MarketplaceNavbar = ({
 
         <div className="ml-auto flex items-center gap-2 md:ml-2">
           <LanguageSwitcher className="hidden md:block" />
+          <ThemeToggle className="hidden md:inline-flex" />
           <Link
             to="/marketplace/cart"
             aria-label={t("nav.cart")}
@@ -224,7 +227,7 @@ export const MarketplaceNavbar = ({
             size="icon"
             className="lg:hidden"
             onClick={() => setMobileOpen((v) => !v)}
-            aria-label="Toggle menu"
+            aria-label={t("nav.toggleMenu")}
           >
             {mobileOpen ? (
               <X className="h-5 w-5" />
@@ -244,7 +247,7 @@ export const MarketplaceNavbar = ({
               className="relative flex h-11 w-full items-center gap-2 rounded-full bg-secondary px-4 text-left text-sm text-muted-foreground md:hidden"
             >
               <Search className="h-4 w-4" />
-              <span className="truncate">{t("common.search") + " or navigate…"}</span>
+              <span className="truncate">{t("nav.searchOrNavigate")}</span>
             </button>
             <div className="flex flex-col gap-1">
               {navItems.map((item) => (
@@ -266,7 +269,10 @@ export const MarketplaceNavbar = ({
                 </NavLink>
               ))}
 
+              <div className="flex items-center gap-2">
               <LanguageSwitcher className="md:hidden" />
+              <ThemeToggle className="md:hidden" />
+            </div>
 
               {!user && (
                 <>

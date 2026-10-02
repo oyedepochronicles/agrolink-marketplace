@@ -317,6 +317,37 @@ export const useAssignRider = () => {
   });
 };
 
+/** Farmer records pickup readiness (PATCH /orders/:id/pickup-details).
+ *  Requires the order to be paid; marks it ready_for_pickup and alerts riders. */
+export const useSetPickupDetails = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      readyAt,
+      notes,
+      contactPhone,
+    }: {
+      id: string;
+      readyAt?: string;
+      notes?: string;
+      contactPhone?: string;
+    }) => {
+      const { data } = await api.patch<Order>(`/orders/${id}/pickup-details`, {
+        readyAt,
+        notes,
+        contactPhone,
+      });
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["farmer-orders"] });
+      qc.invalidateQueries({ queryKey: ["rider-deliveries"] });
+      qc.invalidateQueries({ queryKey: ["available-deliveries"] });
+    },
+  });
+};
+
 export const useAcceptDelivery = () => {
   const qc = useQueryClient();
   return useMutation({

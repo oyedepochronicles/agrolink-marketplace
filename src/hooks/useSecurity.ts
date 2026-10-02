@@ -168,3 +168,104 @@ export const useAcceptAdminInvite = () =>
     mutationFn: async (input: { token: string; password: string }) =>
       (await api.post("/auth/accept-admin-invite", input)).data,
   });
+
+/* -------------------- Account recovery appeals (admin) -------------------- */
+
+export type RecoveryAppealStatus =
+  | "pending"
+  | "under_review"
+  | "additional_info_required"
+  | "approved"
+  | "rejected"
+  | "cancelled";
+
+export interface RecoveryAppealHistoryEntry {
+  at?: string;
+  byId?: string;
+  action?: string;
+  note?: string;
+}
+
+export interface RecoveryAppeal {
+  id: string;
+  caseId: string;
+  status: RecoveryAppealStatus;
+  contactMethod?: "email" | "phone";
+  /** Masked destination only — reviewers never see the full contact. */
+  maskedAccount?: string;
+  fullName?: string;
+  reason?: string;
+  explanation?: string;
+  /** Authenticated admin-only secure URL; never the document bytes. */
+  secureDocumentUrl?: string;
+  assignedTo?: { id: string; name?: string; email?: string } | string;
+  assignedAt?: string;
+  hasAccount?: boolean;
+  userId?: string;
+  reviewNote?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  history?: RecoveryAppealHistoryEntry[];
+}
+
+export const useRecoveryAppeals = (status?: RecoveryAppealStatus | "") =>
+  useQuery({
+    queryKey: ["admin-recovery-appeals", status ?? ""],
+    queryFn: async () =>
+      unwrapList<RecoveryAppeal>(
+        (
+          await api.get("/admin/recovery-appeals", {
+            params: status ? { status } : undefined,
+          })
+        ).data,
+      ),
+  });
+
+const invalidateAppeals = (qc: ReturnType<typeof useQueryClient>) => {
+  qc.invalidateQueries({ queryKey: ["admin-recovery-appeals"] });
+  qc.invalidateQueries({ queryKey: ["admin-audit-logs"] });
+};
+
+export const useAssignRecoveryAppeal = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      assigneeId,
+      note,
+    }: {
+      id: string;
+      assigneeId?: string;
+      note?: string;
+    }) =>
+      (
+        await api.patch<{ appeal: RecoveryAppeal }>(
+          `/admin/recovery-appeals/${id}/assign`,
+          { assigneeId, note },
+        )
+      ).data,
+    onSuccess: () => invalidateAppeals(qc),
+  });
+};
+
+export const useReviewRecoveryAppeal = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      decision,
+      note,
+    }: {
+      id: string;
+      decision: "approved" | "rejected" | "additional_info_required";
+      note?: string;
+    }) =>
+      (
+        await api.patch<{ appeal: RecoveryAppeal }>(
+          `/admin/recovery-appeals/${id}/review`,
+          { decision, note },
+        )
+      ).data,
+    onSuccess: () => invalidateAppeals(qc),
+  });
+};

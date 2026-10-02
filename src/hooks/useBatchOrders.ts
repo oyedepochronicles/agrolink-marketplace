@@ -58,6 +58,20 @@ export const useRiderBatches = () =>
     },
   });
 
+/** Unassigned, ready batches a rider can claim (GET /batches/available). */
+export const useAvailableBatches = () =>
+  useQuery({
+    queryKey: ["batches", "available"],
+    queryFn: async (): Promise<Batch[]> => {
+      try {
+        const { data } = await api.get<Listish<Batch>>("/batches/available");
+        return unwrap(data);
+      } catch {
+        return [];
+      }
+    },
+  });
+
 // ---------- Mutations ----------
 export const useUpdateBatchStatus = () => {
   const qc = useQueryClient();
@@ -69,6 +83,21 @@ export const useUpdateBatchStatus = () => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["batches"] });
       qc.invalidateQueries({ queryKey: ["parent-orders"] });
+    },
+  });
+};
+
+/** Rider claims an available batch (POST /batches/:id/accept). */
+export const useAcceptBatch = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string): Promise<Batch> => {
+      const { data } = await api.post<Batch>(`/batches/${id}/accept`);
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["batches"] });
+      qc.invalidateQueries({ queryKey: ["rider-deliveries"] });
     },
   });
 };

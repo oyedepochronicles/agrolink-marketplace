@@ -1,4 +1,5 @@
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { TermsAcceptanceGate } from "@/components/TermsAcceptanceGate";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,6 +7,7 @@ import { VerifiedRoute } from "@/components/VerifiedRoute";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "next-themes";
 import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import AnnouncementDetails from "./pages/AnnouncementDetails.tsx";
@@ -16,6 +18,7 @@ import NotFound from "./pages/NotFound.tsx";
 import Affiliate from "./pages/auth/Affiliate";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import Login from "./pages/auth/Login";
+import Recovery from "./pages/auth/Recovery";
 import Register from "./pages/auth/Register";
 import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyEmail from "./pages/auth/VerifyEmail";
@@ -25,36 +28,44 @@ import VerifyPending from "./pages/auth/VerifyPending";
 import { MarketplaceLayout } from "@/components/marketplace/MarketplaceLayout";
 import Cart from "./pages/marketplace/Cart";
 import Checkout from "./pages/marketplace/Checkout";
+import Farmers from "./pages/marketplace/Farmers";
+import FarmerStore from "./pages/marketplace/FarmerStore";
 import MarketplaceHome from "./pages/marketplace/MarketplaceHome";
 import MarketplaceSearch from "./pages/marketplace/MarketplaceSearch";
-import SalesLanding from "./pages/marketplace/SalesLanding";
 import Orders from "./pages/marketplace/Orders";
 import ProductDetails from "./pages/marketplace/ProductDetails";
 import Profile from "./pages/marketplace/Profile";
+import SalesLanding from "./pages/marketplace/SalesLanding";
 import Support from "./pages/marketplace/Support";
 import SupportTicket from "./pages/marketplace/SupportTicket";
 
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminRoute } from "@/components/admin/AdminRoute";
+import { AgentLayout } from "@/components/agent/AgentLayout";
 import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { App as CapacitorApp } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
-import { AdminLayout } from "@/components/admin/AdminLayout";
-import { AdminRoute } from "@/components/admin/AdminRoute";
-import AcceptAdminInvite from "./pages/auth/AcceptAdminInvite";
+import { getLocation, takePhoto } from "./lib/permissions.ts";
 import AdminAuditLogs from "./pages/admin/AdminAuditLogs";
 import AdminLogin from "./pages/admin/AdminLogin";
+import AdminRecoveryAppeals from "./pages/admin/AdminRecoveryAppeals";
 import AdminSecurity from "./pages/admin/AdminSecurity";
 import AdminSecurityEvents from "./pages/admin/AdminSecurityEvents";
 import AdminTeam from "./pages/admin/AdminTeam";
-import Unauthorized from "./pages/Unauthorized";
-import { getLocation, takePhoto } from "./lib/permissions.ts";
+import AcceptAdminInvite from "./pages/auth/AcceptAdminInvite";
 import AdminAnalytics from "./pages/dashboard/AdminAnalytics";
 import AdminAnnouncements from "./pages/dashboard/AdminAnnouncements";
 import AdminConfig from "./pages/dashboard/AdminConfig";
 import AdminOrders from "./pages/dashboard/AdminOrders";
 import AdminOverview from "./pages/dashboard/AdminOverview";
 import AdminPayouts from "./pages/dashboard/AdminPayouts";
+import AdminTransactions from "./pages/dashboard/AdminTransactions";
 import AdminProducts from "./pages/dashboard/AdminProducts";
 import AdminSupport from "./pages/dashboard/AdminSupport";
+import RoleManager from "./pages/dashboard/RoleManager";
+import StaffManager from "./pages/dashboard/StaffManager";
+import FeeManager from "./pages/dashboard/FeeManager";
+import TermsManager from "./pages/dashboard/TermsManager";
 import AdminUsers from "./pages/dashboard/AdminUsers";
 import AdminVerificationDetail from "./pages/dashboard/AdminVerificationDetail";
 import AdminVerifications from "./pages/dashboard/AdminVerifications";
@@ -69,6 +80,17 @@ import RiderDeliveries from "./pages/dashboard/RiderDeliveries";
 import RiderOverview from "./pages/dashboard/RiderOverview";
 import Wallet from "./pages/dashboard/Wallet";
 import ParentOrderDetails from "./pages/marketplace/ParentOrderDetails";
+import Unauthorized from "./pages/Unauthorized";
+
+// Farm Agent portal (Feature 4) + farmer "My Agent" + admin agent management
+import AgentActivity from "./pages/agent/AgentActivity";
+import AgentFarmerProducts from "./pages/agent/AgentFarmerProducts";
+import AgentFarmers from "./pages/agent/AgentFarmers";
+import AgentOverview from "./pages/agent/AgentOverview";
+import AgentManager from "./pages/admin/AgentManager";
+import AdminExchange from "./pages/admin/AdminExchange";
+import FarmerAgent from "./pages/dashboard/FarmerAgent";
+import FarmerExchange from "./pages/dashboard/FarmerExchange";
 
 const isNativeApp = Capacitor.isNativePlatform();
 const queryClient = new QueryClient({
@@ -95,13 +117,21 @@ const App = () => {
   getLocation();
   takePhoto();
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner position="top-right" richColors />
-        <BrowserRouter>
-          <AuthProvider>
-            <Routes>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      disableTransitionOnChange
+      storageKey="phyhan.theme"
+    >
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner position="top-right" richColors />
+          <BrowserRouter>
+            <AuthProvider>
+              <TermsAcceptanceGate />
+              <Routes>
               <Route path="/" element={<Index />} />
 
               {/* Public auth */}
@@ -109,10 +139,14 @@ const App = () => {
               <Route path="/register" element={<Register />} />
               <Route path="/affiliate" element={<Affiliate />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+              <Route path="/recovery" element={<Recovery />} />
               <Route path="/verify-otp" element={<VerifyOTP />} />
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/verify-email" element={<VerifyEmail />} />
-              <Route path="/accept-admin-invite" element={<AcceptAdminInvite />} />
+              <Route
+                path="/accept-admin-invite"
+                element={<AcceptAdminInvite />}
+              />
               <Route path="/unauthorized" element={<Unauthorized />} />
               <Route path="/404" element={<NotFound />} />
               <Route
@@ -133,6 +167,8 @@ const App = () => {
               <Route path="/marketplace" element={<MarketplaceLayout />}>
                 <Route index element={<MarketplaceHome />} />
                 <Route path="search" element={<MarketplaceSearch />} />
+                <Route path="farmers" element={<Farmers />} />
+                <Route path="farmers/:id" element={<FarmerStore />} />
                 <Route path="product/:id" element={<ProductDetails />} />
                 <Route path="cart" element={<Cart />} />
                 <Route
@@ -298,6 +334,22 @@ const App = () => {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="farmer/agent"
+                  element={
+                    <ProtectedRoute roles={["farmer"]}>
+                      <FarmerAgent />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="farmer/exchange"
+                  element={
+                    <ProtectedRoute roles={["farmer"]}>
+                      <FarmerExchange />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Rider */}
                 <Route
@@ -342,11 +394,18 @@ const App = () => {
                 />
 
                 {/* Legacy admin paths — the admin console now lives at /admin */}
-                <Route path="admin/*" element={<Navigate to="/admin" replace />} />
+                <Route
+                  path="admin/*"
+                  element={<Navigate to="/admin" replace />}
+                />
               </Route>
 
               {/* Isolated admin console */}
               <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/didit/callback"
+                element={<Navigate to="/profile" replace />}
+              />
               <Route
                 path="/admin"
                 element={
@@ -356,21 +415,159 @@ const App = () => {
                 }
               >
                 <Route index element={<AdminOverview />} />
-                <Route path="orders" element={<AdminOrders />} />
-                <Route path="products" element={<AdminProducts />} />
-                <Route path="verifications" element={<AdminVerifications />} />
+                <Route
+                  path="orders"
+                  element={
+                    <AdminRoute permission="orders:read">
+                      <AdminOrders />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="products"
+                  element={
+                    <AdminRoute permission="products:review">
+                      <AdminProducts />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="verifications"
+                  element={
+                    <AdminRoute permission="verification:read">
+                      <AdminVerifications />
+                    </AdminRoute>
+                  }
+                />
                 <Route
                   path="verifications/:id"
-                  element={<AdminVerificationDetail />}
+                  element={
+                    <AdminRoute permission="verification:read">
+                      <AdminVerificationDetail />
+                    </AdminRoute>
+                  }
                 />
-                <Route path="users" element={<AdminUsers />} />
-                <Route path="support" element={<AdminSupport />} />
-                <Route path="payouts" element={<AdminPayouts />} />
-                <Route path="analytics" element={<AdminAnalytics />} />
-                <Route path="announcements" element={<AdminAnnouncements />} />
-                <Route path="audit-logs" element={<AdminAuditLogs />} />
-                <Route path="security-events" element={<AdminSecurityEvents />} />
+                <Route
+                  path="users"
+                  element={
+                    <AdminRoute permission="users:read">
+                      <AdminUsers />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="support"
+                  element={
+                    <AdminRoute permission="support:read">
+                      <AdminSupport />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="payouts"
+                  element={
+                    <AdminRoute permission="payouts:read">
+                      <AdminPayouts />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="transactions"
+                  element={
+                    <AdminRoute permission="payments:read">
+                      <AdminTransactions />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="analytics"
+                  element={
+                    <AdminRoute adminOnly>
+                      <AdminAnalytics />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="announcements"
+                  element={
+                    <AdminRoute permission="announcements:write">
+                      <AdminAnnouncements />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="audit-logs"
+                  element={
+                    <AdminRoute permission="audit:read">
+                      <AdminAuditLogs />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="security-events"
+                  element={
+                    <AdminRoute permission="security:read">
+                      <AdminSecurityEvents />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="recovery-appeals"
+                  element={
+                    <AdminRoute permission="security:read">
+                      <AdminRecoveryAppeals />
+                    </AdminRoute>
+                  }
+                />
                 <Route path="security" element={<AdminSecurity />} />
+                <Route
+                  path="staff"
+                  element={
+                    <AdminRoute permission="staff:read">
+                      <StaffManager />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="agents"
+                  element={
+                    <AdminRoute permission="agents:read">
+                      <AgentManager />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="exchange"
+                  element={
+                    <AdminRoute permission="exchange:read">
+                      <AdminExchange />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="roles"
+                  element={
+                    <AdminRoute permission="roles:read">
+                      <RoleManager />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="fees"
+                  element={
+                    <AdminRoute permission="fees:read">
+                      <FeeManager />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="terms"
+                  element={
+                    <AdminRoute permission="terms:read">
+                      <TermsManager />
+                    </AdminRoute>
+                  }
+                />
                 <Route
                   path="team"
                   element={
@@ -389,13 +586,32 @@ const App = () => {
                 />
               </Route>
 
+              {/* Isolated Farm Agent portal (acts on behalf of assigned farmers only) */}
+              <Route
+                path="/agent"
+                element={
+                  <ProtectedRoute roles={["farm_agent"]}>
+                    <AgentLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<AgentOverview />} />
+                <Route path="farmers" element={<AgentFarmers />} />
+                <Route
+                  path="farmers/:farmerId/products"
+                  element={<AgentFarmerProducts />}
+                />
+                <Route path="activity" element={<AgentActivity />} />
+              </Route>
+
               {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
-            </Routes>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+              </Routes>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 };
 

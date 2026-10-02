@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePageMeta } from "@/hooks/usePageMeta";
 import { useProductsNearBy, useProductsPaged } from "@/hooks/useProducts";
+import { PRODUCT_CATEGORIES } from "@/lib/categories";
 import {
   ArrowRight,
   ChevronLeft,
@@ -17,16 +18,9 @@ import {
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
-// Categories mirror the server-side Product category enum
-// (server/src/models/Product.js): only these values are queryable.
-const categories = [
-  { label: "All", value: "All" },
-  { label: "Vegetables", value: "Vegetable" },
-  { label: "Fruits", value: "Fruit" },
-  { label: "Grains", value: "Grain" },
-  { label: "Tubers", value: "Tuber" },
-  { label: "Other", value: "Other" },
-];
+// "All" + the full canonical taxonomy (crops, livestock, byproducts) from the
+// shared source so the quick-pick chips never drift from the server enum.
+const categories = [{ label: "All", value: "All" }, ...PRODUCT_CATEGORIES];
 
 const PAGE_SIZE = 12;
 

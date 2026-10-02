@@ -1,3 +1,5 @@
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,61 +14,90 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
 import { initials } from "@/lib/format";
-import { isSuperAdmin, mfaSatisfied } from "@/lib/authz";
+import { hasPermission, isAdmin, isSuperAdmin, mfaSatisfied } from "@/lib/authz";
 import { cn } from "@/lib/utils";
 import {
   Banknote,
   BarChart3,
   Bell,
+  Briefcase,
   FileClock,
   HelpCircle,
   KeyRound,
+  LifeBuoy,
   LineChart,
   LogOut,
   Menu,
   PackageCheck,
+  Receipt,
+  Recycle,
+  ScrollText,
   Settings,
+  Shield,
   ShieldAlert,
   ShieldCheck,
   ShoppingCart,
+  Sprout,
   UserCog,
   Users,
 } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 
 interface Entry {
   to: string;
-  label: string;
+  labelKey: string;
   icon: React.ReactNode;
   superAdminOnly?: boolean;
+  adminOnly?: boolean;
+  permission?: string;
 }
 
 const NAV: Entry[] = [
-  { to: "/admin", label: "Overview", icon: <BarChart3 className="h-4 w-4" /> },
-  { to: "/admin/orders", label: "Orders", icon: <ShoppingCart className="h-4 w-4" /> },
-  { to: "/admin/products", label: "Product review", icon: <PackageCheck className="h-4 w-4" /> },
-  { to: "/admin/verifications", label: "Verifications", icon: <ShieldCheck className="h-4 w-4" /> },
-  { to: "/admin/users", label: "Users", icon: <Users className="h-4 w-4" /> },
-  { to: "/admin/support", label: "Support inbox", icon: <HelpCircle className="h-4 w-4" /> },
-  { to: "/admin/payouts", label: "Payouts", icon: <Banknote className="h-4 w-4" /> },
-  { to: "/admin/analytics", label: "Analytics", icon: <LineChart className="h-4 w-4" /> },
-  { to: "/admin/announcements", label: "Announcements", icon: <Bell className="h-4 w-4" /> },
-  { to: "/admin/audit-logs", label: "Audit trail", icon: <FileClock className="h-4 w-4" /> },
-  { to: "/admin/security-events", label: "Security events", icon: <ShieldAlert className="h-4 w-4" /> },
-  { to: "/admin/security", label: "My security", icon: <KeyRound className="h-4 w-4" /> },
-  { to: "/admin/team", label: "Admin team", icon: <UserCog className="h-4 w-4" />, superAdminOnly: true },
-  { to: "/admin/config", label: "Platform config", icon: <Settings className="h-4 w-4" />, superAdminOnly: true },
+  { to: "/admin", labelKey: "admin.nav.overview", icon: <BarChart3 className="h-4 w-4" /> },
+  { to: "/admin/orders", labelKey: "admin.nav.orders", icon: <ShoppingCart className="h-4 w-4" />, permission: "orders:read" },
+  { to: "/admin/products", labelKey: "admin.nav.productReview", icon: <PackageCheck className="h-4 w-4" />, permission: "products:review" },
+  { to: "/admin/verifications", labelKey: "admin.nav.verifications", icon: <ShieldCheck className="h-4 w-4" />, permission: "verification:read" },
+  { to: "/admin/users", labelKey: "admin.nav.users", icon: <Users className="h-4 w-4" />, permission: "users:read" },
+  { to: "/admin/support", labelKey: "admin.nav.support", icon: <HelpCircle className="h-4 w-4" />, permission: "support:read" },
+  { to: "/admin/payouts", labelKey: "admin.nav.payouts", icon: <Banknote className="h-4 w-4" />, permission: "payouts:read" },
+  { to: "/admin/transactions", labelKey: "admin.nav.transactions", icon: <Receipt className="h-4 w-4" />, permission: "payments:read" },
+  { to: "/admin/analytics", labelKey: "admin.nav.analytics", icon: <LineChart className="h-4 w-4" />, adminOnly: true },
+  { to: "/admin/announcements", labelKey: "admin.nav.announcements", icon: <Bell className="h-4 w-4" />, permission: "announcements:write" },
+  { to: "/admin/audit-logs", labelKey: "admin.nav.auditTrail", icon: <FileClock className="h-4 w-4" />, permission: "audit:read" },
+  { to: "/admin/security-events", labelKey: "admin.nav.securityEvents", icon: <ShieldAlert className="h-4 w-4" />, permission: "security:read" },
+  { to: "/admin/recovery-appeals", labelKey: "admin.nav.recoveryAppeals", icon: <LifeBuoy className="h-4 w-4" />, permission: "security:read" },
+  { to: "/admin/security", labelKey: "admin.nav.mySecurity", icon: <KeyRound className="h-4 w-4" /> },
+  { to: "/admin/staff", labelKey: "admin.nav.staff", icon: <Briefcase className="h-4 w-4" />, permission: "staff:read" },
+  { to: "/admin/agents", labelKey: "admin.nav.agents", icon: <Sprout className="h-4 w-4" />, permission: "agents:read" },
+  { to: "/admin/exchange", labelKey: "admin.nav.exchange", icon: <Recycle className="h-4 w-4" />, permission: "exchange:read" },
+  { to: "/admin/roles", labelKey: "admin.nav.roles", icon: <Shield className="h-4 w-4" />, permission: "roles:read" },
+  { to: "/admin/fees", labelKey: "admin.nav.fees", icon: <Receipt className="h-4 w-4" />, permission: "fees:read" },
+  { to: "/admin/terms", labelKey: "admin.nav.terms", icon: <ScrollText className="h-4 w-4" />, permission: "terms:read" },
+  { to: "/admin/team", labelKey: "admin.nav.team", icon: <UserCog className="h-4 w-4" />, superAdminOnly: true },
+  { to: "/admin/config", labelKey: "admin.nav.config", icon: <Settings className="h-4 w-4" />, superAdminOnly: true },
 ];
 
 /** Isolated admin portal shell — no marketplace or affiliate navigation. */
 export const AdminLayout = () => {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   if (!user) return null;
 
-  const items = NAV.filter((i) => !i.superAdminOnly || isSuperAdmin(user));
+  const roleLabel =
+    (user.role in (t("admin.roleLabels", { returnObjects: true }) as Record<string, string>)
+      ? t(`admin.roleLabels.${user.role}`)
+      : null) ?? t("admin.staffRole");
+
+  const items = NAV.filter(
+    (i) =>
+      (!i.superAdminOnly || isSuperAdmin(user)) &&
+      (!i.adminOnly || isAdmin(user)) &&
+      (!i.permission || hasPermission(user, i.permission)),
+  );
 
   const list = (onNavigate?: () => void) => (
     <nav className="flex-1 space-y-1 overflow-y-auto px-3 pb-4">
@@ -86,23 +117,25 @@ export const AdminLayout = () => {
           }
         >
           {item.icon}
-          {item.label}
+          {t(item.labelKey)}
         </NavLink>
       ))}
     </nav>
   );
 
-  const header = (
+  const sidebarHeader = (
     <div className="px-6 py-6">
       <p className="font-display text-lg font-extrabold tracking-tight text-white">PhyhanAgro</p>
-      <p className="text-xs uppercase tracking-widest text-sidebar-foreground/60">Admin console</p>
+      <p className="text-xs uppercase tracking-widest text-sidebar-foreground/60">
+        {t("admin.console")}
+      </p>
     </div>
   );
 
   return (
     <div className="flex min-h-screen bg-secondary/30">
       <aside className="hidden w-64 shrink-0 flex-col bg-sidebar text-sidebar-foreground md:flex">
-        {header}
+        {sidebarHeader}
         {list()}
       </aside>
 
@@ -111,13 +144,15 @@ export const AdminLayout = () => {
           <div className="md:hidden">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Open menu">
+                <Button variant="ghost" size="icon" aria-label={t("nav.openMenu")}>
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
               <SheetContent side="left" className="flex w-72 flex-col bg-sidebar p-0 text-sidebar-foreground">
                 <SheetHeader className="px-6 py-5 text-left">
-                  <SheetTitle className="text-sidebar-foreground">Admin console</SheetTitle>
+                  <SheetTitle className="text-sidebar-foreground">
+                    {t("admin.console")}
+                  </SheetTitle>
                 </SheetHeader>
                 {list(() => setMobileOpen(false))}
               </SheetContent>
@@ -125,19 +160,21 @@ export const AdminLayout = () => {
           </div>
           <div className="min-w-0">
             <h1 className="truncate font-display text-base font-extrabold tracking-tight md:text-lg">
-              Administration
+              {t("admin.administration")}
             </h1>
           </div>
           <Badge variant="outline" className="hidden border-primary/30 bg-primary/5 text-primary sm:inline-flex">
-            {isSuperAdmin(user) ? "Super admin" : "Admin"}
+            {roleLabel}
           </Badge>
           {!mfaSatisfied(user) && (
             <Badge variant="outline" className="border-destructive/40 bg-destructive/10 text-destructive">
-              MFA required
+              {t("admin.mfaRequired")}
             </Badge>
           )}
 
           <div className="ml-auto flex items-center gap-2">
+            <LanguageSwitcher className="hidden md:block" />
+            <ThemeToggle className="hidden md:inline-flex" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 rounded-full p-1 pr-3 transition-colors hover:bg-secondary">
@@ -159,14 +196,14 @@ export const AdminLayout = () => {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate("/admin/security")}>
-                  <KeyRound className="mr-2 h-4 w-4" /> Security & MFA
+                  <KeyRound className="mr-2 h-4 w-4" /> {t("admin.securityMfa")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Sign out"
+              aria-label={t("nav.signOut")}
               onClick={() => {
                 logout();
                 navigate("/admin/login", { replace: true });

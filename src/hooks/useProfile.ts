@@ -2,6 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { uploadFile } from "@/hooks/useChat";
 import { api } from "@/lib/api";
 import type { User } from "@/types";
+import { DiditSdk } from "@didit-protocol/sdk-web";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 const unwrapUser = (data: unknown): User => {
@@ -78,6 +79,37 @@ export const useRequestRoleUpgrade = () => {
       return data;
     },
     onSuccess: () => refresh(),
+  });
+};
+
+export const useStartDiditVerification = () => {
+  const { refresh } = useAuth();
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post<{
+        url?: string;
+        sessionId?: string;
+        status?: string;
+      }>("/users/me/didit/session");
+      if (!data.url)
+        throw new Error("Didit verification session is unavailable right now.");
+      return data;
+    },
+    onSuccess: async (data) => {
+      DiditSdk.shared.onComplete = async (result) => {
+        if (result.type === "completed" || result.type === "cancelled") {
+          await refresh();
+        }
+      };
+      await DiditSdk.shared.startVerification({
+        url: data.url,
+        configuration: {
+          loggingEnabled: false,
+          closeModalOnComplete: true,
+          showExitConfirmation: true,
+        },
+      });
+    },
   });
 };
 

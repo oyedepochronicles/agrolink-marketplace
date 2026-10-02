@@ -1,4 +1,8 @@
-import axios, { AxiosError, type AxiosInstance, type AxiosRequestConfig } from "axios";
+import axios, {
+  AxiosError,
+  type AxiosInstance,
+  type AxiosRequestConfig,
+} from "axios";
 
 let baseUrl;
 if (import.meta.env.MODE === "development") {
@@ -16,16 +20,19 @@ export const REFRESH_TOKEN_KEY = "phyhan.refreshToken";
 export const MFA_TOKEN_KEY = "phyhan.mfaToken";
 
 export const getToken = () => localStorage.getItem(TOKEN_KEY);
-export const setToken = (token: string) => localStorage.setItem(TOKEN_KEY, token);
+export const setToken = (token: string) =>
+  localStorage.setItem(TOKEN_KEY, token);
 export const clearToken = () => localStorage.removeItem(TOKEN_KEY);
 
 export const getRefreshToken = () => localStorage.getItem(REFRESH_TOKEN_KEY);
 export const setRefreshToken = (token: string) =>
   localStorage.setItem(REFRESH_TOKEN_KEY, token);
-export const clearRefreshToken = () => localStorage.removeItem(REFRESH_TOKEN_KEY);
+export const clearRefreshToken = () =>
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
 
 export const getMfaToken = () => localStorage.getItem(MFA_TOKEN_KEY);
-export const setMfaToken = (token: string) => localStorage.setItem(MFA_TOKEN_KEY, token);
+export const setMfaToken = (token: string) =>
+  localStorage.setItem(MFA_TOKEN_KEY, token);
 export const clearMfaToken = () => localStorage.removeItem(MFA_TOKEN_KEY);
 
 /** Wipes every credential held by the browser. */
@@ -49,8 +56,19 @@ export const api: AxiosInstance = axios.create({
 
 api.interceptors.request.use((config) => {
   const token = getToken();
-  if (token && config.headers) {
-    config.headers.set?.("Authorization", `Bearer ${token}`);
+  if (!token || !config.headers) return config;
+
+  const explicitAuth =
+    config.headers.get?.("Authorization") ??
+    config.headers.Authorization ??
+    config.headers.authorization;
+
+  if (explicitAuth) return config;
+
+  if (config.headers.set) {
+    config.headers.set("Authorization", `Bearer ${token}`);
+  } else {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -93,20 +111,44 @@ const refreshSession = () => {
   return refreshPromise;
 };
 
-const NO_RETRY = ["/auth/login", "/auth/refresh", "/auth/mfa/verify-login"];
+const NO_RETRY = [
+  "/auth/login",
+  "/auth/refresh",
+  "/auth/mfa/verify-login",
+  // Recovery runs while the user is signed OUT: a 401 there is a wrong code,
+  // not an expired session. Never attempt a silent refresh/retry (that would
+  // double-count the attempt against the recovery lockout thresholds).
+  "/auth/recovery/",
+];
 
 api.interceptors.response.use(
   (res) => res,
   async (error: AxiosError<{ message?: string }>) => {
     const status = error.response?.status;
-    const original = error.config as (AxiosRequestConfig & { _retried?: boolean }) | undefined;
+    const original = error.config as
+      | (AxiosRequestConfig & { _retried?: boolean })
+      | undefined;
     const url = original?.url ?? "";
 
-    if (status === 401 && original && !original._retried && !NO_RETRY.some((p) => url.includes(p))) {
+    if (status === 401 && url.includes("/auth/mfa/verify-login")) {
+      // A wrong TOTP code is not a broken session. Keep the current MFA
+      // challenge token alive so the user can retry with a fresh correct code.
+      return Promise.reject(error);
+    }
+
+    if (
+      status === 401 &&
+      original &&
+      !original._retried &&
+      !NO_RETRY.some((p) => url.includes(p))
+    ) {
       original._retried = true;
       const token = await refreshSession();
       if (token) {
-        original.headers = { ...(original.headers ?? {}), Authorization: `Bearer ${token}` };
+        original.headers = {
+          ...(original.headers ?? {}),
+          Authorization: `Bearer ${token}`,
+        };
         return api.request(original);
       }
       clearSession();
@@ -133,13 +175,20 @@ export type SecurityErrorKind =
   | "unknown";
 
 export const classifyError = (err: unknown): SecurityErrorKind => {
-  const e = err as AxiosError<{ message?: string; code?: string; error?: string }>;
+  const e = err as AxiosError<{
+    message?: string;
+    code?: string;
+    error?: string;
+  }>;
   const status = e?.response?.status;
-  const raw = `${e?.response?.data?.code ?? ""} ${e?.response?.data?.message ?? ""}`.toLowerCase();
+  const raw =
+    `${e?.response?.data?.code ?? ""} ${e?.response?.data?.message ?? ""}`.toLowerCase();
   if (!e?.response) return "network";
-  if (status === 401) return raw.includes("mfa") ? "mfa_required" : "unauthenticated";
+  if (status === 401)
+    return raw.includes("mfa") ? "mfa_required" : "unauthenticated";
   if (status === 403) {
-    if (raw.includes("ip") || raw.includes("network") || raw.includes("vpn")) return "network_restricted";
+    if (raw.includes("ip") || raw.includes("network") || raw.includes("vpn"))
+      return "network_restricted";
     if (raw.includes("mfa")) return "mfa_required";
     return "forbidden";
   }
@@ -157,7 +206,8 @@ const GENERIC: Record<SecurityErrorKind, string> = {
     "This area is restricted to the approved network. Connect through the approved VPN and try again.",
   mfa_required: "Additional verification is required to continue.",
   not_found: "We couldn't find what you're looking for.",
-  conflict: "That action conflicts with the current state. Refresh and try again.",
+  conflict:
+    "That action conflicts with the current state. Refresh and try again.",
   rate_limited: "Too many attempts. Please wait a moment and try again.",
   server: "Something went wrong on our side. Please try again shortly.",
   network: "Network problem. Check your connection and try again.",
@@ -171,7 +221,12 @@ const GENERIC: Record<SecurityErrorKind, string> = {
 export const apiErrorMessage = (err: unknown): string => {
   const kind = classifyError(err);
   const e = err as AxiosError<{ message?: string; error?: string }>;
-  if (kind === "forbidden" || kind === "network_restricted" || kind === "server" || kind === "unauthenticated") {
+  if (
+    kind === "forbidden" ||
+    kind === "network_restricted" ||
+    kind === "server" ||
+    kind === "unauthenticated"
+  ) {
     return GENERIC[kind];
   }
   return (

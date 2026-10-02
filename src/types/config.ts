@@ -1,20 +1,52 @@
 // System configuration types — backend is source of truth.
+// Categories match the server's centralized list (config/configCategories.js),
+// which stores them UPPERCASE.
 export type ConfigCategory =
-  | "platform"
-  | "delivery"
-  | "payment"
-  | "verification"
-  | "notifications"
-  | "security";
+  | "DELIVERY"
+  | "PAYMENTS"
+  | "LOGISTICS"
+  | "MARKETPLACE"
+  | "FARMING"
+  | "VERIFICATION"
+  | "NOTIFICATIONS"
+  | "SECURITY"
+  | "ACCESS"
+  | "SYSTEM";
+
+export const CONFIG_CATEGORIES: ConfigCategory[] = [
+  "DELIVERY",
+  "PAYMENTS",
+  "LOGISTICS",
+  "MARKETPLACE",
+  "FARMING",
+  "VERIFICATION",
+  "NOTIFICATIONS",
+  "SECURITY",
+  "ACCESS",
+  "SYSTEM",
+];
 
 export type ConfigType = "string" | "number" | "boolean" | "json" | "array";
+
+export const CONFIG_VALUE_TYPES: ConfigType[] = [
+  "string",
+  "number",
+  "boolean",
+  "json",
+  "array",
+];
 
 export interface ConfigItem {
   _id?: string;
   key: string;
   value: unknown;
   category: ConfigCategory;
-  type: ConfigType;
+  /** Declared value type from the backend — drives control rendering + coercion. */
+  valueType?: ConfigType;
+  /** Exposed via the public /system-config endpoint when true. */
+  public?: boolean;
+  /** System-managed key (e.g. the RBAC matrix) — not editable via the generic editor. */
+  protected?: boolean;
   description?: string;
   createdAt?: string;
   updatedAt?: string;

@@ -17,13 +17,15 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   useAdminTickets,
   useReplyTicket,
+  useSupportAssignees,
   useTicket,
+  useUpdateTicketWorkflow,
   useUpdateTicketStatus,
 } from "@/hooks/useSupport";
 import { apiErrorMessage } from "@/lib/api";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { SupportTicketStatus } from "@/types";
+import type { SupportTicketDepartment, SupportTicketPriority, SupportTicketStatus } from "@/types";
 import { Loader2, MessageCircle, Send } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -31,12 +33,18 @@ import { toast } from "sonner";
 const STATUS_OPTIONS: SupportTicketStatus[] = [
   "open",
   "pending",
+  "escalated",
+  "waiting_customer",
   "resolved",
   "closed",
 ];
+const DEPARTMENTS: SupportTicketDepartment[] = ["support", "finance", "operations", "pickup", "warehouse", "logistics", "technical", "risk_compliance", "quality", "admin", "engineering"];
+const PRIORITIES: SupportTicketPriority[] = ["low", "normal", "high", "urgent"];
 const STATUS_TONE: Record<SupportTicketStatus, string> = {
   open: "bg-primary/10 text-primary border-primary/30",
   pending: "bg-warning/10 text-warning-foreground border-warning/40",
+  escalated: "bg-destructive/10 text-destructive border-destructive/30",
+  waiting_customer: "bg-blue-500/10 text-blue-700 border-blue-500/30",
   resolved: "bg-success/10 text-success-foreground border-success/40",
   closed: "bg-muted text-muted-foreground border-border",
 };
@@ -64,6 +72,8 @@ const AdminSupport = () => {
   const { data: active } = useTicket(activeId);
   const reply = useReplyTicket(activeId);
   const updateStatus = useUpdateTicketStatus(activeId);
+  const updateWorkflow = useUpdateTicketWorkflow(activeId);
+  const { data: assignees = [] } = useSupportAssignees();
   const [body, setBody] = useState("");
 
   const submit = async () => {
@@ -86,11 +96,22 @@ const AdminSupport = () => {
     }
   };
 
+  const changeWorkflow = async (
+    input: { department?: SupportTicketDepartment; priority?: SupportTicketPriority; assignedTo?: string | null },
+  ) => {
+    try {
+      await updateWorkflow.mutateAsync(input);
+      toast.success("Case workflow updated");
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
         title="Support tickets"
-        description="Respond to user tickets, track status, and resolve issues."
+        description="One shared case queue for Support, Finance, Operations, Technical and Compliance teams."
       />
 
       <Tabs
@@ -147,7 +168,7 @@ const AdminSupport = () => {
                         {t.subject}
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
-                        {t.user?.name} · {formatDateTime(t.updatedAt)}
+                        {t.user?.name} · {t.department ?? "support"} · {formatDateTime(t.updatedAt)}
                       </p>
                     </div>
                     <Badge
@@ -198,6 +219,41 @@ const AdminSupport = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="flex flex-wrap gap-2 border-b border-border px-4 pb-3">
+                <Select
+                  value={active.department ?? "support"}
+                  onValueChange={(department) => changeWorkflow({ department: department as SupportTicketDepartment })}
+                  disabled={updateWorkflow.isPending}
+                >
+                  <SelectTrigger className="h-8 w-40 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {DEPARTMENTS.map((department) => <SelectItem key={department} value={department} className="capitalize">{department.replace("_", " ")}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={active.priority ?? "normal"}
+                  onValueChange={(priority) => changeWorkflow({ priority: priority as SupportTicketPriority })}
+                  disabled={updateWorkflow.isPending}
+                >
+                  <SelectTrigger className="h-8 w-28 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {PRIORITIES.map((priority) => <SelectItem key={priority} value={priority} className="capitalize">{priority}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={active.assignedTo?._id ?? "unassigned"}
+                  onValueChange={(assignedTo) => changeWorkflow({ assignedTo: assignedTo === "unassigned" ? null : assignedTo })}
+                  disabled={updateWorkflow.isPending}
+                >
+                  <SelectTrigger className="h-8 w-44 text-xs"><SelectValue placeholder="Assign staff" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                    {assignees.map((assignee) => <SelectItem key={assignee._id} value={assignee._id}>{assignee.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                {active.assignedTo && <Badge variant="outline" className="h-8">Assigned: {active.assignedTo.name}</Badge>}
+                {active.slaDueAt && <Badge variant="outline" className="h-8">SLA: {formatDateTime(active.slaDueAt)}</Badge>}
+              </div>
 
               <div className="space-y-3 overflow-y-auto p-4">
                 <div className="rounded-2xl bg-secondary p-3 text-sm">
@@ -226,6 +282,18 @@ const AdminSupport = () => {
                     </div>
                   );
                 })}
+                {(active.events?.length ?? 0) > 0 && (
+                  <div className="border-t border-border pt-3">
+                    <p className="mb-2 text-xs font-semibold text-muted-foreground">Case activity</p>
+                    <div className="space-y-1.5">
+                      {active.events?.map((event) => (
+                        <p key={event._id} className="text-xs text-muted-foreground">
+                          {event.message ?? event.type} · {event.actor?.name ?? "System"} · {formatDateTime(event.createdAt)}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {active.status !== "closed" && (

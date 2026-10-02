@@ -100,6 +100,8 @@
     "payouts": "Sísanwó",
     "analytics": "Ìṣirò",
     "support": "Ìrànlọ́wọ́",
+    "myAgent": "Aṣojú mi",
+    "exchange": "Ọjà Pàṣípààrọ̀",
     "verificationPending": "Ìmúdájú ń dúró"
   },
   "table": { "rowsPerPage": "Ìlà fún ojú-ìwé", "page": "Ojú-ìwé {{current}} nínú {{total}}", "of": "nínú" },

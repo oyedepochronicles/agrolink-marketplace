@@ -64,6 +64,11 @@ const AdminVerifications = () => {
                         ? u.role + " → " + u.requestedRole
                         : u.role}
                     </Badge>
+                    {u.diditStatus && (
+                      <Badge variant="secondary" className="capitalize">
+                        Didit: {u.diditStatus}
+                      </Badge>
+                    )}
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {u.email} {u.phone && ` • ${u.phone}`}{" "}

@@ -4,12 +4,15 @@ import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/sonner";
+import { PRODUCT_CATEGORY_GROUPS } from "@/lib/categories";
 import { useCurrentLocation } from "@/hooks/useLocation";
 import { useProductsPaged } from "@/hooks/useProducts";
 import { NIGERIAN_STATES } from "@/lib/nigerianLocations";
@@ -18,16 +21,6 @@ import { Loader2, Search as SearchIcon, SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 
-const CATEGORIES = [
-  { label: "All categories", value: "all" },
-  { label: "Vegetables", value: "Vegetable" },
-  { label: "Fruits", value: "Fruit" },
-  { label: "Grains", value: "Grain" },
-  { label: "Tubers", value: "Tuber" },
-  { label: "Livestock", value: "Other" },
-  { label: "Dairy", value: "Other" },
-  { label: "Spices", value: "Other" },
-];
 const STATES = ["all", ...NIGERIAN_STATES];
 
 const MarketplaceSearch = () => {
@@ -162,11 +155,17 @@ const MarketplaceSearch = () => {
             <SelectTrigger>
               <SelectValue placeholder="Category" />
             </SelectTrigger>
-            <SelectContent>
-              {CATEGORIES.map((c, index) => (
-                <SelectItem key={`${c.value}-${index}`} value={c.value}>
-                  {c.label}
-                </SelectItem>
+            <SelectContent className="max-h-72">
+              <SelectItem value="all">All categories</SelectItem>
+              {PRODUCT_CATEGORY_GROUPS.map((group) => (
+                <SelectGroup key={group.group}>
+                  <SelectLabel>{group.group}</SelectLabel>
+                  {group.options.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               ))}
             </SelectContent>
           </Select>

@@ -1,5 +1,5 @@
-import { PageHeader } from "@/components/dashboard/PageHeader";
 import { SecureDocument } from "@/components/admin/SecureDocument";
+import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import type { User } from "@/types";
 import {
   ArrowLeft,
   Loader2,
+  ShieldAlert,
   ShieldCheck,
   ShieldX,
 } from "lucide-react";
@@ -153,6 +154,11 @@ const AdminVerificationDetail = () => {
               >
                 {user.verificationStatus ?? "unknown"}
               </Badge>
+              {user.diditStatus && (
+                <Badge variant="outline" className="capitalize">
+                  Didit: {user.diditStatus}
+                </Badge>
+              )}
             </div>
             <p className="mt-1 text-sm text-muted-foreground">
               {[user.email, user.phone].filter(Boolean).join("  •  ")}
@@ -165,6 +171,8 @@ const AdminVerificationDetail = () => {
         {/* Status & timeline */}
         <Section title="Status & timeline">
           <Detail label="Current status" value={user.verificationStatus} />
+          <Detail label="Didit status" value={user.diditStatus} />
+          <Detail label="Didit verified at" value={fmt(user.diditVerifiedAt)} />
           <Detail label="Submitted" value={fmt(user.verificationSubmittedAt)} />
           <Detail label="Reviewed" value={fmt(user.verificationReviewedAt)} />
           <Detail label="Member since" value={fmt(user.createdAt)} />
@@ -176,6 +184,32 @@ const AdminVerificationDetail = () => {
             />
           )}
         </Section>
+
+        {user.diditWorkflowUrl && (
+          <Section title="Didit workflow">
+            <Detail label="Session ID" value={user.diditSessionId} />
+            <Detail label="Workflow URL" value={user.diditWorkflowUrl} full />
+            <div className="mt-2 rounded-xl border border-dashed border-border bg-muted/50 p-3 text-xs text-muted-foreground">
+              {user.diditStatus === "approved" ? (
+                <span className="inline-flex items-center gap-2 text-emerald-600">
+                  <ShieldCheck className="h-4 w-4" /> Didit completed
+                  successfully.
+                </span>
+              ) : user.diditStatus === "declined" ||
+                user.diditStatus === "failed" ? (
+                <span className="inline-flex items-center gap-2 text-destructive">
+                  <ShieldAlert className="h-4 w-4" /> Didit returned a failed or
+                  declined status.
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" /> The user is still
+                  in an active Didit verification flow.
+                </span>
+              )}
+            </div>
+          </Section>
+        )}
 
         {/* Location */}
         <Section title="Location">
@@ -193,10 +227,7 @@ const AdminVerificationDetail = () => {
         {isFarmer(user) && (
           <Section title="Farmer profile">
             <Detail label="Farm name" value={user.farmerProfile?.farmName} />
-            <Detail
-              label="Farm phone"
-              value={user.farmerProfile?.farmPhone}
-            />
+            <Detail label="Farm phone" value={user.farmerProfile?.farmPhone} />
             <Detail
               label="Farm address"
               value={
@@ -206,7 +237,10 @@ const AdminVerificationDetail = () => {
             />
             <Detail
               label="Farm location"
-              value={[user.farmerProfile?.farmLga, user.farmerProfile?.farmState]
+              value={[
+                user.farmerProfile?.farmLga,
+                user.farmerProfile?.farmState,
+              ]
                 .filter(Boolean)
                 .join(", ")}
             />
@@ -224,7 +258,10 @@ const AdminVerificationDetail = () => {
         {/* Rider profile */}
         {isRider(user) && (
           <Section title="Rider profile">
-            <Detail label="Vehicle type" value={user.riderProfile?.vehicleType} />
+            <Detail
+              label="Vehicle type"
+              value={user.riderProfile?.vehicleType}
+            />
             <Detail
               label="Vehicle number"
               value={user.riderProfile?.vehicleNumber}
@@ -344,7 +381,9 @@ const Detail = ({
   value?: string;
   full?: boolean;
 }) => (
-  <div className={`rounded-lg bg-secondary/50 p-3 ${full ? "sm:col-span-2" : ""}`}>
+  <div
+    className={`rounded-lg bg-secondary/50 p-3 ${full ? "sm:col-span-2" : ""}`}
+  >
     <p className="text-xs uppercase tracking-wide text-muted-foreground">
       {label}
     </p>

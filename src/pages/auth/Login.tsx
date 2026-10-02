@@ -93,9 +93,16 @@ const Login = () => {
         title="Two-factor verification"
         subtitle="Enter the 6-digit code from your authenticator app."
         footer={
-          <button type="button" onClick={cancelMfa} className="font-semibold text-primary hover:underline">
-            Use a different account
-          </button>
+          <div className="space-y-1.5">
+            <button type="button" onClick={cancelMfa} className="font-semibold text-primary hover:underline">
+              Use a different account
+            </button>
+            <div>
+              <Link to="/recovery" className="text-sm text-muted-foreground hover:text-primary hover:underline">
+                Lost access to your authenticator app?
+              </Link>
+            </div>
+          </div>
         }
       >
         <form onSubmit={onVerifyMfa} className="space-y-4">

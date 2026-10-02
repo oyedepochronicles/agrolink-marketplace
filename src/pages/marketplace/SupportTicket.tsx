@@ -18,6 +18,8 @@ import type { SupportTicketStatus } from "@/types";
 const STATUS_TONE: Record<SupportTicketStatus, string> = {
   open: "bg-primary/10 text-primary border-primary/30",
   pending: "bg-warning/10 text-warning-foreground border-warning/40",
+  escalated: "bg-destructive/10 text-destructive border-destructive/40",
+  waiting_customer: "bg-secondary text-secondary-foreground border-border",
   resolved: "bg-success/10 text-success-foreground border-success/40",
   closed: "bg-muted text-muted-foreground border-border",
 };

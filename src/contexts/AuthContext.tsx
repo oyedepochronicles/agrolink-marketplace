@@ -1,25 +1,52 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   api,
   clearMfaToken,
   clearSession,
   getMfaToken,
   getToken,
+  SESSION_EXPIRED_EVENT,
   setMfaToken,
   setRefreshToken,
   setToken,
-  SESSION_EXPIRED_EVENT,
 } from "@/lib/api";
-import { disconnectSocket, getSocket } from "@/lib/socket";
 import type { NigerianLocationValue } from "@/lib/nigerianLocations";
+import { disconnectSocket, getSocket } from "@/lib/socket";
 import type { Role, User } from "@/types";
+import { useTheme } from "next-themes";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import { useTranslation } from "react-i18next";
 
-interface LoginInput { email: string; password: string }
-interface RegisterBuyerInput { name: string; email: string; phone?: string; password: string; location?: NigerianLocationValue }
+interface LoginInput {
+  email: string;
+  password: string;
+}
+interface RegisterBuyerInput {
+  name: string;
+  email: string;
+  phone?: string;
+  password: string;
+  location?: NigerianLocationValue;
+}
 interface AffiliateInput {
-  name: string; email: string; phone: string; password: string;
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
   role: Extract<Role, "farmer" | "rider">;
-  location?: NigerianLocationValue; state?: string; address?: string; farmName?: string; farmAddress?: string; farmLandmark?: string;
+  location?: NigerianLocationValue;
+  state?: string;
+  address?: string;
+  farmName?: string;
+  farmAddress?: string;
+  farmLandmark?: string;
 }
 
 export type LoginResult =
@@ -56,9 +83,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(!!getToken());
   const [mfaPending, setMfaPending] = useState<boolean>(!!getMfaToken());
+  const { i18n } = useTranslation();
+  const { setTheme } = useTheme();
 
   const refresh = useCallback(async () => {
-    if (!getToken()) { setUser(null); setLoading(false); return; }
+    if (!getToken()) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
     try {
       const { data } = await api.get<{ user: User } | User>("/auth/me");
       const u = (data as { user?: User }).user ?? (data as User);
@@ -71,7 +104,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  useEffect(() => { void refresh(); }, [refresh]);
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
 
   // A hard session loss (refresh token rejected) clears client state immediately.
   useEffect(() => {
@@ -90,6 +125,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     else disconnectSocket();
   }, [user]);
 
+  // Preference precedence: an authenticated account preference OVERRIDES the
+  // saved-local choice. On login/refresh, hydrate i18n language + color mode
+  // from the account when (and only when) the user has explicitly set one.
+  // `preferences` is absent for users who never opened the selector, so their
+  // saved-local → browser → default chain is preserved (we never force a value
+  // they didn't choose). Local changes made while signed in are persisted back
+  // by `usePreferences`, so a subsequent refresh re-hydrates the same value.
+  useEffect(() => {
+    const prefs = user?.preferences;
+    if (!prefs) return;
+    if (prefs.language && prefs.language !== i18n.resolvedLanguage) {
+      void i18n.changeLanguage(prefs.language);
+    }
+    if (prefs.theme) {
+      setTheme(prefs.theme);
+    }
+  }, [user, i18n, setTheme]);
+
   const persistSession = (payload: AuthPayload): User => {
     const token = payload.token ?? payload.accessToken;
     if (token) setToken(token);
@@ -104,7 +157,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (input: LoginInput): Promise<LoginResult> => {
     const { data } = await api.post<AuthPayload>("/auth/login", input);
     if (data?.mfaRequired || data?.requiresMfa) {
-      // Store only the short-lived MFA challenge token — never a session token.
+      // Always drop stale credentials before starting a new MFA challenge so an
+      // old mfaToken cannot be replayed into the next sign-in flow.
+      clearSession();
       setMfaToken(data.mfaToken ?? data.token ?? data.accessToken ?? "");
       setMfaPending(true);
       return { status: "mfa_required" };
@@ -114,10 +169,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const verifyMfaLogin = async (code: string): Promise<User> => {
     const mfaToken = getMfaToken();
+    const payload = { code, ...(mfaToken ? { mfaToken } : {}) };
     const { data } = await api.post<AuthPayload>(
       "/auth/mfa/verify-login",
-      { code },
-      mfaToken ? { headers: { Authorization: `Bearer ${mfaToken}` } } : undefined,
+      payload,
+      mfaToken
+        ? { headers: { Authorization: `Bearer ${mfaToken}` } }
+        : undefined,
     );
     const u = persistSession(data);
     if (!data.user) await refresh();
@@ -136,7 +194,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const registerAffiliate = async (input: AffiliateInput) => {
-    const { location, state, address, farmName, farmAddress, farmLandmark, ...rest } = input;
+    const {
+      location,
+      state,
+      address,
+      farmName,
+      farmAddress,
+      farmLandmark,
+      ...rest
+    } = input;
     const resolvedLocation =
       location ||
       (state
@@ -151,7 +217,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       termsAccepted: true,
       location: resolvedLocation,
       ...(input.role === "farmer"
-        ? { farmerProfile: { farmName: farmName || input.name, farmAddress: farmAddress || resolvedLocation?.fullAddress || address, farmState: resolvedLocation?.state || state, farmLga: resolvedLocation?.lga, farmLandmark: farmLandmark || resolvedLocation?.landmark, farmPhone: input.phone } }
+        ? {
+            farmerProfile: {
+              farmName: farmName || input.name,
+              farmAddress:
+                farmAddress || resolvedLocation?.fullAddress || address,
+              farmState: resolvedLocation?.state || state,
+              farmLga: resolvedLocation?.lga,
+              farmLandmark: farmLandmark || resolvedLocation?.landmark,
+              farmPhone: input.phone,
+            },
+          }
         : {}),
       ...(input.role === "rider" ? { riderProfile: {} } : {}),
     });
@@ -166,9 +242,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
   };
 
-  const value = useMemo<AuthContextValue>(() => ({
-    user, loading, mfaPending, login, verifyMfaLogin, cancelMfa, registerBuyer, registerAffiliate, logout, refresh,
-  }), [user, loading, mfaPending, refresh]);
+  const value = useMemo<AuthContextValue>(
+    () => ({
+      user,
+      loading,
+      mfaPending,
+      login,
+      verifyMfaLogin,
+      cancelMfa,
+      registerBuyer,
+      registerAffiliate,
+      logout,
+      refresh,
+    }),
+    [user, loading, mfaPending, refresh],
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

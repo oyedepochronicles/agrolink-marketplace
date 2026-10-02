@@ -14,7 +14,9 @@ import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -26,22 +28,12 @@ import {
   useUploadImage,
 } from "@/hooks/useFarmerProducts";
 import { apiErrorMessage } from "@/lib/api";
+import { PRODUCT_CATEGORY_GROUPS } from "@/lib/categories";
 import { locationError } from "@/lib/nigerianLocations";
 import type { Product } from "@/types";
 import { Loader2, MapPin, Plus, Upload, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-
-const CATEGORIES = [
-  "Grains",
-  "Vegetables",
-  "Fruits",
-  "Tubers",
-  "Livestock",
-  "Dairy",
-  "Spices",
-  "Other",
-];
 
 type PickupLocation = {
   id: string;
@@ -107,7 +99,7 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
     price: 0,
     discount: { type: "none", value: 0 },
     unit: "kg",
-    category: "Grains",
+    category: "Grain",
     state: "Lagos",
 
     stock: 0,
@@ -133,7 +125,7 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
               price: product.price,
               discount: product.discount ?? { type: "none", value: 0 },
               unit: product.unit ?? "kg",
-              category: product.category ?? "Grains",
+              category: product.category ?? "Grain",
               state: product.location?.state ?? product.state ?? "Lagos",
               stock: product.stock ?? 0,
               harvestDate: toDateInput(product.harvestDate),
@@ -161,7 +153,7 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
               price: 0,
               discount: { type: "none", value: 0 },
               unit: "kg",
-              category: "Grains",
+              category: "Grain",
               state: "Lagos",
               stock: 0,
               harvestDate: toDateInput(new Date().toISOString()),
@@ -397,11 +389,16 @@ export const ProductFormDialog = ({ open, onOpenChange, product }: Props) => {
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
-                    </SelectItem>
+                <SelectContent className="max-h-72">
+                  {PRODUCT_CATEGORY_GROUPS.map((group) => (
+                    <SelectGroup key={group.group}>
+                      <SelectLabel>{group.group}</SelectLabel>
+                      {group.options.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
                   ))}
                 </SelectContent>
               </Select>

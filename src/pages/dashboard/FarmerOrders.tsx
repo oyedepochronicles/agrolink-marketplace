@@ -1,5 +1,6 @@
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { OfflinePaymentDialog } from "@/components/dashboard/OfflinePaymentDialog";
+import { PickupDetailsDialog } from "@/components/dashboard/PickupDetailsDialog";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { OrderStatusBadge } from "@/components/dashboard/StatusBadge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,6 +32,7 @@ import {
   Banknote,
   Check,
   Loader2,
+  MapPin,
   MessageCircle,
   ShoppingCart,
   X,
@@ -212,6 +214,9 @@ function FarmerOrdersCard(o) {
     o.paymentStatus === "paid" &&
     ["accepted", "ready_for_pickup", "pending"].includes(o.status) &&
     o.deliveryMethod !== "pickup";
+  const canSetPickup =
+    o.paymentStatus === "paid" &&
+    !["delivered", "cancelled", "rejected"].includes(o.status);
   return (
     <Card key={o._id} className="rounded-2xl p-4 shadow-card">
       <div className="flex flex-wrap items-start gap-4">
@@ -292,6 +297,16 @@ function FarmerOrdersCard(o) {
             trigger={
               <Button size="sm" variant="outline" className="gap-1">
                 <Banknote className="h-4 w-4" /> Record offline payment
+              </Button>
+            }
+          />
+        )}
+        {canSetPickup && (
+          <PickupDetailsDialog
+            order={o}
+            trigger={
+              <Button size="sm" variant="outline" className="gap-1">
+                <MapPin className="h-4 w-4" /> Set pickup details
               </Button>
             }
           />

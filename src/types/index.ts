@@ -1,6 +1,29 @@
 // PhyhanAgro shared TypeScript types
 
-export type Role = "buyer" | "farmer" | "rider" | "admin" | "super_admin";
+export type Role =
+  | "buyer"
+  | "farmer"
+  | "rider"
+  | "admin"
+  | "super_admin"
+  // Farm Agent: acts on behalf of ASSIGNED farmers only. Its own portal (/agent),
+  // NOT staff and NOT an admin — holds an explicit, minimal permission slice
+  // (agents:read, agents:act). The backend is the source of truth via `permissions`.
+  | "farm_agent"
+  // Operational staff roles (admin-created, never self-registered). Each holds a
+  // narrow permission slice; the backend is the source of truth via `permissions`.
+  | "support"
+  | "technical_support"
+  | "operations_manager"
+  | "pickup_agent"
+  | "pickup_station_manager"
+  | "warehouse_agent"
+  | "warehouse_manager"
+  | "logistics_manager"
+  | "financial_manager"
+  | "risk_compliance"
+  | "quality_control"
+  | "engineering";
 export type VerificationStatus =
   | "pending"
   | "pending_verification"
@@ -15,6 +38,12 @@ export interface User {
   email: string;
   phone?: string;
   role: Role;
+  /**
+   * Effective capability tokens for this user's role, as resolved by the
+   * backend (defaults ⊕ super_admin override). May contain the "*" wildcard for
+   * super_admin. UX/defense-in-depth only — the backend re-checks every request.
+   */
+  permissions?: string[];
   verificationStatus?: VerificationStatus;
   isVerified?: boolean;
   isEmailVerified?: boolean;
@@ -24,11 +53,23 @@ export interface User {
   mfaEnrolledAt?: string;
   lastLoginAt?: string;
   inviteStatus?: "pending" | "accepted" | "expired";
+  adminInviteAcceptedAt?: string;
   isSuspended?: boolean;
   isDeactivated?: boolean;
-  accountState?: "active" | "suspended" | "deactivated";
+  isDeleted?: boolean;
+  accountState?: "active" | "suspended" | "deactivated" | "deleted" | "invited";
   profileImage?: string;
   avatar?: string;
+  /**
+   * Cross-device UI preferences (client-presentation only), persisted via
+   * `PATCH /users/me/preferences` and surfaced on `/auth/me`. Absent when the
+   * user has never explicitly chosen one — the client then falls back to its
+   * saved-local → browser → default chain. Never affects money or API codes.
+   */
+  preferences?: {
+    language?: "en" | "yo" | "ha" | "ig";
+    theme?: "light" | "dark" | "system";
+  };
   state?: string;
   avgRating?: number;
   ratingsCount?: number;
@@ -71,6 +112,11 @@ export interface User {
   verificationSubmittedAt?: string;
   verificationReviewedAt?: string;
   verificationRejectionReason?: string;
+  diditSessionId?: string;
+  diditWorkflowUrl?: string;
+  diditStatus?: "pending" | "approved" | "declined" | "failed" | "expired";
+  diditLastEventId?: string;
+  diditVerifiedAt?: string;
   requestedRole?: Extract<Role, "farmer" | "rider">;
   requestedRoleProfile?: Record<string, unknown>;
   requestedRoleSubmittedAt?: string;
@@ -102,7 +148,9 @@ export interface ProductRatingSummary {
   count: number;
 }
 
-export type SupportTicketStatus = "open" | "pending" | "resolved" | "closed";
+export type SupportTicketStatus = "open" | "pending" | "escalated" | "waiting_customer" | "resolved" | "closed";
+export type SupportTicketDepartment = "support" | "finance" | "operations" | "pickup" | "warehouse" | "logistics" | "technical" | "risk_compliance" | "quality" | "admin" | "engineering";
+export type SupportTicketPriority = "low" | "normal" | "high" | "urgent";
 
 export interface SupportTicketReply {
   _id: string;
@@ -117,8 +165,16 @@ export interface SupportTicket {
   body: string;
   category?: string;
   status: SupportTicketStatus;
+  department?: SupportTicketDepartment;
+  priority?: SupportTicketPriority;
+  assignedTo?: Pick<User, "_id" | "name" | "email" | "role">;
+  orderId?: string;
+  parentOrderId?: string;
+  slaDueAt?: string;
+  resolvedAt?: string;
   user?: Pick<User, "_id" | "name" | "profileImage" | "email">;
   replies?: SupportTicketReply[];
+  events?: Array<{ _id: string; type: string; message?: string; from?: string; to?: string; actor?: Pick<User, "_id" | "name" | "role">; createdAt: string }>;
   createdAt: string;
   updatedAt: string;
 }
@@ -161,6 +217,12 @@ export interface Product {
   reviewsCount?: number;
   status?: "available" | "reserved" | "sold" | "expired";
   adminStatus?: "active" | "inactive";
+  // Farm-Agent on-behalf provenance. Set by the backend when a farm_agent creates
+  // or manages a listing for an assigned farmer; ownership (farmerId) stays with the
+  // farmer. Presence of createdByAgent means "agent-managed" — the UI badges it so a
+  // farmer-performed listing is always distinguishable from an agent-on-behalf one.
+  createdByAgent?: string;
+  onBehalfOfFarmer?: string;
   isLimitedVisibility?: boolean;
   location?: {
     state?: string;
@@ -267,7 +329,7 @@ export interface Order {
     waitingMinutes: number;
   };
   status: OrderStatus;
-  paymentStatus?: "unpaid" | "paid";
+  paymentStatus?: "unpaid" | "pending" | "paid" | "failed" | "refunded";
   paymentMethod?: "in_app" | "offline" | "pay_later";
   paymentReference?: string;
   createdAt: string;

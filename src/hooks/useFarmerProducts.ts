@@ -111,6 +111,32 @@ export const useUpdateProductStatus = () => {
   });
 };
 
+export interface ProductChange {
+  _id: string;
+  field: "price" | "quantity" | "status" | "adminStatus" | "discount";
+  oldValue?: unknown;
+  newValue?: unknown;
+  source?: string;
+  actorId?: { _id: string; name?: string; role?: string };
+  actorRole?: string;
+  reason?: string;
+  createdAt: string;
+}
+
+/** Immutable audit trail for a product (GET /products/:id/history).
+ *  Visible to the owning farmer or an admin. */
+export const useProductHistory = (id?: string) =>
+  useQuery({
+    queryKey: ["product-history", id],
+    enabled: !!id,
+    queryFn: async (): Promise<ProductChange[]> => {
+      const { data } = await api.get<{ items?: ProductChange[] }>(
+        `/products/${id}/history`,
+      );
+      return data.items ?? [];
+    },
+  });
+
 export const useUploadImage = () =>
   useMutation({
     mutationFn: async (file: File): Promise<string> => {

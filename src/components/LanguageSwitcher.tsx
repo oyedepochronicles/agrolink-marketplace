@@ -7,6 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { usePreferences } from "@/hooks/usePreferences";
 import { SUPPORTED_LANGUAGES } from "@/i18n";
 import { cn } from "@/lib/utils";
 import { Globe } from "lucide-react";
@@ -25,9 +26,10 @@ export const LanguageSwitcher = ({
   align = "end",
   className,
 }: Props) => {
-  const { i18n, t } = useTranslation();
+  const { t } = useTranslation();
+  const { language, setLanguage } = usePreferences();
   const current =
-    SUPPORTED_LANGUAGES.find((l) => l.code === i18n.resolvedLanguage) ??
+    SUPPORTED_LANGUAGES.find((l) => l.code === language) ??
     SUPPORTED_LANGUAGES[0];
 
   return (
@@ -46,19 +48,28 @@ export const LanguageSwitcher = ({
           {compact && <span className="sr-only">{current.native}</span>}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align={align} className="w-44 rounded-xl">
+      <DropdownMenuContent align={align} className="w-52 rounded-xl">
         <DropdownMenuLabel>{t("common.language")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {SUPPORTED_LANGUAGES.map((l) => (
           <DropdownMenuItem
             key={l.code}
-            onClick={() => i18n.changeLanguage(l.code)}
+            onClick={() => setLanguage(l.code)}
             className={cn(
+              "gap-2",
               current.code === l.code &&
                 "bg-secondary font-semibold text-primary",
             )}
           >
-            {l.native}
+            <span>{l.native}</span>
+            {l.beta && (
+              <span
+                className="rounded bg-warning/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-warning"
+                // Unverified community translation — never presented as reviewed.
+              >
+                {t("common.beta")}
+              </span>
+            )}
             <span className="ml-auto text-xs uppercase text-muted-foreground">
               {l.code}
             </span>

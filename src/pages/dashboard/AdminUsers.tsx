@@ -44,6 +44,7 @@ import {
   useAdminUsers,
   useDeleteAdminUser,
   useInviteAdminUser,
+  useRestoreAdminUser,
   useUpdateAdminUserDeactivation,
   useUpdateAdminUserSuspension,
 } from "@/hooks/useAdmin";
@@ -67,7 +68,7 @@ import { useCallback, useMemo, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
-type AccountState = "active" | "suspended" | "deactivated";
+type AccountState = "active" | "suspended" | "deactivated" | "deleted";
 type AdminInviteRole = Extract<Role, "admin" | "super_admin">;
 
 interface Row {
@@ -84,6 +85,7 @@ interface Row {
 }
 
 const accountState = (user: User): AccountState => {
+  if (user.isDeleted || user.accountState === "deleted") return "deleted";
   if (user.isDeactivated || user.accountState === "deactivated")
     return "deactivated";
   if (user.isSuspended || user.accountState === "suspended") return "suspended";
@@ -94,6 +96,7 @@ const ACCOUNT_STYLES: Record<AccountState, string> = {
   active: "bg-primary/15 text-primary",
   suspended: "bg-warning/15 text-warning-foreground",
   deactivated: "bg-destructive/10 text-destructive",
+  deleted: "bg-muted text-muted-foreground",
 };
 
 const AccountBadge = ({ state }: { state: AccountState }) => (
@@ -126,10 +129,14 @@ const Detail = ({
 const AdminUsers = () => {
   const { t } = useTranslation();
   const { user: currentUser } = useAuth();
-  const { data: users = [], isLoading } = useAdminUsers();
+  const [stateFilter, setStateFilter] = useState<"all" | AccountState>("all");
+  const { data: users = [], isLoading } = useAdminUsers(
+    stateFilter === "all" ? {} : { accountState: stateFilter },
+  );
   const del = useDeleteAdminUser();
   const suspend = useUpdateAdminUserSuspension();
   const deactivate = useUpdateAdminUserDeactivation();
+  const restore = useRestoreAdminUser();
   const inviteAdmin = useInviteAdminUser();
   const [confirm, setConfirm] = useState<User | null>(null);
   const [selected, setSelected] = useState<User | null>(null);
@@ -206,6 +213,23 @@ const AdminUsers = () => {
     [deactivate],
   );
 
+  const setRestored = useCallback(
+    async (user: User) => {
+      try {
+        const updated = await restore.mutateAsync(user._id);
+        toast.success(
+          "User restored — they return deactivated and must be reactivated",
+        );
+        setSelected((current) =>
+          current?._id === user._id ? updated : current,
+        );
+      } catch (e) {
+        toast.error(apiErrorMessage(e));
+      }
+    },
+    [restore],
+  );
+
   const submitInvite = async (event: FormEvent) => {
     event.preventDefault();
     try {
@@ -247,40 +271,64 @@ const AdminUsers = () => {
                 <Mail className="mr-2 h-4 w-4" /> Email
               </a>
             </DropdownMenuItem>
-            <DropdownMenuItem
-              disabled={suspend.isPending}
-              onClick={() => setSuspended(user, state !== "suspended")}
-            >
-              {state === "suspended" ? (
-                <PlayCircle className="mr-2 h-4 w-4" />
-              ) : (
-                <PauseCircle className="mr-2 h-4 w-4" />
-              )}
-              {state === "suspended" ? "Restore" : "Suspend"}
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              disabled={deactivate.isPending}
-              onClick={() => setDeactivated(user, state !== "deactivated")}
-            >
-              {state === "deactivated" ? (
-                <PlayCircle className="mr-2 h-4 w-4" />
-              ) : (
-                <UserX className="mr-2 h-4 w-4" />
-              )}
-              {state === "deactivated" ? "Reactivate" : "Deactivate"}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              className="text-destructive focus:text-destructive"
-              onClick={() => setConfirm(user)}
-            >
-              <Trash2 className="mr-2 h-4 w-4" /> Remove
-            </DropdownMenuItem>
+            {state === "deleted" ? (
+              currentUser?.role === "super_admin" && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    disabled={restore.isPending}
+                    onClick={() => setRestored(user)}
+                  >
+                    <PlayCircle className="mr-2 h-4 w-4" /> Restore
+                  </DropdownMenuItem>
+                </>
+              )
+            ) : (
+              <>
+                <DropdownMenuItem
+                  disabled={suspend.isPending}
+                  onClick={() => setSuspended(user, state !== "suspended")}
+                >
+                  {state === "suspended" ? (
+                    <PlayCircle className="mr-2 h-4 w-4" />
+                  ) : (
+                    <PauseCircle className="mr-2 h-4 w-4" />
+                  )}
+                  {state === "suspended" ? "Restore" : "Suspend"}
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  disabled={deactivate.isPending}
+                  onClick={() => setDeactivated(user, state !== "deactivated")}
+                >
+                  {state === "deactivated" ? (
+                    <PlayCircle className="mr-2 h-4 w-4" />
+                  ) : (
+                    <UserX className="mr-2 h-4 w-4" />
+                  )}
+                  {state === "deactivated" ? "Reactivate" : "Deactivate"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={() => setConfirm(user)}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" /> Remove
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       );
     },
-    [deactivate.isPending, setDeactivated, setSuspended, suspend.isPending],
+    [
+      currentUser?.role,
+      deactivate.isPending,
+      restore.isPending,
+      setDeactivated,
+      setRestored,
+      setSuspended,
+      suspend.isPending,
+    ],
   );
 
   const columns = useMemo<ColumnDef<Row>[]>(
@@ -373,6 +421,26 @@ const AdminUsers = () => {
           ) : undefined
         }
       />
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-sm font-medium text-muted-foreground">
+          Account status
+        </span>
+        <Select
+          value={stateFilter}
+          onValueChange={(v) => setStateFilter(v as "all" | AccountState)}
+        >
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All accounts</SelectItem>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="suspended">Suspended</SelectItem>
+            <SelectItem value="deactivated">Deactivated</SelectItem>
+            <SelectItem value="deleted">Deleted</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       {isLoading ? (
         <div className="flex justify-center py-16">
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />

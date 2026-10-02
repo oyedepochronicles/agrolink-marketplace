@@ -2,6 +2,7 @@ import { DataTable } from "@/components/dashboard/DataTable";
 import { EmptyState } from "@/components/dashboard/EmptyState";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { ProductFormDialog } from "@/components/dashboard/ProductFormDialog";
+import { ProductHistoryDialog } from "@/components/dashboard/ProductHistoryDialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,7 +33,7 @@ import { formatDate, formatNaira } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/types";
 import type { ColumnDef } from "@tanstack/react-table";
-import { Loader2, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
+import { History, Loader2, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 
@@ -94,6 +95,7 @@ const FarmerProducts = () => {
   const [editing, setEditing] = useState<Product | undefined>();
   const [open, setOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Product | null>(null);
+  const [historyFor, setHistoryFor] = useState<Product | null>(null);
 
   const rows = useMemo<Row[]>(
     () =>
@@ -223,6 +225,9 @@ const FarmerProducts = () => {
               <DropdownMenuItem onClick={() => onEdit(row.original.raw)}>
                 <Pencil className="mr-2 h-4 w-4" /> Edit
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setHistoryFor(row.original.raw)}>
+                <History className="mr-2 h-4 w-4" /> View history
+              </DropdownMenuItem>
               <DropdownMenuLabel>Set status</DropdownMenuLabel>
               {STATUS_OPTIONS.map((status) => (
                 <DropdownMenuItem
@@ -287,6 +292,12 @@ const FarmerProducts = () => {
       )}
 
       <ProductFormDialog open={open} onOpenChange={setOpen} product={editing} />
+
+      <ProductHistoryDialog
+        product={historyFor ?? undefined}
+        open={!!historyFor}
+        onOpenChange={(v) => !v && setHistoryFor(null)}
+      />
 
       <AlertDialog
         open={!!confirmDelete}

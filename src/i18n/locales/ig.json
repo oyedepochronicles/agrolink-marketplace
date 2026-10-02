@@ -100,6 +100,8 @@
     "payouts": "Ịkwụ ụgwọ",
     "analytics": "Nyocha",
     "support": "Enyemaka",
+    "myAgent": "Onye nnọchite anya m",
+    "exchange": "Ahịa Mgbanwe",
     "verificationPending": "Nkwado na-eche"
   },
   "table": { "rowsPerPage": "Ahịrị kwa ibe", "page": "Ibe {{current}} nke {{total}}", "of": "nke" },

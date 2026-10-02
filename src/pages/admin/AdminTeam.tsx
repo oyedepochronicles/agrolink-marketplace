@@ -42,8 +42,24 @@ interface Row {
   role: string;
   mfa: string;
   state: string;
+  pendingInvite: boolean;
   raw: User;
 }
+
+// Derive the human-readable status from the server's accountState (the source
+// of truth), falling back to inviteStatus for older payloads. An outstanding,
+// unaccepted invite reads "Invite pending"; once a password is set it is
+// "Active" (or "Deactivated" if the account was disabled).
+const isPendingInvite = (u: User) =>
+  u.accountState === "invited" || (!u.adminInviteAcceptedAt && u.inviteStatus === "pending");
+
+const resolveState = (u: User) => {
+  if (u.accountState === "deleted") return "Deleted";
+  if (isPendingInvite(u)) return "Invite pending";
+  if (u.isDeactivated || u.accountState === "deactivated") return "Deactivated";
+  if (u.accountState === "suspended") return "Suspended";
+  return "Active";
+};
 
 const AdminTeam = () => {
   const { data, isLoading, error } = useAdminTeam();
@@ -67,7 +83,8 @@ const AdminTeam = () => {
         email: u.email,
         role: u.role,
         mfa: u.mfaEnabled ? "Enabled" : "Not enabled",
-        state: u.isDeactivated ? "Deactivated" : u.inviteStatus === "pending" ? "Invite pending" : "Active",
+        state: resolveState(u),
+        pendingInvite: isPendingInvite(u),
         raw: u,
       })),
     [data],
@@ -123,12 +140,30 @@ const AdminTeam = () => {
           </Badge>
         ),
       },
-      { accessorKey: "state", header: "Status" },
+      {
+        accessorKey: "state",
+        header: "Status",
+        cell: ({ row }) => {
+          const s = row.original.state;
+          const tone =
+            s === "Active"
+              ? "bg-primary/10 text-primary"
+              : s === "Invite pending"
+                ? "bg-amber-500/10 text-amber-600"
+                : "bg-muted text-muted-foreground";
+          return (
+            <Badge variant="outline" className={`rounded-full border-transparent ${tone}`}>
+              {s}
+            </Badge>
+          );
+        },
+      },
       {
         id: "actions",
         header: "",
         cell: ({ row }) => {
           const u = row.original.raw;
+          const pending = row.original.pendingInvite;
           return (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -137,12 +172,16 @@ const AdminTeam = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => run(() => resend.mutateAsync(u._id), "Invitation resent")}>
-                  Resend invitation
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => run(() => resetMfa.mutateAsync(u._id), "MFA reset")}>
-                  Reset MFA
-                </DropdownMenuItem>
+                {pending && (
+                  <DropdownMenuItem onClick={() => run(() => resend.mutateAsync(u._id), "Invitation resent")}>
+                    Resend invitation
+                  </DropdownMenuItem>
+                )}
+                {!pending && (
+                  <DropdownMenuItem onClick={() => run(() => resetMfa.mutateAsync(u._id), "MFA reset")}>
+                    Reset MFA
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuItem
                   className="text-destructive"
                   onClick={() =>

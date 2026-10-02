@@ -27,6 +27,7 @@ import {
   Phone,
   ShieldAlert,
   ShieldCheck,
+  ShieldX,
   Verified,
 } from "lucide-react";
 import { useRef, useState } from "react";
@@ -45,6 +46,7 @@ const Profile = () => {
   const isPending =
     user.verificationStatus === "pending" ||
     user.verificationStatus === "pending_verification";
+  const isRejected = user.verificationStatus === "rejected";
 
   const onPick = async (file?: File) => {
     if (!file) return;
@@ -129,7 +131,8 @@ const Profile = () => {
 
         <div className="space-y-1 p-6 md:p-8">
           <div className="mb-3 flex items-center gap-2 text-xs text-muted-foreground">
-            <Lock className="h-3 w-3" /> Email and phone changes require OTP verification.
+            <Lock className="h-3 w-3" /> Email and phone changes require OTP
+            verification.
           </div>
           <Row
             icon={<UserIconLucide />}
@@ -162,48 +165,92 @@ const Profile = () => {
             />
           )}
 
+          <div className="space-y-4 pt-6">
+            <div className="rounded-2xl border border-border bg-secondary/40 p-4">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    {isVerified ? (
+                      <>
+                        <ShieldCheck className="h-4 w-4 text-emerald-500" />{" "}
+                        Identity verified
+                      </>
+                    ) : isRejected ? (
+                      <>
+                        <ShieldX className="h-4 w-4 text-destructive" />{" "}
+                        Verification declined
+                      </>
+                    ) : isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin text-amber-500" />{" "}
+                        Verification in progress
+                      </>
+                    ) : (
+                      <>
+                        <ShieldAlert className="h-4 w-4 text-amber-500" />{" "}
+                        Identity not verified
+                      </>
+                    )}
+                  </div>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {isVerified
+                      ? "Your identity verification is complete."
+                      : isRejected
+                        ? "Your last Didit or manual review was rejected. You can try again and upload a fresh identity document."
+                        : isPending
+                          ? "We’re checking your identity confirmation and supporting documents."
+                          : "Verify your identity to unlock trusted transactions and access the marketplace."}
+                  </p>
+                </div>
+                {!isVerified && (
+                  <VerificationRequestDialog
+                    trigger={
+                      <Button className="rounded-full bg-gradient-primary shadow-glow">
+                        <ShieldCheck className="mr-2 h-4 w-4" />
+                        {isRejected ? "Retry verification" : "Verify identity"}
+                      </Button>
+                    }
+                  />
+                )}
+              </div>
+            </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-2 pt-6">
-            <ChangePasswordDialog
-              trigger={
-                <Button variant="outline" className="rounded-full">
-                  <Lock className="mr-2 h-4 w-4" /> Change password
-                </Button>
-              }
-            />
-            <Button variant="outline" className="rounded-full" asChild>
-              <Link to="/marketplace/support">
-                <HelpCircle className="mr-2 h-4 w-4" /> Contact support
-              </Link>
-            </Button>
-            {user.role === "buyer" && !user.requestedRole && (
-              <RoleUpgradeDialog
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <ChangePasswordDialog
                 trigger={
-                  <Button className="rounded-full bg-gradient-primary shadow-glow">
-                    <ShieldCheck className="mr-2 h-4 w-4" /> Request role
-                    upgrade
+                  <Button variant="outline" className="rounded-full">
+                    <Lock className="mr-2 h-4 w-4" /> Change password
                   </Button>
                 }
               />
-            )}
-            {!isVerified && !isPending && (
-              <VerificationRequestDialog
-                trigger={
-                  <Button className="rounded-full bg-gradient-primary shadow-glow">
-                    <ShieldCheck className="mr-2 h-4 w-4" /> Request
-                    verification
-                  </Button>
-                }
-              />
-            )}
-            {user.role === "buyer" && user.requestedRole && (
-              <Badge className="rounded-full bg-warning/20 text-warning">
-                Upgrade request pending: {user.requestedRole}
-              </Badge>
-            )}
-            <Button onClick={logout} variant="outline" className="rounded-full">
-              <LogOut className="mr-2 h-4 w-4" /> Sign out
-            </Button>
+              <Button variant="outline" className="rounded-full" asChild>
+                <Link to="/marketplace/support">
+                  <HelpCircle className="mr-2 h-4 w-4" /> Contact support
+                </Link>
+              </Button>
+              {user.role === "buyer" && !user.requestedRole && (
+                <RoleUpgradeDialog
+                  trigger={
+                    <Button className="rounded-full bg-gradient-primary shadow-glow">
+                      <ShieldCheck className="mr-2 h-4 w-4" /> Request role
+                      upgrade
+                    </Button>
+                  }
+                />
+              )}
+              {user.role === "buyer" && user.requestedRole && (
+                <Badge className="rounded-full bg-warning/20 text-warning">
+                  Upgrade request pending: {user.requestedRole}
+                </Badge>
+              )}
+              <Button
+                onClick={logout}
+                variant="outline"
+                className="rounded-full"
+              >
+                <LogOut className="mr-2 h-4 w-4" /> Sign out
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -212,7 +259,15 @@ const Profile = () => {
 };
 
 const UserIconLucide = () => (
-  <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  <svg
+    className="h-4 w-4"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
     <circle cx="12" cy="7" r="4" />
   </svg>
@@ -288,4 +343,3 @@ const Row = ({
 };
 
 export default Profile;
-

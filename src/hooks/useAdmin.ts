@@ -40,11 +40,28 @@ export const useAdminVerification = (id?: string) =>
     queryFn: async () => (await api.get<User>(`/admin/verifications/${id}`)).data,
   });
 
-export const useAdminUsers = () =>
+export interface AdminUserFilters {
+  accountState?: "active" | "suspended" | "deactivated" | "deleted";
+  role?: string;
+  q?: string;
+  page?: number;
+  limit?: number;
+}
+
+export const useAdminUsers = (filters: AdminUserFilters = {}) =>
   useQuery({
-    queryKey: ["admin-users"],
+    queryKey: ["admin-users", filters],
     queryFn: async () =>
-      unwrapUsers((await api.get<UserListResp | User[]>("/admin/users")).data),
+      unwrapUsers(
+        (
+          await api.get<UserListResp | User[]>("/admin/users", {
+            // Server paginates (default 12, max 50); pull the full page so the
+            // table isn't silently truncated, and forward any active filter.
+            params: { limit: 50, ...filters },
+          })
+        ).data,
+      ),
+    placeholderData: (prev) => prev,
   });
 
 export const useAdminProducts = () =>
@@ -108,6 +125,24 @@ export const useUpdateAdminUserDeactivation = () => {
   return useMutation({
     mutationFn: async ({ id, isDeactivated }: { id: string; isDeactivated: boolean }) => {
       const { data } = await api.patch<{ user: User }>(`/admin/users/${id}/deactivate`, { isDeactivated });
+      return data.user;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin-users"] });
+      qc.invalidateQueries({ queryKey: ["admin-stats"] });
+    },
+  });
+};
+
+/** Super-admin restore of a soft-deleted user (POST /admin/users/:id/restore).
+ *  The user returns DEACTIVATED and must be explicitly reactivated afterwards. */
+export const useRestoreAdminUser = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post<{ message: string; user: User }>(
+        `/admin/users/${id}/restore`,
+      );
       return data.user;
     },
     onSuccess: () => {

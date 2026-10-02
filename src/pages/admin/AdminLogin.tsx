@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { PasswordInput } from "@/components/ui/password-input";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiErrorMessage, classifyError } from "@/lib/api";
-import { isAdmin } from "@/lib/authz";
+import { isStaff } from "@/lib/authz";
 import { Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
@@ -12,7 +12,8 @@ import { toast } from "sonner";
 
 /** Dedicated, isolated entry point for the admin console. */
 const AdminLogin = () => {
-  const { user, login, verifyMfaLogin, cancelMfa, mfaPending, logout } = useAuth();
+  const { user, login, verifyMfaLogin, cancelMfa, mfaPending, logout } =
+    useAuth();
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -20,10 +21,10 @@ const AdminLogin = () => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  if (user && isAdmin(user)) return <Navigate to="/admin" replace />;
+  if (user && isStaff(user)) return <Navigate to="/admin" replace />;
 
   const finish = (u: { role: string }) => {
-    if (!isAdmin(u as never)) {
+    if (!isStaff(u as never)) {
       logout();
       setError("This account cannot access the admin console.");
       return;
@@ -71,9 +72,13 @@ const AdminLogin = () => {
           <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
             <ShieldCheck className="h-6 w-6 text-primary" />
           </div>
-          <h1 className="font-display text-xl font-extrabold tracking-tight">Admin console</h1>
+          <h1 className="font-display text-xl font-extrabold tracking-tight">
+            Admin console
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {mfaPending ? "Enter your authenticator code." : "Authorized personnel only."}
+            {mfaPending
+              ? "Enter your authenticator code."
+              : "Authorized personnel only."}
           </p>
         </div>
 
@@ -92,8 +97,16 @@ const AdminLogin = () => {
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" disabled={submitting || code.length < 6} className="h-11 w-full rounded-full">
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verify"}
+            <Button
+              type="submit"
+              disabled={submitting || code.length < 6}
+              className="h-11 w-full rounded-full"
+            >
+              {submitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Verify"
+              )}
             </Button>
             <button
               type="button"
@@ -125,8 +138,16 @@ const AdminLogin = () => {
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" disabled={submitting || !email || !password} className="h-11 w-full rounded-full">
-              {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Sign in"}
+            <Button
+              type="submit"
+              disabled={submitting || !email || !password}
+              className="h-11 w-full rounded-full"
+            >
+              {submitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                "Sign in"
+              )}
             </Button>
           </form>
         )}

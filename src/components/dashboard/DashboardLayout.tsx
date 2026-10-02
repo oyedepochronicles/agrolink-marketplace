@@ -1,10 +1,12 @@
 import { Brand } from "@/components/Brand";
 import { EmailVerificationBanner } from "@/components/EmailVerificationBanner";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { NotificationsBell } from "@/components/NotificationsBell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Sheet,
   SheetContent,
@@ -13,6 +15,8 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToggleAvailability } from "@/hooks/useAvailability";
+import { apiErrorMessage } from "@/lib/api";
 import { initials } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/types";
@@ -30,6 +34,7 @@ import {
   Menu,
   MessageSquare,
   PackageCheck,
+  Recycle,
   Settings,
   ShieldCheck,
   ShoppingCart,
@@ -42,6 +47,7 @@ import {
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,6 +96,16 @@ const NAV_BY_ROLE: Record<Extract<Role, "farmer" | "rider">, NavEntry[]> = {
       icon: <Timer className="h-4 w-4" />,
     },
     {
+      to: "/dashboard/farmer/agent",
+      labelKey: "dashboard.myAgent",
+      icon: <Users className="h-4 w-4" />,
+    },
+    {
+      to: "/dashboard/farmer/exchange",
+      labelKey: "dashboard.exchange",
+      icon: <Recycle className="h-4 w-4" />,
+    },
+    {
       to: "/marketplace/support",
       labelKey: "dashboard.support",
       icon: <MessageSquare className="h-4 w-4" />,
@@ -127,6 +143,41 @@ const NAV_BY_ROLE: Record<Extract<Role, "farmer" | "rider">, NavEntry[]> = {
       icon: <Wallet className="h-4 w-4" />,
     },
   ],
+};
+
+// Farmer/rider self-service availability switch shown in the dashboard header.
+// Reflects `user.isAvailable` and refreshes the auth context after toggling so
+// the badge stays in sync across the app.
+const AvailabilityToggle = () => {
+  const { user, refresh } = useAuth();
+  const { t } = useTranslation();
+  const toggle = useToggleAvailability();
+  if (!user || (user.role !== "farmer" && user.role !== "rider")) return null;
+  const available = user.isAvailable ?? false;
+  const onChange = async (next: boolean) => {
+    try {
+      await toggle.mutateAsync(next);
+      await refresh();
+      toast.success(
+        next ? t("dashboard.nowAvailable") : t("dashboard.nowUnavailable"),
+      );
+    } catch (e) {
+      toast.error(apiErrorMessage(e));
+    }
+  };
+  return (
+    <div className="hidden items-center gap-2 sm:flex">
+      <span className="text-xs font-medium text-muted-foreground">
+        {available ? t("dashboard.available") : t("dashboard.unavailable")}
+      </span>
+      <Switch
+        checked={available}
+        disabled={toggle.isPending}
+        onCheckedChange={onChange}
+        aria-label={t("dashboard.toggleAvailability")}
+      />
+    </div>
+  );
 };
 
 export const DashboardLayout = () => {
@@ -188,7 +239,7 @@ export const DashboardLayout = () => {
           <div className="flex items-center gap-2 md:hidden">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" aria-label="Open menu">
+                <Button variant="ghost" size="icon" aria-label={t("dashboard.openMenu")}>
                   <Menu className="h-5 w-5" />
                 </Button>
               </SheetTrigger>
@@ -234,7 +285,9 @@ export const DashboardLayout = () => {
             )}
           </div>
           <div className="ml-auto flex items-center gap-2 md:gap-3">
+            <AvailabilityToggle />
             <LanguageSwitcher />
+            <ThemeToggle />
             <NotificationsBell variant="light" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -267,7 +320,8 @@ export const DashboardLayout = () => {
                 </DropdownMenuItem>
                 {!user.isEmailVerified && (
                   <DropdownMenuItem onClick={() => navigate("/verify-email")}>
-                    <ShieldCheck className="mr-2 h-4 w-4" /> Verify email
+                    <ShieldCheck className="mr-2 h-4 w-4" />{" "}
+                    {t("dashboard.verifyEmail")}
                   </DropdownMenuItem>
                 )}
 
@@ -285,7 +339,7 @@ export const DashboardLayout = () => {
                 logout();
                 navigate("/login");
               }}
-              aria-label="Sign out"
+              aria-label={t("nav.signOut")}
             >
               <LogOut className="h-4 w-4" />
             </Button>
